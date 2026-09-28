@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  const users: { id: number; email: string; username: string; name: string | null; role: string; }[] = await prisma.user.findMany({
+  const users: { id: string; email: string; username: string; name: string | null; role: string; }[] = await prisma.user.findMany({
     select: { id: true, email: true, username: true, name: true, role: true },
   });
 
