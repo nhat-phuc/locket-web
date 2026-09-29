@@ -9,7 +9,6 @@ import Hero from "@/components/Hero";
 import Stats from "@/components/Stats";
 import Marquee from "@/components/Marquee";
 import IconShowcase from "@/components/IconShowcase";
-import Deposits from "@/components/Deposits";
 import Reviews from "@/components/Reviews";
 import RecentTransactions from "@/components/RecentTransactions";
 import Gallery from "@/components/Gallery";
@@ -46,7 +45,6 @@ export default function HomePage() {
           <Stats />
           <Marquee />
           <IconShowcase />
-          <Deposits />
           <RecentTransactions />
           <Reviews />
           <Gallery />
