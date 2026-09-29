@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Header from "@/components/Header";
 import FloatingWidgets from "@/components/FloatingWidgets";
 
 interface Service {
@@ -151,7 +150,6 @@ export default function BangGiaPage() {
 
   return (
     <>
-      <Header />
       <main className="pr-page">
         <div className="pr-deco pr-deco-1" />
         <div className="pr-deco pr-deco-2" />

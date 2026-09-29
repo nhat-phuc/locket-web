@@ -1,7 +1,6 @@
 
 "use client";
 
-import Header from "@/components/Header";
 // import Navbar from "@/components/Navbar";
 
 
@@ -37,7 +36,6 @@ export default function HomePage() {
 
       
 
-      <Header />
 
       <main className="wrap center-y">
         <div className="page-shell">

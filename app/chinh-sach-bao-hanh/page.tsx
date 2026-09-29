@@ -1,12 +1,10 @@
 "use client";
 
-import Header from "@/components/Header";
 
 
 export default function Page() {
   return (
     <>
-      <Header />
       <main className="wrap center-y" style={{ paddingTop: 60, paddingBottom: 60, minHeight: "70vh" }}>
         <div className="page-shell" style={{ maxWidth: 800 }}>
           <h1 style={{ fontSize: 36, fontWeight: 900, letterSpacing: "-1.5px", marginBottom: 24 }}>

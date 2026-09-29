@@ -1,11 +1,9 @@
 import Link from "next/link";
-import Header from "@/components/Header";
 // 
 
 export default function ThatBaiPage() {
   return (
     <>
-      <Header />
       <main className="wrap center-y" style={{ minHeight: "80vh" }}>
         <div style={{ maxWidth: 480, textAlign: "center", padding: "60px 24px" }}>
           <div style={{ fontSize: 80, marginBottom: 20 }}>❌</div>

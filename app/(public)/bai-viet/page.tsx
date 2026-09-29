@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import Header from "@/components/Header";
 // 
 import Navbar from "@/components/Navbar";
 
@@ -154,7 +153,6 @@ export default function BaiVietPage() {
     <>
       <div className="bv-progress" style={{ transform: `scaleX(${progress / 100})` }} />
 
-      <Header />
 
       <main className="wrap center-y" style={{ paddingTop: 32, paddingBottom: 60 }}>
         <div className="page-shell">

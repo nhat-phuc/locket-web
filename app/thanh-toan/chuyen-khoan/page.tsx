@@ -2,7 +2,6 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import Header from "@/components/Header";
 
 function ChuyenKhoanContent() {
   const searchParams = useSearchParams();
@@ -283,7 +282,6 @@ function ChuyenKhoanContent() {
 export default function ChuyenKhoanPage() {
   return (
     <>
-      <Header />
       <Suspense fallback={<div style={{ padding: 60, textAlign: "center" }}>Đang tải...</div>}>
         <ChuyenKhoanContent />
       </Suspense>

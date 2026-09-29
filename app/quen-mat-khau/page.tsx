@@ -4,7 +4,6 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import Header from "@/components/Header";
 import Navbar from "@/components/Navbar";
 // 
 
@@ -133,7 +132,6 @@ function ResetForm() {
 export default function DatLaiMatKhauPage() {
   return (
     <>
-      <Header />
       <main className="wrap center-y" style={{ minHeight: "60vh", paddingTop: 60, paddingBottom: 60 }}>
         <div className="page-shell" style={{ maxWidth: 480 }}>
           <Suspense fallback={<div className="auth-form">Đang tải...</div>}>

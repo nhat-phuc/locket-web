@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Header from "@/components/Header";
 
 export default function LienHePage() {
   const [name, setName] = useState("");
@@ -53,7 +52,6 @@ export default function LienHePage() {
 
   return (
     <>
-      <Header />
       <main className="ct-page">
         {/* Animated background */}
         <div className="ct-orb ct-orb-1" />

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Header from "@/components/Header";
 // 
 
 export default function KichHoatPage() {
@@ -26,7 +25,6 @@ export default function KichHoatPage() {
 
   return (
     <>
-      <Header />
       <main className="wrap center-y" style={{ paddingTop: 40, paddingBottom: 60 }}>
         <div style={{ width: "100%", maxWidth: 560 }}>
           <div style={{ textAlign: "center", marginBottom: 40 }}>
