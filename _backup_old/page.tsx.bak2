@@ -1,0 +1,697 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+
+/* ═══════════════════════════════════════════
+   TYPES
+   ═══════════════════════════════════════════ */
+interface Deposit {
+  name: string;
+  plan: string;
+  type: "adr" | "gold" | "vip" | "luxury" | "agent";
+  amount: number;
+  time: string;
+  discount: string | null;
+}
+
+interface Review {
+  name: string;
+  initial: string;
+  text: string;
+  time: string;
+  img: string;
+}
+
+/* ═══════════════════════════════════════════
+   DATA
+   ═══════════════════════════════════════════ */
+const depositData: Deposit[] = [
+  { name: "ngm***08", plan: "ADR 1 - ANDROID", type: "adr", amount: 79000, time: "12 phút trước", discount: null },
+  { name: "myt***yd", plan: "Gói GOLD 1T (3s)", type: "gold", amount: 79000, time: "1 giờ trước", discount: null },
+  { name: "Yen***05", plan: "Gói GOLD 1T (3s)", type: "gold", amount: 79000, time: "1 giờ trước", discount: null },
+  { name: "TRA***NG", plan: "ĐẠI LÝ 3", type: "agent", amount: 999000, time: "2 giờ trước", discount: null },
+  { name: "nha***00", plan: "LUXURY 1", type: "luxury", amount: 129000, time: "3 giờ trước", discount: "10%" },
+  { name: "Duk***ee", plan: "Gói GOLD 1T (3s)", type: "gold", amount: 79000, time: "3 giờ trước", discount: null },
+  { name: "Tra***oc", plan: "Gói VIP 1", type: "vip", amount: 99000, time: "6 giờ trước", discount: null },
+  { name: "lt2***10", plan: "Gói VIP 1", type: "vip", amount: 99000, time: "6 giờ trước", discount: null },
+  { name: "hie***91", plan: "LUXURY 1", type: "luxury", amount: 129000, time: "8 giờ trước", discount: "20%" },
+  { name: "doa***77", plan: "Gói VIP 1", type: "vip", amount: 99000, time: "13 giờ trước", discount: null },
+  { name: "xiao***", plan: "LUXURY 1", type: "luxury", amount: 129000, time: "14 giờ trước", discount: "10%" },
+  { name: "trh***78", plan: "Gói VIP 1", type: "vip", amount: 99000, time: "17 giờ trước", discount: null },
+  { name: "Sun***Hi", plan: "LUXURY 1", type: "luxury", amount: 129000, time: "21 giờ trước", discount: null },
+  { name: "Han***uy", plan: "Gói VIP 1", type: "vip", amount: 99000, time: "23 giờ trước", discount: null },
+  { name: "Hab***ng", plan: "Gói VIP 1", type: "vip", amount: 99000, time: "1 ngày trước", discount: "20%" },
+  { name: "dun***o7", plan: "LUXURY 1", type: "luxury", amount: 129000, time: "1 ngày trước", discount: null },
+  { name: "bao***20", plan: "Gói VIP 1", type: "vip", amount: 99000, time: "1 ngày trước", discount: null },
+  { name: "Duo***on", plan: "Gói VIP 1", type: "vip", amount: 99000, time: "1 ngày trước", discount: null },
+  { name: "kho***09", plan: "Gói VIP 1", type: "vip", amount: 99000, time: "1 ngày trước", discount: null },
+  { name: "hoa***03", plan: "Gói GOLD 1T (3s)", type: "gold", amount: 79000, time: "1 ngày trước", discount: null },
+];
+
+const reviews: Review[] = [
+  { name: "ho***wj", initial: "H", text: "Uy tín", time: "21 giờ trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-alexanderpham1001-1789269618.webp" },
+  { name: "qp***30", initial: "Q", text: "Uy tín", time: "1 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-cuongloveconan-1789310648.webp" },
+  { name: "kl***nh", initial: "K", text: "Uy tín", time: "3 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-gdinh2401-1789016313.webp" },
+  { name: "ng***k0", initial: "N", text: "Uy tín", time: "3 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-haomilknoob-1789737511.webp" },
+  { name: "hi***ii", initial: "H", text: "uy tín lắm ah", time: "4 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-huynguyen39348-1789302143.webp" },
+  { name: "Ph***ng", initial: "P", text: "Uy tín", time: "4 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-mhxinhgai-1788868821.webp" },
+  { name: "th***77", initial: "T", text: "Oke nha", time: "4 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-nguyenhoanghiep21062008-1789208040.webp" },
+  { name: "va***it", initial: "V", text: "Uy tín nha", time: "5 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-nhuanh0304-1788837719.webp" },
+  { name: "Ng***89", initial: "N", text: "uytin", time: "5 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-nmy362685-1788929202.webp" },
+  { name: "em***89", initial: "E", text: "uy tín", time: "6 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-nt19042099-1789906616.webp" },
+  { name: "Ry***an", initial: "R", text: "Locket 15s an toàn", time: "6 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-quangnhat-1788742227.webp" },
+  { name: "ki***09", initial: "K", text: "uy tin", time: "6 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-thitranle38-1788670297.webp" },
+  { name: "tu***gt", initial: "T", text: "Uy tín", time: "6 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-tungkk000-1790093269.webp" },
+  { name: "ng***nh", initial: "N", text: "Uy tín", time: "7 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-trinhkhoa310-1789266941.webp" },
+  { name: "ng***om", initial: "N", text: "Locket của mình bị lỗi nhma vẫn đc sửa ❤️", time: "7 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-thitranle38-1788670297.webp" },
+  { name: "vu***nn", initial: "V", text: "uy tín", time: "8 ngày trước", img: "/upload/images.jpg" },
+];
+
+const features = [
+  { icon: "⭐", color: "#a78bfa", title: "Mở khóa tính năng Gold", desc: "Sử dụng toàn bộ các tính năng cao cấp của gói Locket Gold Premium vĩnh viễn." },
+  { icon: "🚫", color: "#f87171", title: "Không quảng cáo", desc: "Trải nghiệm mượt mà, sạch bóng không một cọng quảng cáo khó chịu." },
+  { icon: "🖼️", color: "#4ade80", title: "Upload ảnh từ thư viện", desc: "Lấy ảnh trực tiếp từ camera roll để gửi nhanh cho bạn bè thay vì chụp mới." },
+  { icon: "📹", color: "#f59e0b", title: "Quay video Lockets 15s", desc: "Quay video Lockets lên đến 15s (LUXURY) hoặc 3s (VIP & Android) cực sinh động." },
+  { icon: "👁️", color: "#3b82f6", title: "Xem người đã xem Lockets", desc: "Xem danh sách những ai đã xem Lockets của bạn (hỗ trợ iOS)." },
+  { icon: "📱", color: "#ec4899", title: "Thay đổi icon Locket", desc: "Làm mới màn hình chính với bộ icon ứng dụng Locket viền vàng Gold quyền lực." },
+  { icon: "🎨", color: "#8b5cf6", title: "Thay đổi theme Locket", desc: "Cá nhân hóa màu sắc giao diện bên trong ứng dụng theo sở thích." },
+  { icon: "👥", color: "#14b8a6", title: "Mở khóa giới hạn bạn bè", desc: "Xoá bỏ rào cản, thêm vô số bạn bè không bị giới hạn." },
+  { icon: "🎁", color: "#10b981", title: "Tặng Canva Edu 3 Năm", desc: "Tất cả gói đều được tặng kèm tài khoản Canva Edu bản quyền 3 năm." },
+  { icon: "🔗", color: "#f43f5e", title: "Mở khóa Addlocket.app", desc: "Được mở khóa toàn bộ tính năng cao cấp của hệ sinh thái addlocket.app." },
+];
+
+const privileges = [
+  { icon: "⭐", color: "#fbbf24", badge: "Mở khóa", badgeType: "success", title: "Trải nghiệm toàn bộ Gold", desc: "Mở khóa các tính năng Gold Premium: gửi video (15s cho Luxury, 3s cho VIP và Android), tải ảnh từ thư viện, thay đổi icon & theme ứng dụng." },
+  { icon: "⏱️", color: "#c4b5fd", badge: "Vĩnh viễn", badgeType: "info", title: "Thời hạn duy trì Premium", desc: "Mua một lần, sử dụng trọn đời. Cam kết không phát sinh thêm chi phí duy trì ẩn, không cần gia hạn theo gói tháng hay gói năm." },
+  { icon: "🛡️", color: "#34d399", badge: "Ổn định", badgeType: "success", title: "Duy trì ổn định lâu dài", desc: "Với iOS, tích hợp cấu hình DNS đặc biệt chặn thu hồi chứng chỉ. Với Android, Hệ thống Auto-Renew tự động bơm Gold liên tục." },
+  { icon: "��", color: "#60a5fa", badge: "Miễn phí", badgeType: "info", title: "Hỗ trợ chuyển đổi thiết bị", desc: "Khi đổi máy mới, hỗ trợ chuyển đổi/đồng bộ cấu hình (iOS) hoặc cập nhật lại ID lên Hệ thống Auto-Renew (Android) hoàn toàn miễn phí." },
+  { icon: "💬", color: "#f472b6", badge: "24/7", badgeType: "success", title: "Hỗ trợ kỹ thuật ưu tiên", desc: "Đội ngũ kỹ thuật viên chuyên nghiệp hỗ trợ trực tiếp 24/7 qua Zalo và Telegram, xử lý nhanh mọi yêu cầu cài đặt." },
+  { icon: "🔒", color: "#38bdf8", badge: "Bảo mật", badgeType: "info", title: "Bảo mật & Quyền riêng tư", desc: "Quy trình kích hoạt hoàn toàn tự động qua Username/Link công khai, tuyệt đối không yêu cầu cung cấp mật khẩu Locket hay iCloud." },
+];
+
+const faqItems = [
+  { q: "Dịch vụ hỗ trợ trên nền tảng nào?", a: "Hệ thống hỗ trợ cả iOS và Android. iOS: kích hoạt qua Username + DNS. Android: tải APK Locket Gold độc quyền." },
+  { q: "Điều gì xảy ra khi tôi thay đổi thiết bị?", a: "iOS: cài lại cấu hình DNS. Android: tải lại APK. Hoàn toàn miễn phí." },
+  { q: "Tôi có cần chia sẻ mật khẩu cá nhân không?", a: "Hoàn toàn không. Chỉ cần Username/Link Locket công khai." },
+  { q: "Việc nâng cấp có an toàn cho tài khoản không?", a: "Hệ thống hoạt động độc lập, không can thiệp tài khoản gốc. An toàn 100%." },
+  { q: "Quá trình kích hoạt mất bao lâu?", a: "Sau khi thanh toán, hệ thống tự động đối soát trong vòng chưa tới 1 phút." },
+];
+
+const badgeColors: Record<string, string> = {
+  gold: "rgba(251,191,36,0.15)",
+  vip: "rgba(167,139,250,0.15)",
+  luxury: "rgba(244,114,182,0.15)",
+  adr: "rgba(74,222,128,0.15)",
+  agent: "rgba(251,146,60,0.15)",
+};
+const badgeTextColors: Record<string, string> = {
+  gold: "#fbbf24", vip: "#a78bfa", luxury: "#f472b6", adr: "#4ade80", agent: "#fb923c",
+};
+const badgeLabels: Record<string, string> = {
+  gold: "⭐ GOLD", vip: "💜 VIP", luxury: "💎 LUXURY", adr: "📱 ADR", agent: "🤝 ĐẠI LÝ",
+};
+
+/* ═══════════════════════════════════════════
+   MAIN COMPONENT
+   ═══════════════════════════════════════════ */
+export default function TrangChuPage() {
+  const [displayedCount, setDisplayedCount] = useState(12);
+  const [reviewShown, setReviewShown] = useState(16);
+  const [faqOpen, setFaqOpen] = useState<number | null>(null);
+  const [lightboxImg, setLightboxImg] = useState<string | null>(null);
+  const [catLoaderVisible, setCatLoaderVisible] = useState(true);
+  const [noticeVisible, setNoticeVisible] = useState(false);
+  const [backToTopVisible, setBackToTopVisible] = useState(false);
+
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const iconMapRef = useRef<HTMLDivElement>(null);
+
+  /* Cat loader */
+  useEffect(() => {
+    const t = setTimeout(() => setCatLoaderVisible(false), 2500);
+    return () => clearTimeout(t);
+  }, []);
+
+  /* Notice modal */
+  useEffect(() => {
+    const hideUntil = localStorage.getItem("notice_hidden_until");
+    if (!hideUntil || Date.now() > parseInt(hideUntil)) {
+      const t = setTimeout(() => setNoticeVisible(true), 700);
+      return () => clearTimeout(t);
+    }
+  }, []);
+
+  /* Back to top */
+  useEffect(() => {
+    const onScroll = () => setBackToTopVisible(window.scrollY > 400);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  /* Falling canvas */
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    let W = window.innerWidth, H = window.innerHeight;
+    canvas.width = W; canvas.height = H;
+    const heartImg = new Image();
+    heartImg.src = "/img/logo/icon.jpg";
+    const MAX_P = 14;
+    const mkParticle = () => ({
+      x: Math.random() * W, y: -20,
+      size: 10 + Math.random() * 14,
+      speed: 0.3 + Math.random() * 0.5,
+      drift: (Math.random() - 0.5) * 0.4,
+      rot: Math.random() * Math.PI * 2,
+      rotSpd: (Math.random() - 0.5) * 0.03,
+      alpha: 0.35 + Math.random() * 0.35,
+      sway: Math.random() * Math.PI * 2,
+      swaySpd: 0.008 + Math.random() * 0.015,
+    });
+    const particles = Array.from({ length: MAX_P }, () => {
+      const p = mkParticle(); p.y = Math.random() * H; return p;
+    });
+    let rafId: number;
+    const anim = () => {
+      ctx.clearRect(0, 0, W, H);
+      particles.forEach((pt, i) => {
+        pt.sway += pt.swaySpd;
+        pt.x += Math.sin(pt.sway) * 0.6 + pt.drift;
+        pt.y += pt.speed;
+        pt.rot += pt.rotSpd;
+        ctx.save();
+        ctx.globalAlpha = pt.alpha;
+        ctx.translate(pt.x, pt.y);
+        ctx.rotate(pt.rot);
+        if (heartImg.complete && heartImg.naturalWidth > 0)
+          ctx.drawImage(heartImg, -pt.size / 2, -pt.size / 2, pt.size, pt.size);
+        ctx.restore();
+        if (pt.y > H + 20) particles[i] = mkParticle();
+      });
+      rafId = requestAnimationFrame(anim);
+    };
+    anim();
+    const onResize = () => {
+      W = window.innerWidth; H = window.innerHeight;
+      canvas.width = W; canvas.height = H;
+    };
+    window.addEventListener("resize", onResize);
+    return () => { cancelAnimationFrame(rafId); window.removeEventListener("resize", onResize); };
+  }, []);
+
+  /* Icon map physics */
+  useEffect(() => {
+    const contentEl = iconMapRef.current;
+    if (!contentEl) return;
+
+    let containerWidth = contentEl.clientWidth;
+    let containerHeight = contentEl.clientHeight;
+
+    const centerNode = contentEl.querySelector(".center-app-node") as HTMLElement | null;
+    let centerObj = centerNode ? {
+      x: containerWidth / 2,
+      y: containerHeight / 2,
+      r: (centerNode.offsetWidth / 2) + 6,
+    } : null;
+
+    interface Node {
+      el: HTMLElement;
+      innerEl: HTMLElement | null;
+      x: number; y: number;
+      vx: number; vy: number;
+      r: number;
+      frozen: boolean;
+    }
+
+    const nodes: Node[] = [];
+    const nodeEls = contentEl.querySelectorAll<HTMLElement>(".floating-icon-node");
+
+    nodeEls.forEach((el) => {
+      const isMobile = window.innerWidth <= 768;
+      const startX = parseFloat(el.getAttribute(isMobile ? "data-x-mb" : "data-x-dt") || "50");
+      const startY = parseFloat(el.getAttribute(isMobile ? "data-y-mb" : "data-y-dt") || "50");
+      const x = (startX / 100) * containerWidth;
+      const y = (startY / 100) * containerHeight;
+      const r = el.offsetWidth / 2;
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 0.4 + Math.random() * 0.6;
+      const node: Node = {
+        el,
+        innerEl: el.querySelector(".floating-icon-inner"),
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        r,
+        frozen: false,
+      };
+      nodes.push(node);
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (!node.frozen) {
+          node.frozen = true;
+          node.vx = 0; node.vy = 0;
+          node.innerEl?.classList.add("frozen");
+        } else {
+          node.frozen = false;
+          const a = Math.random() * Math.PI * 2;
+          const s = 0.4 + Math.random() * 0.6;
+          node.vx = Math.cos(a) * s;
+          node.vy = Math.sin(a) * s;
+          node.innerEl?.classList.remove("frozen");
+        }
+      });
+    });
+
+    contentEl.style.opacity = "1";
+
+    let rafId: number;
+    const update = () => {
+      for (const n of nodes) {
+        if (n.frozen) continue;
+        n.x += n.vx; n.y += n.vy;
+        if (n.x - n.r < 0) { n.x = n.r; n.vx = -n.vx; }
+        else if (n.x + n.r > containerWidth) { n.x = containerWidth - n.r; n.vx = -n.vx; }
+        if (n.y - n.r < 0) { n.y = n.r; n.vy = -n.vy; }
+        else if (n.y + n.r > containerHeight) { n.y = containerHeight - n.r; n.vy = -n.vy; }
+        if (centerObj) {
+          const dx = n.x - centerObj.x;
+          const dy = n.y - centerObj.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const minDist = n.r + centerObj.r;
+          if (dist < minDist) {
+            const nx = dx / (dist || 0.1);
+            const ny = dy / (dist || 0.1);
+            n.x = centerObj.x + nx * minDist;
+            const dot = n.vx * nx + n.vy * ny;
+            n.vx = n.vx - 2 * dot * nx;
+            n.vy = n.vy - 2 * dot * ny;
+          }
+        }
+      }
+      nodes.forEach((n) => {
+        n.el.style.transform = `translate3d(${n.x - n.r}px, ${n.y - n.r}px, 0)`;
+      });
+      rafId = requestAnimationFrame(update);
+    };
+    update();
+    return () => cancelAnimationFrame(rafId);
+  }, []);
+
+  const txExpand = () => setDisplayedCount((c) => Math.min(c + 8, depositData.length));
+  const txCollapse = () => setDisplayedCount(12);
+  const reviewExpand = () => setReviewShown((c) => Math.min(c + 16, reviews.length));
+  const reviewCollapse = () => setReviewShown(16);
+  const closeNotice = () => setNoticeVisible(false);
+  const closeNotice24h = () => {
+    closeNotice();
+    localStorage.setItem("notice_hidden_until", String(Date.now() + 24 * 60 * 60 * 1000));
+  };
+
+  const displayDeposits = depositData.slice(0, displayedCount);
+  const displayReviews = reviews.slice(0, reviewShown);
+
+  return (
+    <>
+      <Header />
+
+      <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 1, opacity: 0.4 }} />
+
+      {/* Cat loader */}
+      {catLoaderVisible && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 999999, background: "#0d0d18", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20 }}>
+          <div style={{ width: 120, height: 120, position: "relative" }}>
+            <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "3px solid transparent", borderTopColor: "#a78bfa", borderRightColor: "#f472b6", animation: "spin-wheel 1s linear infinite" }} />
+            <img src="/img/logo/logo.jpg" alt="Loading" style={{ position: "absolute", inset: 20, width: "calc(100% - 40px)", height: "calc(100% - 40px)", objectFit: "contain", borderRadius: "50%" }} />
+          </div>
+          <div style={{ fontSize: 14, color: "#a78bfa", letterSpacing: 2, fontWeight: 700 }}>Đang tải Locket Gold...</div>
+        </div>
+      )}
+
+      <main className="wrap center-y" style={{ paddingTop: 32, paddingBottom: 60 }}>
+        <div className="page-shell" style={{ textAlign: "center" }}>
+
+          {/* HERO */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 60, marginBottom: 60, flexWrap: "wrap", textAlign: "left" }}>
+            <div style={{ flex: 1.25, minWidth: 340 }}>
+              <h1 style={{ fontSize: "clamp(34px,5.5vw,64px)", fontWeight: 900, lineHeight: 1.15, letterSpacing: -1, color: "var(--text-0)", marginBottom: 20 }}>
+                Hệ Thống Nâng Cấp<br />
+                <span style={{ background: "linear-gradient(270deg, #A78BFA, #F472B6, #8B5CF6, #3B82F6, #A78BFA)", backgroundSize: "400% 400%", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent", animation: "gradient-shift 6s ease infinite", display: "inline-block" }}>
+                  LocketGold Tự Động
+                </span>
+              </h1>
+              <div style={{ background: "linear-gradient(to right, rgba(167,139,250,0.1), transparent)", borderLeft: "4px solid var(--accent)", padding: "18px 20px", borderRadius: "0 12px 12px 0", marginBottom: 28, fontSize: 15, lineHeight: 1.6, color: "var(--text-0)" }}>
+                Độc quyền tại <strong><a href="https://locketgold.app" style={{ color: "var(--accent-bright)", fontWeight: 700 }}>locketgold.app</a></strong> — Nền tảng tự động nâng cấp Locket Gold chỉ cần username là đủ lên gold.
+              </div>
+              <div style={{ display: "inline-flex", alignItems: "flex-start", gap: 10, fontSize: 14, color: "#10b981", background: "rgba(16,185,129,0.08)", padding: "12px 18px", borderRadius: 12, border: "1px dashed rgba(16,185,129,0.3)" }}>
+                <span>🕐</span>
+                <div><strong>Hệ thống hỗ trợ toàn diện: Android & iOS</strong></div>
+              </div>
+            </div>
+            <div style={{ flex: 0.75, minWidth: 300, display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
+              <img src="/img/logo/banner.jpg" alt="Locket Gold" style={{ width: "100%", maxWidth: 480, height: "auto", animation: "float-y 5s ease-in-out infinite" }} />
+            </div>
+          </div>
+
+          {/* STATS */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 16, maxWidth: 1200, margin: "40px auto 10px" }}>
+            {[
+              { value: "28,860", color: "var(--text-0)", label: "Thành viên" },
+              { value: "2,438", color: "var(--accent-bright)", label: "Lượt sử dụng" },
+              { value: "127", color: "#ef4444", label: "Tài khoản GOLD" },
+              { value: "1,521", color: "var(--green)", label: "Tài khoản VIP" },
+              { value: "443", color: "#fbbf24", label: "Tài khoản LUXURY" },
+              { value: "276", color: "#4ADE80", label: "Tài khoản ADR" },
+            ].map((s, i) => (
+              <div key={i} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", padding: 16, borderRadius: 16, textAlign: "center" }}>
+                <div style={{ fontSize: 22, fontWeight: 800, color: s.color, marginBottom: 4 }}>{s.value}</div>
+                <div style={{ fontSize: 13, color: "var(--text-2)" }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* MARQUEE FEATURES */}
+          <div style={{ textAlign: "center", marginTop: 60, marginBottom: 24 }}>
+            <h2 style={{ fontSize: 22, fontWeight: 800, background: "linear-gradient(135deg, #C084FC, #F472B6)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              Các Tính Năng Độc Quyền
+            </h2>
+            <p style={{ color: "var(--text-2)", fontSize: 14, marginTop: 8 }}>Nâng cấp trải nghiệm với bộ công cụ mạnh mẽ nhất</p>
+          </div>
+
+          <div className="marquee-wrapper compact">
+            {[0, 1].map((row) => (
+              <div key={row} className={`marquee-track ${row === 0 ? "left" : "right"}`} style={{ animationDuration: "35s" }}>
+                {[...features, ...features].map((f, i) => (
+                  <div key={i} className="feature-card">
+                    <div style={{ color: f.color, marginBottom: 14, fontSize: 24 }}>{f.icon}</div>
+                    <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 6, color: "var(--text-0)" }}>{f.title}</h3>
+                    <p style={{ fontSize: 12.5, color: "var(--text-2)", lineHeight: 1.4, margin: 0 }}>{f.desc}</p>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+
+          {/* ICON SHOWCASE */}
+          <div className="icon-showcase-section">
+            <h2 className="icon-showcase-title">Kho Icon Locket Gold Độc Quyền</h2>
+            <p className="icon-showcase-sub">Khoác lên diện mạo đẳng cấp với hàng chục thiết kế biểu tượng Locket Gold đặc quyền.</p>
+            <div className="icon-map-outer-wrapper">
+              <div className="icon-map-canvas">
+                <div className="icon-map-grid-bg" />
+                <div ref={iconMapRef} className="icon-map-content">
+                  <div className="center-app-node">
+                    <div className="center-app-pulse" />
+                    <div className="center-app-inner">
+                      <img src="/img/logo/icon.jpg" alt="Locket Gold" />
+                    </div>
+                  </div>
+                  {[
+                    { x: 4, y: 15, size: 64, mb: 54, theme: "gold" },
+                    { x: 11, y: 30, size: 58, mb: 50, theme: "purple" },
+                    { x: 18, y: 15, size: 54, mb: 46, theme: "pink" },
+                    { x: 25, y: 50, size: 62, mb: 52, theme: "blue" },
+                    { x: 32, y: 20, size: 56, mb: 48, theme: "green" },
+                    { x: 39, y: 60, size: 60, mb: 52, theme: "gold" },
+                    { x: 57, y: 25, size: 58, mb: 50, theme: "purple" },
+                    { x: 64, y: 60, size: 54, mb: 46, theme: "pink" },
+                    { x: 71, y: 20, size: 62, mb: 52, theme: "blue" },
+                    { x: 78, y: 55, size: 56, mb: 48, theme: "green" },
+                    { x: 85, y: 30, size: 60, mb: 50, theme: "gold" },
+                    { x: 92, y: 60, size: 58, mb: 52, theme: "purple" },
+                  ].map((n, i) => (
+                    <div
+                      key={i}
+                      className="floating-icon-node"
+                      data-x-dt={n.x}
+                      data-y-dt={n.y}
+                      data-x-mb={n.x}
+                      data-y-mb={n.y}
+                      style={{ "--size-dt": `${n.size}px`, "--size-mb": `${n.mb}px` } as React.CSSProperties}
+                    >
+                      <div className={`floating-icon-inner node-theme-${n.theme}`}>
+                        <img src={`/img/logo/icon/anh${(i % 30) + 1}.png`} alt="Icon Locket" loading="lazy" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* DEPOSITS */}
+          <div style={{ textAlign: "center", marginTop: 60, marginBottom: 20 }}>
+            <h2 style={{ fontSize: 22, fontWeight: 800, color: "var(--text-0)" }}>Giao Dịch Gần Đây</h2>
+            <p style={{ color: "var(--text-2)", fontSize: 14, marginTop: 8 }}>Cập nhật realtime từ hệ thống</p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12, marginBottom: 24, textAlign: "left" }}>
+            {displayDeposits.map((item, i) => {
+              const bg = badgeColors[item.type];
+              const color = badgeTextColors[item.type];
+              const label = badgeLabels[item.type];
+              return (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14, background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)" }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", background: bg, color, flexShrink: 0, fontSize: 18 }}>⭐</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                      <span style={{ fontWeight: 700, fontSize: 13 }}>{item.name}</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 20, background: bg, color }}>{label}</span>
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--text-2)", marginTop: 2 }}>{item.time}</div>
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: "var(--accent-bright)" }}>+{item.amount.toLocaleString("vi-VN")}đ</div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 40 }}>
+            {displayedCount < depositData.length && (
+              <button onClick={txExpand} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 24px", borderRadius: 50, fontSize: 13, fontWeight: 700, cursor: "pointer", border: "1.5px solid rgba(167,139,250,0.45)", background: "rgba(167,139,250,0.08)", color: "#a78bfa" }}>
+                Xem thêm giao dịch
+              </button>
+            )}
+            {displayedCount > 12 && (
+              <button onClick={txCollapse} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 24px", borderRadius: 50, fontSize: 13, fontWeight: 700, cursor: "pointer", border: "1px solid var(--border)", background: "rgba(255,255,255,0.03)", color: "var(--text-2)" }}>
+                Thu gọn
+              </button>
+            )}
+          </div>
+
+          {/* REVIEWS */}
+          <div style={{ textAlign: "center", marginTop: 40, marginBottom: 20 }}>
+            <h2 style={{ fontSize: 22, fontWeight: 800, color: "var(--text-0)" }}>Đánh Giá Khách Hàng</h2>
+            <p style={{ color: "var(--text-2)", fontSize: 14, marginTop: 8 }}>Hình ảnh thực tế từ khách hàng đã sử dụng</p>
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8, marginBottom: 16 }}>
+            {displayReviews.map((r, i) => (
+              <div key={i} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: 6, display: "flex", flexDirection: "column", gap: 5, width: "calc((100% - 7 * 8px) / 8)", cursor: "pointer" }}>
+                <div style={{ width: "100%", aspectRatio: "9/16", borderRadius: 10, overflow: "hidden" }} onClick={() => setLightboxImg(r.img)}>
+                  <img src={r.img} alt={r.name} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg,#a78bfa,#7c3aed)", color: "#fff", fontWeight: 700, fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{r.initial}</div>
+                  <div style={{ fontWeight: 700, fontSize: 12, color: "var(--text-0)" }}>{r.name}</div>
+                </div>
+                <div style={{ fontSize: 12.5, color: "var(--text-1)", lineHeight: 1.45 }}>{r.text}</div>
+                <div style={{ fontSize: 10, color: "var(--text-2)" }}>{r.time}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 40 }}>
+            {reviewShown < reviews.length && (
+              <button onClick={reviewExpand} style={{ padding: "10px 24px", borderRadius: 50, fontSize: 13, fontWeight: 700, cursor: "pointer", border: "1.5px solid rgba(167,139,250,0.45)", background: "rgba(167,139,250,0.08)", color: "#a78bfa" }}>
+                Xem thêm đánh giá
+              </button>
+            )}
+            {reviewShown > 16 && (
+              <button onClick={reviewCollapse} style={{ padding: "10px 24px", borderRadius: 50, fontSize: 13, fontWeight: 700, cursor: "pointer", border: "1px solid var(--border)", background: "rgba(255,255,255,0.03)", color: "var(--text-2)" }}>
+                Đóng lại
+              </button>
+            )}
+          </div>
+
+          {/* FEATURE GALLERY */}
+          <div style={{ textAlign: "center", marginTop: 40, marginBottom: 24 }}>
+            <h2 style={{ fontSize: 22, fontWeight: 800, color: "var(--text-0)" }}>Trải Nghiệm Ưu Việt</h2>
+            <p style={{ color: "var(--text-2)", fontSize: 14, marginTop: 8 }}>Hình ảnh thực tế về các tính năng độc quyền</p>
+          </div>
+          <div className="feature-gallery">
+            {["gold.PNG", "tinhnang.PNG", "banbe.PNG", "video.PNG", "iconungdung.PNG", "giaodien.PNG"].map((f, i) => (
+              <div key={i} className="gallery-img-wrap">
+                <img src={`/img/logo/${f}`} alt={`Feature ${i}`} loading="lazy" />
+              </div>
+            ))}
+          </div>
+
+          {/* PRIVACY */}
+          <div className="privacy-banner">
+            <div className="privacy-banner-head">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              <h4>Cam kết quyền riêng tư</h4>
+            </div>
+            <p>Tài khoản của bạn sẽ được mở khóa toàn bộ đặc quyền Premium. Hệ thống sẽ hoàn toàn không hiển thị Huy hiệu Vàng trên trang cá nhân của bạn cũng như với người dùng khác.</p>
+          </div>
+
+          {/* CTA */}
+          <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap", marginBottom: 60 }}>
+            <Link href="/dang-nhap" style={{ padding: "16px 36px", borderRadius: 999, background: "linear-gradient(135deg, #a78bfa, #7c3aed)", color: "#fff", fontWeight: 700, fontSize: 16, textDecoration: "none", display: "flex", alignItems: "center", gap: 10, boxShadow: "0 8px 32px rgba(167,139,250,0.4)" }}>
+              👤 Tạo Tài Khoản Miễn Phí
+            </Link>
+            <Link href="/bang-gia" style={{ padding: "16px 36px", borderRadius: 999, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--text-1)", fontWeight: 600, fontSize: 16, textDecoration: "none", display: "flex", alignItems: "center", gap: 8 }}>
+              Xem Bảng Giá VIP →
+            </Link>
+          </div>
+
+          {/* STEPS */}
+          <div style={{ textAlign: "center", marginTop: 80, marginBottom: 40 }}>
+            <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 12 }}>Sở Hữu Locket Gold Chỉ Với 3 Bước</h2>
+            <p style={{ color: "var(--text-2)", fontSize: 15, maxWidth: 600, margin: "0 auto" }}>
+              Quá trình nâng cấp diễn ra hoàn toàn tự động trong chưa đầy 1 phút.
+            </p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24, marginBottom: 60 }}>
+            {[
+              { n: 1, color: "rgba(167,139,250,0.15)", textColor: "var(--accent-bright)", title: "Đăng Ký Tài Khoản", desc: "Tạo tài khoản miễn phí trên hệ thống để bắt đầu." },
+              { n: 2, color: "rgba(244,114,182,0.15)", textColor: "#F472B6", title: "Nhập ID Locket", desc: "Cung cấp link trang cá nhân Locket. Hệ thống tự động tìm nạp thông tin." },
+              { n: 3, color: "rgba(52,211,153,0.15)", textColor: "var(--green)", title: "Tận Hưởng GOLD", desc: "Cài đặt DNS (iOS) hoặc APK (Android) và dùng toàn bộ đặc quyền Gold vĩnh viễn." },
+            ].map((s) => (
+              <div key={s.n} className="step-card">
+                <div className="step-number" style={{ background: s.color, color: s.textColor }}>{s.n}</div>
+                <h3 style={{ fontSize: 18, fontWeight: 800, color: "var(--text-0)", marginBottom: 10 }}>{s.title}</h3>
+                <p style={{ fontSize: 14.5, color: "var(--text-2)", lineHeight: 1.6, margin: 0 }}>{s.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* PRIVILEGES */}
+          <div style={{ marginTop: 80, textAlign: "left" }}>
+            <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 16, textAlign: "center" }}>Đặc Quyền Của Các Gói Locket Gold</h2>
+            <p style={{ textAlign: "center", color: "var(--text-2)", marginBottom: 40, fontSize: 15, maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}>
+              Nâng cấp tài khoản để mở khóa toàn bộ sức mạnh của Locket Gold.
+            </p>
+            <div className="privileges-grid">
+              {privileges.map((p, i) => (
+                <div key={i} className="privilege-card">
+                  <div className="privilege-icon-wrapper">
+                    <div style={{ color: p.color, fontSize: 24 }}>{p.icon}</div>
+                    <div className={`privilege-status-badge ${p.badgeType}`}>{p.badge}</div>
+                  </div>
+                  <h3 className="privilege-title">{p.title}</h3>
+                  <p className="privilege-desc">{p.desc}</p>
+                </div>
+              ))}
+            </div>
+                </div>
+                <div className={`home-faq-content${faqOpen === i ? " open" : ""}`}>
+                  <div className="home-faq-content-inner">{item.a}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+        </div>
+      </main>
+
+      <Footer />
+
+      style={{ position: "fixed", bottom: 40, left: 20, width: 45, height: 45, background: "var(--bg-1)", border: "1px solid var(--border)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-2)", cursor: "pointer", zIndex: 999, fontWeight: 700 }}
+        >
+          ↑
+        </div>
+      )}
+
+      {/* Notice modal */}
+      {noticeVisible && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div style={{ width: "100%", maxWidth: 520, padding: "32px 24px", borderRadius: 24, background: "var(--bg-1)", border: "1px solid var(--border)", textAlign: "center", position: "relative" }}>
+            <button onClick={closeNotice} style={{ position: "absolute", top: 20, right: 20, background: "rgba(255,255,255,0.06)", borderRadius: "50%", width: 36, height: 36, border: "1px solid rgba(255,255,255,0.1)", cursor: "pointer", color: "var(--text-0)", fontSize: 18 }}>✕</button>
+            <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12, color: "var(--accent-bright)" }}>Thông Báo</h2>
+            <div style={{ textAlign: "left", padding: 18, borderRadius: 14, background: "rgba(167,139,250,0.06)", border: "1px solid rgba(167,139,250,0.15)", marginBottom: 20, fontSize: 14, lineHeight: 1.7 }}>
+              <p style={{ color: "#a78bfa", fontWeight: "bold", marginBottom: 12, textAlign: "center", fontSize: 16 }}>�� CHÀO MỪNG BẠN ĐẾN VỚI LOCKET GOLD 🚀</p>
+              <p>💎 NÂNG CẤP TỰ ĐỘNG 5S - AN TOÀN TUYỆT ĐỐI</p>
+              <p>✅ Không cần Pass/iCloud - Chỉ cần Username.</p>
+              <p>🎁 Chốt đơn TẶNG NGAY Canva Edu 3 Năm.</p>
+            </div>
+            <div style={{ display: "flex", gap: 12 }}>
+              <button onClick={closeNotice} style={{ flex: 1, padding: 14, borderRadius: 14, fontWeight: 700, border: "none", cursor: "pointer", background: "linear-gradient(135deg, #a78bfa, #7c3aed)", color: "#fff" }}>Đã hiểu</button>
+              <button onClick={closeNotice24h} style={{ flex: 1, padding: 14, borderRadius: 14, fontWeight: 600, cursor: "pointer", background: "rgba(239,68,68,0.1)", color: "#f87171", border: "1px solid rgba(248,113,113,0.3)" }}>Đóng 24h</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox */}
+      {lightboxImg && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.94)", backdropFilter: "blur(12px)", zIndex: 2147483647, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, cursor: "zoom-out" }} onClick={() => setLightboxImg(null)}>
+          <div style={{ position: "fixed", top: 20, right: 20, width: 44, height: 44, borderRadius: "50%", background: "rgba(255,255,255,0.12)", color: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>✕</div>
+          <img src={lightboxImg} alt="" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "min(520px, 90vw)", maxHeight: "88vh", borderRadius: 18, objectFit: "contain" }} />
+        </div>
+      )}20 20 12 61 79 80 81 98 701 702 33 100 204 250 395 398 399 400cat /tmp/widgets.txt)
+
+      {/* FLOATING WIDGETS */}
+      <div style={{ position: "fixed", bottom: 40, left: 20, zIndex: 999 }}>
+        {backToTopVisible && (
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            title="Lên đầu trang"
+            style={{
+              width: 45, height: 45,
+              background: "var(--bg-1)",
+              border: "1px solid var(--border)",
+              borderRadius: "50%",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "var(--text-2)", cursor: "pointer",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+            }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="18 15 12 9 6 15" />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      <div style={{ position: "fixed", bottom: 40, right: 20, display: "flex", flexDirection: "column", gap: 15, alignItems: "center", zIndex: 999 }}>
+        <Link
+          href="/vong-quay"
+          title="Vòng Quay May Mắn"
+          style={{
+            width: 54, height: 54, borderRadius: "50%",
+            boxShadow: "0 4px 15px rgba(255,15,123,0.5)",
+            border: "3px solid #fff",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            textDecoration: "none", position: "relative",
+          }}
+        >
+          <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "conic-gradient(#ff0f7b 0deg 45deg,#f89b29 45deg 90deg,#10b981 90deg 135deg,#3b82f6 135deg 180deg,#a855f7 180deg 225deg,#ec4899 225deg 270deg,#eab308 270deg 315deg,#ef4444 315deg 360deg)", animation: "spin-wheel 3.5s linear infinite" }} />
+          <div style={{ width: 32, height: 32, background: "radial-gradient(circle at top left, #fff, #f3f4f6)", borderRadius: "50%", zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 900, color: "#ef4444", position: "relative" }}>SPIN</div>
+        </Link>
+
+        <a
+          href="https://zalo.me/0344421026"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Hỗ trợ & Liên hệ"
+          style={{
+            width: 54, height: 54,
+            background: "var(--bg-1)",
+            border: "2px solid var(--accent)",
+            borderRadius: "50%",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 6px 24px rgba(167,139,250,0.4)",
+            cursor: "pointer", position: "relative", padding: 4,
+          }}
+        >
+          <img src="/img/logo/logo.jpg" alt="Hỗ trợ" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "contain" }} />
+          <span style={{ position: "absolute", bottom: -6, left: "50%", transform: "translateX(-50%)", background: "#ef4444", color: "#fff", fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 10, whiteSpace: "nowrap", animation: "blink-badge 1.5s infinite" }}>Liên hệ</span>
+        </a>
+      </div>
+    </>
+  );
+}

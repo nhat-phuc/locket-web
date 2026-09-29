@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Navbar from "@/components/Navbar";   // ← THÊM DÒNG NÀY
-import Footer from "@/components/Footer";
+// 
 
 import Hero from "@/components/Hero";
 import Stats from "@/components/Stats";
@@ -280,7 +280,7 @@ export default function HuongDanPage() {
         </div>
       </main>
 
-      <Footer />
+      {/*  */}
       <Navbar />
 
       {/* Back to top */}

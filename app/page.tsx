@@ -2,8 +2,8 @@
 "use client";
 
 import Header from "@/components/Header";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+// import Navbar from "@/components/Navbar";
+
 
 import Hero from "@/components/Hero";
 import Stats from "@/components/Stats";
@@ -16,26 +16,26 @@ import CTA from "@/components/CTA";
 import Steps from "@/components/Steps";
 import Privileges from "@/components/Privileges";
 import FAQ from "@/components/FAQ";
-import FloatingWidgets from "@/components/FloatingWidgets";
+
 import SalesPopup from "@/components/SalesPopup";
 import NoticeModal from "@/components/NoticeModal";
-import CatLoader from "@/components/CatLoader";
-import FallingCanvas from "@/components/FallingCanvas";
-import TouchEffect from "@/components/TouchEffect";
-import Sparkles from "@/components/Sparkles";
+
+
+
+
 import Jiggle from "@/components/Jiggle";
 import RevealOnScroll from "@/components/RevealOnScroll";
 
 export default function HomePage() {
   return (
     <>
-      <CatLoader />
+      
 
       <div className="bg-3d-glow bg-3d-glow-1" />
       <div className="bg-3d-glow bg-3d-glow-2" />
       <div className="bg-3d-glow bg-3d-glow-3" />
 
-      <FallingCanvas />
+      
 
       <Header />
 
@@ -55,14 +55,14 @@ export default function HomePage() {
         </div>
       </main>
 
-      <Footer />
-      <Navbar />
-      <FloatingWidgets />
+      
+      {/* <Navbar /> */}
+      
       <SalesPopup />
       <NoticeModal />
 
-      <TouchEffect />
-      <Sparkles />
+      
+      
       <Jiggle />
       <RevealOnScroll />
     </>

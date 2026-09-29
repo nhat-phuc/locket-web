@@ -1,16 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getSession } from "@/lib/session";
-import { generateQRUrl, BANK_CONFIG } from "@/lib/payment";
 
 export async function POST(req: Request) {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ success: false, message: "Chưa đăng nhập" }, { status: 401 });
-    }
+    const { orderId, paymentMethod } = await req.json();
 
-    const { orderId } = await req.json();
     if (!orderId) {
       return NextResponse.json({ success: false, message: "Thiếu orderId" }, { status: 400 });
     }
@@ -20,24 +14,49 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "Đơn không tồn tại" }, { status: 404 });
     }
 
-    // Nội dung chuyển khoản = mã đơn
-    const content = order.orderCode;
+    if (order.status === "paid") {
+      return NextResponse.json({ success: false, message: "Đơn đã thanh toán" }, { status: 400 });
+    }
 
-    // Tạo QR URL
-    const qrUrl = generateQRUrl(order.finalAmount, content);
+    const method = paymentMethod || "bank_transfer";
 
-    return NextResponse.json({
-      success: true,
-      qrUrl,
-      bank: BANK_CONFIG,
-      content,
-      amount: order.finalAmount,
+    await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        paymentMethod: method,
+        status: "pending",
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+      },
     });
-  } catch (error: any) {
-    console.error("Payment create error:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Lỗi hệ thống" },
-      { status: 500 }
-    );
+
+    if (method === "bank_transfer") {
+      // Đọc từ .env — fallback nếu thiếu
+      const BANK_INFO = {
+        bank: process.env.NEXT_PUBLIC_BANK_NAME || "TPBANK",
+        bankId: process.env.NEXT_PUBLIC_BANK_ID || "TPBANK",
+        accountNumber: process.env.NEXT_PUBLIC_ACCOUNT_NO || "36886368888",
+        accountName: process.env.NEXT_PUBLIC_ACCOUNT_NAME || "TRAN NHAT PHUC",
+      };
+
+      const qrUrl = `https://qr.sepay.vn/img?acc=${BANK_INFO.accountNumber}&bank=${BANK_INFO.bankId}&amount=${order.finalAmount}&des=${encodeURIComponent(order.orderCode)}`;
+
+      return NextResponse.json({
+        success: true,
+        method: "bank_transfer",
+        orderId: order.id,
+        orderCode: order.orderCode,
+        amount: order.finalAmount,
+        bank: BANK_INFO.bank,
+        accountNumber: BANK_INFO.accountNumber,
+        accountName: BANK_INFO.accountName,
+        qrUrl,
+        expiresAt: order.expiresAt,
+      });
+    }
+
+    return NextResponse.json({ success: true, method });
+  } catch (error) {
+    console.error("[payments/create]", error);
+    return NextResponse.json({ success: false, message: "Lỗi hệ thống" }, { status: 500 });
   }
 }

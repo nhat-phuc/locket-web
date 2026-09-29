@@ -45,3 +45,5 @@ fix.sh
 
 # Folder lạ
 nextjs-dashboard/
+.vercel
+.env*

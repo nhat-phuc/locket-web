@@ -1,11 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import Navbar from "@/components/Navbar";
-import PricingCard from "@/components/PricingCard";
+import FloatingWidgets from "@/components/FloatingWidgets";
 
 interface Service {
   id: string;
@@ -16,350 +13,586 @@ interface Service {
   platform: string;
   price: number;
   originalPrice?: number | null;
-  discount?: number | null;
   duration?: string | null;
   features: string;
-  image?: string | null;
   isFeatured: boolean;
   sold: number;
 }
 
-const categories = [
-  { id: "all", label: "Tất cả", icon: "📋" },
-  { id: "gold", label: "GOLD", icon: "⭐" },
-  { id: "vip", label: "VIP", icon: "💜" },
-  { id: "luxury", label: "LUXURY", icon: "💎" },
-  { id: "adr", label: "ANDROID", icon: "📱" },
-  { id: "agent", label: "Đại lý", icon: "🤝" },
-];
+interface PackageVariant {
+  label: string;
+  price: number;
+}
 
-const platforms = [
-  { id: "all", label: "Tất cả", icon: "🌐" },
-  { id: "ios", label: "iOS", icon: "🍎" },
-  { id: "android", label: "Android", icon: "🤖" },
-];
+// Màu theo loại
+const typeTheme: Record<string, {
+  accent: string;
+  accentLight: string;
+  border: string;
+  bg: string;
+  pill: string;
+}> = {
+  gold: {
+    accent: "#e63946",
+    accentLight: "#ff6b7a",
+    border: "#e63946",
+    bg: "#fef2f3",
+    pill: "#e63946",
+  },
+  vip: {
+    accent: "#10b981",
+    accentLight: "#34d399",
+    border: "#10b981",
+    bg: "#ecfdf5",
+    pill: "#4f46e5",
+  },
+  luxury: {
+    accent: "#f59e0b",
+    accentLight: "#fbbf24",
+    border: "#f59e0b",
+    bg: "#fffbeb",
+    pill: "#f97316",
+  },
+  adr: {
+    accent: "#3b82f6",
+    accentLight: "#60a5fa",
+    border: "#3b82f6",
+    bg: "#eff6ff",
+    pill: "#3b82f6",
+  },
+  agent: {
+    accent: "#8b5cf6",
+    accentLight: "#a78bfa",
+    border: "#8b5cf6",
+    bg: "#f5f3ff",
+    pill: "#8b5cf6",
+  },
+};
+
+// Quyền lợi mặc định (nếu service không có features)
+const defaultFeatures: Record<string, string[]> = {
+  gold: [
+    "Mở khóa Locket Gold vĩnh viễn.",
+    "Không quảng cáo, cực mượt.",
+    "Upload ảnh trực tiếp từ thư viện.",
+    "Xem chính xác người đã xem Lockets.",
+  ],
+  vip: [
+    "Mở khóa Locket Gold vĩnh viễn.",
+    "Không quảng cáo, cực mượt.",
+    "Upload ảnh trực tiếp từ thư viện.",
+    "Quay video Lockets 3s.",
+    "Xem chính xác người đã xem.",
+    "Thêm bạn bè không giới hạn.",
+  ],
+  luxury: [
+    "Mở khóa Locket Gold vĩnh viễn.",
+    "Không quảng cáo, cực mượt.",
+    "Upload ảnh trực tiếp từ thư viện.",
+    "Quay video Lockets 15s.",
+    "Xem chính xác người đã xem.",
+    "Thêm bạn bè không giới hạn.",
+  ],
+};
+
+// Biến thể giá mặc định
+const defaultPackages: Record<string, PackageVariant[]> = {
+  gold: [
+    { label: "1 tài khoản (Quay 3s)", price: 79000 },
+    { label: "1 tài khoản (Quay 15s)", price: 109000 },
+  ],
+  vip: [
+    { label: "1 tài khoản", price: 99000 },
+    { label: "2 tài khoản", price: 180000 },
+    { label: "3 tài khoản", price: 250000 },
+    { label: "5 tài khoản", price: 330000 },
+  ],
+  luxury: [
+    { label: "1 tài khoản", price: 149000 },
+    { label: "2 tài khoản", price: 279000 },
+    { label: "3 tài khoản", price: 399000 },
+    { label: "5 tài khoản", price: 499000 },
+  ],
+};
+
+function formatPrice(n: number) {
+  return n.toLocaleString("vi-VN") + "đ";
+}
 
 export default function BangGiaPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [activePlatform, setActivePlatform] = useState("all");
 
   useEffect(() => {
-    const params = new URLSearchParams();
-    if (activeCategory !== "all") params.set("type", activeCategory);
-    if (activePlatform !== "all") params.set("platform", activePlatform);
-
-    setLoading(true);
-    fetch(`/api/services?${params}`)
+    fetch("/api/services")
       .then((r) => r.json())
-      .then((data) => {
-        if (data.success) setServices(data.services);
-        setLoading(false);
+      .then((d) => {
+        if (d.success) setServices(d.services || []);
       })
-      .catch(() => setLoading(false));
-  }, [activeCategory, activePlatform]);
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const parseFeatures = (s: string): string[] => {
+    try {
+      const arr = JSON.parse(s);
+      return Array.isArray(arr) ? arr : [];
+    } catch {
+      return s.split("\n").filter(Boolean);
+    }
+  };
+
+  // Nhóm services theo type, chỉ lấy 3 loại chính: gold, vip, luxury
+  const grouped = {
+    gold: services.find((s) => s.type === "gold"),
+    vip: services.find((s) => s.type === "vip"),
+    luxury: services.find((s) => s.type === "luxury"),
+  };
 
   return (
     <>
       <Header />
+      <main className="pr-page">
+        <div className="pr-deco pr-deco-1" />
+        <div className="pr-deco pr-deco-2" />
 
-      <main className="wrap center-y" style={{ paddingTop: 32, paddingBottom: 60 }}>
-        <div className="page-shell">
-          {/* HERO */}
-          <div className="pricing-hero">
-            <div className="pricing-hero-badge">
-              <span className="pricing-hero-dot" />
-              Bảng giá 2026
-            </div>
-            <h1 className="pricing-hero-title">
-              Chọn Gói{" "}
-              <span className="pricing-hero-gradient">Locket Gold</span>
-              <br />
-              Phù Hợp Với Bạn
+        <div className="pr-wrap">
+          {/* Header */}
+          <div className="pr-header">
+            <h1 className="pr-title">
+              Bảng giá <span>dịch vụ</span>
             </h1>
-            <p className="pricing-hero-desc">
-              Vĩnh viễn · Bảo hành 1 đổi 1 · Hỗ trợ 24/7
+            <p className="pr-sub">
+              Chọn gói phù hợp với nhu cầu. Thanh toán tự động tức thì.
             </p>
           </div>
 
-          {/* FILTER */}
-          <div className="pricing-filter-wrap">
-            <div className="pricing-filter-group">
-              <div className="pricing-filter-label">Loại gói</div>
-              <div className="category-tabs">
-                {categories.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => setActiveCategory(c.id)}
-                    className={`category-tab${activeCategory === c.id ? " active" : ""}`}
-                  >
-                    <span>{c.icon}</span>
-                    <span>{c.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="pricing-filter-group">
-              <div className="pricing-filter-label">Nền tảng</div>
-              <div className="platform-tabs">
-                {platforms.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => setActivePlatform(p.id)}
-                    className={`platform-tab${activePlatform === p.id ? " active" : ""}`}
-                  >
-                    <span>{p.icon}</span>
-                    <span>{p.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* GRID */}
-          {loading ? (
-            <div className="pricing-grid">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="pricing-skeleton">
-                  <div className="pricing-skeleton-line" style={{ width: "40%", height: 20 }} />
-                  <div className="pricing-skeleton-line" style={{ width: "80%", height: 28, marginTop: 16 }} />
-                  <div className="pricing-skeleton-line" style={{ width: "100%", height: 60, marginTop: 12 }} />
-                  <div className="pricing-skeleton-line" style={{ width: "60%", height: 32, marginTop: 20 }} />
-                  <div className="pricing-skeleton-line" style={{ width: "100%", height: 120, marginTop: 16 }} />
-                  <div className="pricing-skeleton-line" style={{ width: "100%", height: 44, marginTop: 20 }} />
-                </div>
-              ))}
-            </div>
-          ) : services.length === 0 ? (
-            <div className="pricing-empty">
-              <div style={{ fontSize: 64, marginBottom: 16 }}>📭</div>
-              <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>Chưa có dịch vụ nào</h3>
-              <p style={{ fontSize: 14, color: "var(--text-2)", marginBottom: 24 }}>
-                Vui lòng quay lại sau hoặc liên hệ hỗ trợ
-              </p>
-              <Link
-                href="/lien-he"
-                style={{
-                  padding: "12px 28px",
-                  borderRadius: 999,
-                  background: "linear-gradient(135deg, var(--accent), var(--accent-bright))",
-                  color: "#fff",
-                  textDecoration: "none",
-                  fontWeight: 700,
-                }}
-              >
-                Liên hệ hỗ trợ
-              </Link>
-            </div>
-          ) : (
-            <div className="pricing-grid">
-              {services.map((s) => (
-                <PricingCard key={s.id} service={s} />
-              ))}
+          {loading && (
+            <div className="pr-loading">
+              <div className="pr-spin" />
+              <div>Đang tải bảng giá...</div>
             </div>
           )}
 
-          {/* CTA */}
-          <div className="pricing-cta">
-            <h3 style={{ fontSize: 22, fontWeight: 900, marginBottom: 12 }}>
-              Chưa biết chọn gói nào?
-            </h3>
-            <p style={{ fontSize: 14, color: "var(--text-2)", marginBottom: 20 }}>
-              Liên hệ ngay để được tư vấn miễn phí
-            </p>
-            <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-              <a
-                href="https://zalo.me/0344421026"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  padding: "14px 28px",
-                  borderRadius: 999,
-                  background: "linear-gradient(135deg, #0088cc, #0068ff)",
-                  color: "#fff",
-                  textDecoration: "none",
-                  fontWeight: 700,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                }}
-              >
-                💬 Chat Zalo
-              </a>
-              <Link
-                href="/huong-dan"
-                style={{
-                  padding: "14px 28px",
-                  borderRadius: 999,
-                  background: "var(--bg-1)",
-                  border: "1px solid var(--border)",
-                  color: "var(--text-1)",
-                  textDecoration: "none",
-                  fontWeight: 600,
-                }}
-              >
-                📖 Xem hướng dẫn
-              </Link>
+          {!loading && (
+            <div className="pr-cards">
+              {/* GOLD */}
+              <PriceCard
+                type="gold"
+                service={grouped.gold}
+                title={grouped.gold?.name || "Gói GOLD (iOS)"}
+                badge="1 NĂM"
+                features={
+                  grouped.gold
+                    ? parseFeatures(grouped.gold.features)
+                    : defaultFeatures.gold
+                }
+                packages={defaultPackages.gold}
+              />
+
+              {/* VIP — featured */}
+              <PriceCard
+                type="vip"
+                service={grouped.vip}
+                title={grouped.vip?.name || "Gói VIP 3S (iOS)"}
+                badge="VĨNH VIỄN"
+                features={
+                  grouped.vip
+                    ? parseFeatures(grouped.vip.features)
+                    : defaultFeatures.vip
+                }
+                packages={defaultPackages.vip}
+                featured
+              />
+
+              {/* LUXURY */}
+              <PriceCard
+                type="luxury"
+                service={grouped.luxury}
+                title={grouped.luxury?.name || "Gói LUXURY 15S (iOS)"}
+                badge="15S VĨNH VIỄN"
+                features={
+                  grouped.luxury
+                    ? parseFeatures(grouped.luxury.features)
+                    : defaultFeatures.luxury
+                }
+                packages={defaultPackages.luxury}
+              />
             </div>
-          </div>
+          )}
         </div>
+
+        <style jsx>{`
+          .pr-page {
+            position: relative;
+            min-height: 100vh;
+            padding: 110px 20px 80px;
+            background: linear-gradient(180deg, #fafbfc 0%, #f5f7fa 100%);
+            overflow: hidden;
+          }
+
+          /* Decorative circles */
+          .pr-deco {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.4;
+          }
+          .pr-deco-1 {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(167,139,250,0.15), transparent 70%);
+            top: 100px; left: -150px;
+          }
+          .pr-deco-2 {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(251,146,60,0.12), transparent 70%);
+            bottom: -100px; right: -150px;
+          }
+
+          .pr-wrap {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+          }
+
+          /* HEADER */
+          .pr-header {
+            text-align: center;
+            margin-bottom: 48px;
+          }
+          .pr-title {
+            font-size: clamp(32px, 5vw, 52px);
+            font-weight: 900;
+            color: #1a1d21;
+            letter-spacing: -0.02em;
+            margin-bottom: 14px;
+            line-height: 1.1;
+          }
+          .pr-title span {
+            background: linear-gradient(135deg, #3b82f6, #10b981);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+          }
+          .pr-sub {
+            font-size: 16px;
+            color: #6b7280;
+            max-width: 520px;
+            margin: 0 auto;
+            line-height: 1.6;
+          }
+
+          /* LOADING */
+          .pr-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            padding: 80px 20px;
+            color: #9ca3af;
+            font-size: 14px;
+          }
+          .pr-spin {
+            width: 36px; height: 36px;
+            border: 3px solid rgba(59,130,246,0.15);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: prSpin 0.8s linear infinite;
+          }
+          @keyframes prSpin { to { transform: rotate(360deg); } }
+
+          /* CARDS */
+          .pr-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            align-items: start;
+          }
+          @media (max-width: 1000px) {
+            .pr-cards { grid-template-columns: 1fr; max-width: 460px; margin: 0 auto; }
+          }
+        `}</style>
       </main>
-
-      <Footer />
-      <Navbar />
-
-      <style>{`
-        .pricing-hero {
-          text-align: center;
-          margin-bottom: 48px;
-          padding: 20px 0;
-        }
-        .pricing-hero-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 20px;
-          background: linear-gradient(135deg, rgba(167,139,250,.15), rgba(244,114,182,.1));
-          border: 1px solid rgba(167,139,250,.3);
-          border-radius: 999px;
-          font-size: 12px;
-          font-weight: 700;
-          color: var(--accent-bright);
-          letter-spacing: 1px;
-          text-transform: uppercase;
-          margin-bottom: 20px;
-        }
-        .pricing-hero-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: var(--accent-bright);
-          box-shadow: 0 0 12px var(--accent-bright);
-          animation: pulse-dot 2s infinite;
-        }
-        @keyframes pulse-dot {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(1.2); }
-        }
-        .pricing-hero-title {
-          font-size: clamp(28px, 5vw, 48px);
-          font-weight: 900;
-          line-height: 1.15;
-          letter-spacing: -2px;
-          margin-bottom: 16px;
-          color: var(--text-0);
-        }
-        .pricing-hero-gradient {
-          background: linear-gradient(135deg, #a78bfa, #f472b6, #60a5fa);
-          background-size: 200% 200%;
-          -webkit-background-clip: text;
-          background-clip: text;
-          -webkit-text-fill-color: transparent;
-          animation: gradient-shift 4s ease infinite;
-        }
-        @keyframes gradient-shift {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        .pricing-hero-desc {
-          font-size: 15px;
-          color: var(--text-2);
-        }
-
-        .pricing-filter-wrap {
-          display: flex;
-          gap: 24px;
-          flex-wrap: wrap;
-          justify-content: center;
-          margin-bottom: 40px;
-          padding: 24px;
-          background: var(--bg-1);
-          border: 1px solid var(--border);
-          border-radius: 20px;
-        }
-        .pricing-filter-group {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-        .pricing-filter-label {
-          font-size: 11px;
-          font-weight: 800;
-          color: var(--text-2);
-          letter-spacing: 1px;
-          text-transform: uppercase;
-          text-align: center;
-        }
-        .category-tabs, .platform-tabs {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-          justify-content: center;
-        }
-        .category-tab, .platform-tab {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 10px 18px;
-          border-radius: 999px;
-          border: 1.5px solid var(--border);
-          background: var(--bg-1);
-          color: var(--text-2);
-          font-size: 13px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all .2s;
-          font-family: inherit;
-        }
-        .category-tab:hover, .platform-tab:hover {
-          border-color: var(--accent);
-          color: var(--accent-bright);
-          transform: translateY(-2px);
-        }
-        .category-tab.active, .platform-tab.active {
-          background: linear-gradient(135deg, var(--accent), var(--accent-bright));
-          border-color: transparent;
-          color: #fff;
-          box-shadow: 0 8px 20px var(--accent-glow);
-        }
-
-        .pricing-skeleton {
-          background: var(--bg-1);
-          border: 1.5px solid var(--border);
-          border-radius: 20px;
-          padding: 24px;
-          animation: skeleton-pulse 1.5s ease-in-out infinite;
-        }
-        .pricing-skeleton-line {
-          background: linear-gradient(90deg, var(--bg-2) 25%, rgba(255,255,255,.05) 50%, var(--bg-2) 75%);
-          background-size: 200% 100%;
-          border-radius: 8px;
-          animation: skeleton-shimmer 1.5s infinite;
-        }
-        @keyframes skeleton-shimmer {
-          0% { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-
-        .pricing-empty {
-          text-align: center;
-          padding: 80px 20px;
-          background: var(--bg-1);
-          border: 1.5px dashed var(--border);
-          border-radius: 24px;
-        }
-
-        .pricing-cta {
-          margin-top: 64px;
-          text-align: center;
-          padding: 40px 24px;
-          background: linear-gradient(135deg, rgba(167,139,250,.08), rgba(244,114,182,.05));
-          border: 1px solid rgba(167,139,250,.2);
-          border-radius: 24px;
-        }
-      `}</style>
+      <FloatingWidgets />
     </>
   );
+}
+
+/* =================== PRICE CARD =================== */
+
+function PriceCard({
+  type,
+  service,
+  title,
+  badge,
+  features,
+  packages,
+  featured = false,
+}: {
+  type: string;
+  service?: Service;
+  title: string;
+  badge: string;
+  features: string[];
+  packages: PackageVariant[];
+  featured?: boolean;
+}) {
+  const theme = typeTheme[type] || typeTheme.gold;
+
+  return (
+    <div
+      className={`pc-card ${featured ? "is-featured" : ""}`}
+      style={{
+        "--c": theme.accent,
+        "--c-light": theme.accentLight,
+        "--c-border": theme.border,
+        "--c-bg": theme.bg,
+        "--c-pill": theme.pill,
+      } as React.CSSProperties}
+    >
+      {/* Title */}
+      <div className="pc-head">
+        <h3 className="pc-title">{title}</h3>
+        <span className="pc-badge">{badge}</span>
+      </div>
+
+      <p className="pc-note">(Đã bao gồm thuế VAT &amp; Phí duy trì nền tảng)</p>
+
+      {/* Features heading */}
+      <div className="pc-sub-title">
+        {type === "luxury" ? "Đặc quyền cao cấp:" : "Đặc quyền cơ bản:"}
+      </div>
+
+      {/* Features grid 2 col */}
+      <div className="pc-feats">
+        {features.map((f, i) => (
+          <div key={i} className="pc-feat">
+            <span className="pc-check">✓</span>
+            <span className="pc-feat-text">{renderFeatureText(f, type)}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Packages / prices */}
+      <div className="pc-packs">
+        {packages.map((p, i) => (
+          <a
+            key={i}
+            href={`/thanh-toan?serviceId=${service?.slug || type}&variant=${i}`}
+            className="pc-pack"
+          >
+            <div className="pc-pack-name">{p.label}</div>
+            <div className="pc-pack-price">- {formatPrice(p.price)}</div>
+          </a>
+        ))}
+      </div>
+
+      {/* Footnote */}
+      {type !== "gold" && (
+        <p className="pc-footnote">
+          *Lưu ý: Gói Vĩnh Viễn được Admin cam kết bảo hành tốt nhất và lâu nhất
+          có thể cho đến khi website ngừng hoạt động. Nên yên tâm nhé!
+        </p>
+      )}
+
+      <style jsx>{`
+        .pc-card {
+          position: relative;
+          padding: 24px 20px;
+          border-radius: 20px;
+          border: 2px solid var(--c-border);
+          background: linear-gradient(180deg, var(--c-bg) 0%, #ffffff 100%);
+          box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+          transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .pc-card.is-featured {
+          transform: scale(1.03);
+          box-shadow: 0 20px 60px rgba(16,185,129,0.15);
+          border-width: 2.5px;
+          z-index: 2;
+        }
+
+        .pc-card:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 24px 60px rgba(0,0,0,0.12);
+        }
+        .pc-card.is-featured:hover {
+          transform: scale(1.03) translateY(-6px);
+        }
+
+        /* Head */
+        .pc-head {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+          margin-bottom: 6px;
+        }
+        .pc-title {
+          font-size: 19px;
+          font-weight: 900;
+          color: var(--c);
+          line-height: 1.25;
+          margin: 0;
+        }
+        .pc-badge {
+          padding: 3px 10px;
+          background: color-mix(in srgb, var(--c) 15%, transparent);
+          border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+          border-radius: 6px;
+          font-size: 10px;
+          font-weight: 900;
+          color: var(--c);
+          letter-spacing: 0.5px;
+          white-space: nowrap;
+        }
+
+        .pc-note {
+          font-size: 11.5px;
+          color: #6b7280;
+          font-style: italic;
+          margin-bottom: 20px;
+        }
+
+        .pc-sub-title {
+          font-size: 13px;
+          font-weight: 800;
+          color: #1f2937;
+          margin-bottom: 14px;
+        }
+
+        /* Features */
+        .pc-feats {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          margin-bottom: 22px;
+        }
+        @media (max-width: 500px) {
+          .pc-feats { grid-template-columns: 1fr; }
+        }
+
+        .pc-feat {
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
+          padding: 10px 12px;
+          background: #ffffff;
+          border: 1px solid color-mix(in srgb, var(--c) 25%, transparent);
+          border-radius: 10px;
+          min-height: 62px;
+        }
+
+        .pc-check {
+          flex-shrink: 0;
+          width: 16px; height: 16px;
+          display: grid; place-items: center;
+          color: var(--c);
+          font-size: 13px;
+          font-weight: 900;
+          margin-top: 1px;
+        }
+
+        .pc-feat-text {
+          font-size: 12px;
+          color: #374151;
+          line-height: 1.45;
+        }
+        .pc-feat-text :global(.hl) {
+          color: var(--c);
+          font-weight: 800;
+        }
+
+        /* Packages */
+        .pc-packs {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          margin-top: auto;
+        }
+        @media (max-width: 500px) {
+          .pc-packs { grid-template-columns: 1fr; }
+        }
+
+        .pc-pack {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          padding: 12px 10px;
+          background: var(--c-pill);
+          color: #fff;
+          border-radius: 14px;
+          text-decoration: none;
+          transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 6px 18px color-mix(in srgb, var(--c-pill) 35%, transparent);
+          text-align: center;
+          min-height: 60px;
+        }
+        .pc-pack:hover {
+          transform: translateY(-3px) scale(1.02);
+          box-shadow: 0 12px 28px color-mix(in srgb, var(--c-pill) 45%, transparent);
+        }
+
+        .pc-pack-name {
+          font-size: 11.5px;
+          font-weight: 700;
+          opacity: 0.95;
+          line-height: 1.25;
+        }
+        .pc-pack-price {
+          font-size: 15px;
+          font-weight: 900;
+          letter-spacing: -0.01em;
+        }
+
+        /* Footnote */
+        .pc-footnote {
+          margin-top: 16px;
+          padding-top: 14px;
+          border-top: 1px dashed color-mix(in srgb, var(--c) 25%, transparent);
+          font-size: 10.5px;
+          color: #6b7280;
+          font-style: italic;
+          line-height: 1.55;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+/* Highlight các từ khóa quan trọng trong feature text */
+function renderFeatureText(text: string, type: string) {
+  const highlights = ["vĩnh viễn", "15s", "3s", "Locket Gold", "iOS", "Android"];
+  const parts: (string | React.ReactElement)[] = [];
+  let remaining = text;
+  let key = 0;
+
+  // Simple highlight — chỉ xử lý "vĩnh viễn" và "3s"/"15s"
+  const regex = /(vĩnh viễn|15s|3s)/gi;
+  let lastIndex = 0;
+  let match;
+  const result: React.ReactNode[] = [];
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      result.push(text.slice(lastIndex, match.index));
+    }
+    result.push(
+      <span key={`hl-${key++}`} className="hl">
+        {match[0]}
+      </span>
+    );
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < text.length) {
+    result.push(text.slice(lastIndex));
+  }
+  return result.length > 0 ? result : text;
 }

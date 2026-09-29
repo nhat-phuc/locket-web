@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+// 
 import Navbar from "@/components/Navbar";
 
 interface Post {
@@ -337,7 +337,7 @@ export default function BaiVietPage() {
         </div>
       </main>
 
-      <Footer />
+      {/*  */}
       <Navbar />
 
       {showTop && (

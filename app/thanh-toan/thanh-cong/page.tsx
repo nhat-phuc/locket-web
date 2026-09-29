@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+// 
 
 export default function ThanhCongPage() {
   return (
@@ -23,7 +23,7 @@ export default function ThanhCongPage() {
           </div>
         </div>
       </main>
-      <Footer />
+      {/*  */}
     </>
   );
 }

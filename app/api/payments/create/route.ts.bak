@@ -1,0 +1,63 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+
+export async function POST(req: Request) {
+  try {
+    const { orderId, paymentMethod } = await req.json();
+
+    if (!orderId) {
+      return NextResponse.json({ success: false, message: "Thiếu orderId" }, { status: 400 });
+    }
+
+    const order = await prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) {
+      return NextResponse.json({ success: false, message: "Đơn không tồn tại" }, { status: 404 });
+    }
+
+    if (order.status === "paid") {
+      return NextResponse.json({ success: false, message: "Đơn đã thanh toán" }, { status: 400 });
+    }
+
+    const method = paymentMethod || "bank_transfer";
+
+    // Update paymentMethod cho order
+    await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        paymentMethod: method,
+        status: "pending",
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 phút
+      },
+    });
+
+    // Nếu chuyển khoản ngân hàng → trả QR info
+    if (method === "bank_transfer") {
+      // ⚠️ SỬA THÔNG TIN NGÂN HÀNG CỦA BẠN Ở ĐÂY
+      const BANK_INFO = {
+        bank: "Vietcombank",           // Tên ngân hàng (VD: Vietcombank, MBBank...)
+        accountNumber: "0010000000355", // Số tài khoản
+        accountName: "NGUYEN VAN A",    // Tên chủ tài khoản
+      };
+
+      const qrUrl = `https://qr.sepay.vn/img?acc=${BANK_INFO.accountNumber}&bank=${BANK_INFO.bank}&amount=${order.finalAmount}&des=${encodeURIComponent(order.orderCode)}`;
+
+      return NextResponse.json({
+        success: true,
+        method: "bank_transfer",
+        orderId: order.id,
+        orderCode: order.orderCode,
+        amount: order.finalAmount,
+        bank: BANK_INFO.bank,
+        accountNumber: BANK_INFO.accountNumber,
+        accountName: BANK_INFO.accountName,
+        qrUrl,
+        expiresAt: order.expiresAt,
+      });
+    }
+
+    return NextResponse.json({ success: true, method });
+  } catch (error) {
+    console.error("[payments/create]", error);
+    return NextResponse.json({ success: false, message: "Lỗi hệ thống" }, { status: 500 });
+  }
+}

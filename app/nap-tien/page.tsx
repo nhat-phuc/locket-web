@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+// 
 import Navbar from "@/components/Navbar";
 
 const CONFIG = {
@@ -579,7 +579,7 @@ export default function NapTienPage() {
         </div>
       </main>
 
-      <Footer />
+      {/*  */}
       <Navbar />
 
       {showTop && (

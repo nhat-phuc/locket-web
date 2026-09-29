@@ -2,7 +2,7 @@
 
 import { Suspense } from "react";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+// 
 import ThanhToanContent from "./ThanhToanContent";
 
 export default function ThanhToanPage() {
@@ -14,7 +14,7 @@ export default function ThanhToanPage() {
           <ThanhToanContent />
         </Suspense>
       </main>
-      <Footer />
+      {/*  */}
     </>
   );
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+// import Footer from "@/components/Footer";
 import UserSidebar from "@/components/user/UserSidebar";
 
 export default function TaiKhoanLayout({ children }: { children: React.ReactNode }) {
@@ -36,7 +36,7 @@ export default function TaiKhoanLayout({ children }: { children: React.ReactNode
           <div className="user-content">{children}</div>
         </div>
       </main>
-      <Footer />
+      {/* <Footer /> */}
     </>
   );
 }

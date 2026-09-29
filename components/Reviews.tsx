@@ -1,125 +1,78 @@
 "use client";
 
 import { useState } from "react";
-import { reviews } from "@/lib/data";
 
-const REVIEW_INITIAL = 16;
-const REVIEW_STEP = 16;
+const reviews = [
+  { name: "ho***wj", initial: "H", text: "Uy tín", time: "21 giờ trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-nt19042099-1789906616.webp" },
+  { name: "qp***30", initial: "Q", text: "Uy tín", time: "1 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-alexanderpham1001-1789269618.webp" },
+  { name: "kl***nh", initial: "K", text: "Uy tín", time: "3 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-cuongloveconan-1789310648.webp" },
+  { name: "ng***k0", initial: "N", text: "Uy tín", time: "3 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-haomilknoob-1789737511.webp" },
+  { name: "hi***ii", initial: "H", text: "uy tín lắm ah", time: "4 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-huynguyen39348-1789302143.webp" },
+  { name: "Ph***ng", initial: "P", text: "Uy tín", time: "4 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-mhxinhgai-1788868821.webp" },
+  { name: "th***77", initial: "T", text: "Oke nha", time: "4 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-nguyenhoanghiep21062008-1789208040.webp" },
+  { name: "va***it", initial: "V", text: "Uy tín nha", time: "5 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-nhuanh0304-1788837719.webp" },
+  { name: "Ng***89", initial: "N", text: "uytin", time: "5 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-nmy362685-1788929202.webp" },
+  { name: "em***89", initial: "E", text: "uy tín", time: "6 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-nt19042099-1789906616.webp" },
+  { name: "Ry***an", initial: "R", text: "Locket 15s an toàn", time: "6 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-quangnhat-1788742227.webp" },
+  { name: "ki***09", initial: "K", text: "uy tin", time: "6 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-thitranle38-1788670297.webp" },
+  { name: "tu***gt", initial: "T", text: "Uy tín", time: "6 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-tungkk000-1790093269.webp" },
+  { name: "ng***nh", initial: "N", text: "Uy tín", time: "7 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-trinhkhoa310-1789266941.webp" },
+  { name: "ng***om", initial: "N", text: "Locket của mình bị lỗi nhma vẫn đc sửa ❤️", time: "7 ngày trước", img: "/upload/danh-gia-locket-gold-tu-khach-hang-thitranle38-1788670297.webp" },
+  { name: "vu***nn", initial: "V", text: "uy tín", time: "8 ngày trước", img: "/upload/images.jpg" },
+];
 
 export default function Reviews() {
-  const [shown, setShown] = useState(REVIEW_INITIAL);
+  const [shown, setShown] = useState(8);
   const [lightboxImg, setLightboxImg] = useState<string | null>(null);
-  const display = reviews.slice(0, shown);
-  const total = reviews.length;
 
   return (
-    <>
+    <section>
       <div style={{ textAlign: "center", marginTop: 40, marginBottom: 20 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: "var(--text-0)" }}>
-          Đánh Giá Khách Hàng
-        </h2>
-        <p style={{ color: "var(--text-2)", fontSize: 14, marginTop: 8 }}>
-          Cảm nhận thực tế từ khách hàng đã sử dụng dịch vụ
-        </p>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: "var(--text-0)" }}>Đánh Giá Khách Hàng</h2>
+        <p style={{ color: "var(--text-2)", fontSize: 14, marginTop: 8 }}>Hình ảnh thực tế từ khách hàng</p>
       </div>
 
-      <div className="review-feed">
-        {display.map((r, i) => (
-          <div className="review-card" key={i}>
-            <div
-              className="review-img-wrap"
-              onClick={() => setLightboxImg(r.img)}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={r.img}
-                alt={`Đánh giá từ ${r.name}`}
-                loading="lazy"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = "none";
-                  const parent = target.parentElement;
-                  if (parent && !parent.querySelector(".review-no-img")) {
-                    const placeholder = document.createElement("div");
-                    placeholder.className = "review-no-img";
-                    placeholder.textContent = r.initial;
-                    parent.appendChild(placeholder);
-                  }
-                }}
-              />
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8, marginBottom: 20 }}>
+        {reviews.slice(0, shown).map((r, i) => (
+          <div key={i} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: 6, display: "flex", flexDirection: "column", gap: 5, width: "calc((100% - 7 * 8px) / 8)" }}>
+            <div style={{ width: "100%", aspectRatio: "9 / 16", borderRadius: 10, overflow: "hidden", cursor: "zoom-in" }} onClick={() => setLightboxImg(r.img)}>
+              <img src={r.img} alt={r.name} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
             </div>
-            <div className="review-head">
-              <div className="review-avatar">{r.initial}</div>
-              <div className="review-info">
-                <div className="review-name">{r.name}</div>
-              </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg,#a78bfa,#7c3aed)", color: "#fff", fontWeight: 700, fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{r.initial}</div>
+              <div style={{ fontWeight: 700, fontSize: 12, color: "var(--text-0)" }}>{r.name}</div>
             </div>
-            <div className="review-text">{r.text}</div>
-            <div className="review-time">{r.time}</div>
+            <div style={{ fontSize: 12.5, color: "var(--text-1)", lineHeight: 1.45 }}>{r.text}</div>
+            <div style={{ fontSize: 10, color: "var(--text-2)" }}>{r.time}</div>
           </div>
         ))}
       </div>
 
-      <div className="review-ctrl-wrap">
-        {shown < total && (
+      {/* Nút Xem thêm / Đóng lại */}
+      <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 40 }}>
+        {shown < reviews.length && (
           <button
-            className="review-ctrl-btn"
-            onClick={() => setShown((c) => Math.min(c + REVIEW_STEP, total))}
+            onClick={() => setShown((c) => Math.min(c + 8, reviews.length))}
+            style={{ padding: "12px 28px", borderRadius: 50, fontSize: 13, fontWeight: 700, cursor: "pointer", border: "1.5px solid rgba(167,139,250,0.5)", background: "rgba(167,139,250,0.1)", color: "#a78bfa", fontFamily: "inherit" }}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-            Xem thêm đánh giá
+            ⬇ Xem thêm đánh giá
           </button>
         )}
-        {shown > REVIEW_INITIAL && (
+        {shown > 8 && (
           <button
-            className="review-ctrl-btn close-btn"
-            onClick={() => setShown(REVIEW_INITIAL)}
+            onClick={() => setShown(8)}
+            style={{ padding: "12px 28px", borderRadius: 50, fontSize: 13, fontWeight: 700, cursor: "pointer", border: "1.5px solid var(--border)", background: "rgba(255,255,255,0.03)", color: "var(--text-2)", fontFamily: "inherit" }}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="18 15 12 9 6 15" />
-            </svg>
-            Đóng lại
+            ⬆ Đóng lại
           </button>
         )}
       </div>
 
       {lightboxImg && (
-        <div
-          className="lightbox-overlay"
-          onClick={() => setLightboxImg(null)}
-        >
-          <div className="lightbox-close">✕</div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={lightboxImg}
-            alt=""
-            onClick={(e) => e.stopPropagation()}
-            className="lightbox-img"
-          />
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.94)", zIndex: 2147483647, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, cursor: "zoom-out" }} onClick={() => setLightboxImg(null)}>
+          <img src={lightboxImg} alt="" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "min(520px, 90vw)", maxHeight: "88vh", borderRadius: 18, objectFit: "contain" }} />
         </div>
       )}
-    </>
+    </section>
   );
 }

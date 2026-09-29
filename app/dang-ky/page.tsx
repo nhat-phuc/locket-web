@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+// 
 import RegisterForm from "@/components/RegisterForm";
 
 export default function DangKyPage() {
@@ -15,7 +15,7 @@ export default function DangKyPage() {
           </p>
         </div>
       </main>
-      <Footer />
+      {/*  */}
     </>
   );
 }

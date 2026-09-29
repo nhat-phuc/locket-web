@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+// 
 
 function ResetForm() {
   const router = useRouter();
@@ -142,7 +142,7 @@ export default function DatLaiMatKhauPage() {
         </div>
       </main>
       <Navbar />
-      <Footer />
+      {/*  */}
     </>
   );
 }

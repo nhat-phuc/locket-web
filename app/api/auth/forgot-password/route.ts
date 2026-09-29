@@ -36,7 +36,7 @@ export async function POST(req: Request) {
       },
     });
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://locket-web-eight.vercel.app/";
     const resetLink = `${baseUrl}/dat-lai-mat-khau?token=${token}`;
 
     await sendEmail({

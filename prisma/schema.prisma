@@ -218,3 +218,24 @@ model Log {
   @@index([userId])
   @@index([action])
 }
+model PendingTransaction {
+  id            String    @id @default(cuid())
+  sepayId       String?   @unique
+  orderCode     String?
+  orderId       String?
+  amount        Int
+  content       String?
+  referenceCode String?
+  bankAccount   String?
+  gateway       String?
+  transactionDate DateTime?
+  reason        String    // "insufficient" | "wrong_code" | "orphan" | "overpaid"
+  status        String    @default("pending") // pending | resolved | rejected
+  note          String?
+  resolvedBy    String?
+  resolvedAt    DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([status])
+  @@index([orderCode])
+}
