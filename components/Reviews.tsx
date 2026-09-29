@@ -95,7 +95,7 @@ export default function Reviews() {
             }}>
               {mainImg && (
                 <div
-                  style={{ width: "100%", aspectRatio: "9 / 16", borderRadius: 10, overflow: "hidden", cursor: "zoom-in", position: "relative" }}
+                  className={`rv-img-wrap ${r.isFeatured ? "is-featured" : ""}`}
                   onClick={() => setLightboxImg(mainImg)}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -103,17 +103,10 @@ export default function Reviews() {
                     src={mainImg}
                     alt={r.name}
                     loading="lazy"
-                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    className="rv-img"
                   />
                   {r.isFeatured && (
-                    <div style={{
-                      position: "absolute", top: 6, right: 6,
-                      background: "#fbbf24", color: "#fff",
-                      fontSize: 10, fontWeight: 900,
-                      padding: "2px 6px", borderRadius: 4,
-                    }}>
-                      ⭐
-                    </div>
+                    <div className="rv-img-star">⭐</div>
                   )}
                 </div>
               )}
@@ -139,10 +132,7 @@ export default function Reviews() {
       {/* Nút Xem thêm / Thu gọn */}
       <div className="rv-actions">
         {hasMore && (
-          <button
-            onClick={() => setShown((s) => s + LOAD_MORE)}
-            className="rv-btn rv-btn-more"
-          >
+          <button onClick={() => setShown((s) => s + LOAD_MORE)} className="rv-btn rv-btn-more">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 9l6 6 6-6" />
             </svg>
@@ -150,10 +140,7 @@ export default function Reviews() {
           </button>
         )}
         {canCollapse && (
-          <button
-            onClick={() => setShown(INITIAL_COUNT)}
-            className="rv-btn rv-btn-collapse"
-          >
+          <button onClick={() => setShown(INITIAL_COUNT)} className="rv-btn rv-btn-collapse">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 15l-6-6-6 6" />
             </svg>
@@ -184,6 +171,63 @@ export default function Reviews() {
           to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Ảnh review — viền trắng mờ kiểu story (3px) */
+        .rv-img-wrap {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 9 / 16;
+          border-radius: 13px;
+          overflow: hidden;
+          cursor: zoom-in;
+          padding: 3px;
+          background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .rv-img-wrap:hover {
+          transform: translateY(-2px) scale(1.02);
+          box-shadow: 0 8px 24px rgba(167, 139, 250, 0.4);
+        }
+
+        /* Ảnh nổi bật — viền gradient vàng gold */
+        .rv-img-wrap.is-featured {
+          background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #f97316 100%);
+          padding: 3px;
+        }
+        .rv-img-wrap.is-featured:hover {
+          background: linear-gradient(135deg, #fcd34d 0%, #fbbf24 50%, #fb923c 100%);
+          box-shadow: 0 8px 24px rgba(251, 191, 36, 0.4);
+        }
+
+        .rv-img-wrap :global(.rv-img) {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+          border-radius: 10px;
+          transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          background: #0a0a0f;
+        }
+        .rv-img-wrap:hover :global(.rv-img) {
+          transform: scale(1.04);
+        }
+
+        .rv-img-wrap :global(.rv-img-star) {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          background: rgba(0, 0, 0, 0.7);
+          backdrop-filter: blur(10px);
+          color: #fbbf24;
+          font-size: 12px;
+          font-weight: 900;
+          padding: 3px 7px;
+          border-radius: 6px;
+          z-index: 3;
+          border: 1px solid rgba(251, 191, 36, 0.5);
+        }
+
+        /* Actions */
         .rv-actions {
           display: flex;
           justify-content: center;
@@ -192,7 +236,6 @@ export default function Reviews() {
           margin-top: 24px;
           flex-wrap: wrap;
         }
-
         .rv-btn {
           display: inline-flex;
           align-items: center;
@@ -206,7 +249,6 @@ export default function Reviews() {
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           border: none;
         }
-
         .rv-btn-more {
           background: rgba(167,139,250,0.12);
           color: #a78bfa;
@@ -218,26 +260,11 @@ export default function Reviews() {
           transform: translateY(-2px);
           box-shadow: 0 8px 24px rgba(167,139,250,0.2);
         }
-        .rv-btn-more svg {
-          transition: transform 0.3s;
-        }
-        .rv-btn-more:hover svg {
-          transform: translateY(2px);
-        }
-
         .rv-btn-collapse {
           background: transparent;
           color: var(--text-2);
         }
-        .rv-btn-collapse:hover {
-          color: var(--text-0);
-        }
-        .rv-btn-collapse svg {
-          transition: transform 0.3s;
-        }
-        .rv-btn-collapse:hover svg {
-          transform: translateY(-2px);
-        }
+        .rv-btn-collapse:hover { color: var(--text-0); }
       `}</style>
     </section>
   );
