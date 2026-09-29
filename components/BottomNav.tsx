@@ -10,7 +10,6 @@ const HIDDEN_PATHS = [
   "/dang-ky",
   "/quen-mat-khau",
   "/dat-lai-mat-khau",
-  "/kich-hoat",   // có thể ẩn nếu muốn
 ];
 
 const items = [
