@@ -3,6 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+// Danh sách path KHÔNG hiển thị BottomNav
+const HIDDEN_PATHS = [
+  "/admin",
+  "/dang-nhap",
+  "/dang-ky",
+  "/quen-mat-khau",
+  "/dat-lai-mat-khau",
+  "/kich-hoat",   // có thể ẩn nếu muốn
+];
+
 const items = [
   {
     href: "/",
@@ -57,6 +67,11 @@ const items = [
 
 export default function BottomNav() {
   const pathname = usePathname();
+
+  // Ẩn BottomNav ở các trang admin, auth
+  if (HIDDEN_PATHS.some((p) => pathname.startsWith(p))) {
+    return null;
+  }
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
