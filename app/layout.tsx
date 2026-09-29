@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Footer from "@/components/Footer";
+import BottomNav from "@/components/BottomNav";
 import FloatingWidgets from "@/components/FloatingWidgets";
 import FallingCanvas from "@/components/FallingCanvas";
 import FXEffects from "@/components/FXEffects";
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Nút nổi + Footer */}
         <FloatingWidgets />
         <Footer />
+        <BottomNav />
       </body>
     </html>
   );
