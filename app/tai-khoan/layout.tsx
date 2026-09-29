@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
 // import Footer from "@/components/Footer";
 import UserSidebar from "@/components/user/UserSidebar";
 
@@ -29,7 +28,6 @@ export default function TaiKhoanLayout({ children }: { children: React.ReactNode
 
   return (
     <>
-      <Header />
       <main className="wrap" style={{ minHeight: "80vh", paddingTop: 32, paddingBottom: 60 }}>
         <div className="user-layout">
           <UserSidebar />

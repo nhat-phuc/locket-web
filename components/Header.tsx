@@ -170,7 +170,15 @@ export default function Header({ user: propUser, onLogout }: HeaderProps) {
                   }}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={avatar} alt="User" />
+                  <img
+                    src={avatar}
+                    alt="User"
+                    referrerPolicy="no-referrer"
+                    crossOrigin="anonymous"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(user?.name || user?.email?.split("@")[0] || "User") + "&background=7c3aed&color=fff&size=100";
+                    }}
+                  />
                   <span>{displayName}</span>
                   <svg className="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <polyline points="6 9 12 15 18 9" />
