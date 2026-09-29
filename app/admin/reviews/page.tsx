@@ -1,286 +1,323 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import AdminPage from "@/components/admin/AdminPage";
 
 interface Review {
   id: string;
+  userId: string | null;
+  orderId: string | null;
   name: string;
   initial: string;
   text: string;
   rating: number;
+  image: string | null;
+  images: string | null;
+  time: string;
+  status: string;
   isApproved: boolean;
+  isFeatured: boolean;
+  rejectReason: string | null;
   createdAt: string;
+  user?: { email: string; username: string } | null;
 }
 
-export default function AdminReviewsPage() {
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"pending" | "approved" | "all">("pending");
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+type Tab = "pending" | "approved" | "rejected" | "all";
 
-  const loadReviews = () => {
+export default function AdminReviewsPage() {
+  const [tab, setTab] = useState<Tab>("pending");
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [counts, setCounts] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+  const [lightbox, setLightbox] = useState<string | null>(null);
+
+  const load = () => {
     setLoading(true);
-    fetch("/api/admin/reviews")
+    fetch(`/api/admin/reviews?status=${tab}`)
       .then((r) => r.json())
       .then((d) => {
-        if (d.success) setReviews(d.reviews || []);
+        if (d.success) {
+          setReviews(d.reviews);
+          const c: Record<string, number> = {};
+          d.counts.forEach((x: { status: string; _count: number }) => { c[x.status] = x._count; });
+          setCounts(c);
+        }
       })
-      .catch(() => {})
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => {
-    loadReviews();
-  }, []);
+  useEffect(() => { load(); }, [tab]);
 
-  const filtered = reviews.filter((r) => {
-    if (filter === "pending") return !r.isApproved;
-    if (filter === "approved") return r.isApproved;
-    return true;
-  });
-
-  const handleApprove = async (id: string) => {
-    setActionLoading(id);
-    try {
-      const res = await fetch(`/api/admin/reviews/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isApproved: true }),
-      });
-      if (res.ok) {
-        setReviews((prev) =>
-          prev.map((r) => (r.id === id ? { ...r, isApproved: true } : r))
-        );
-      }
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleUnapprove = async (id: string) => {
-    setActionLoading(id);
-    try {
-      const res = await fetch(`/api/admin/reviews/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isApproved: false }),
-      });
-      if (res.ok) {
-        setReviews((prev) =>
-          prev.map((r) => (r.id === id ? { ...r, isApproved: false } : r))
-        );
-      }
-    } finally {
-      setActionLoading(null);
-    }
+  const handleAction = async (id: string, action: string, reason?: string) => {
+    await fetch("/api/admin/reviews", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, action, reason }),
+    });
+    load();
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Bạn chắc chắn muốn xóa đánh giá này?")) return;
-    setActionLoading(id);
-    try {
-      const res = await fetch(`/api/admin/reviews/${id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        setReviews((prev) => prev.filter((r) => r.id !== id));
-      }
-    } finally {
-      setActionLoading(null);
-    }
+    if (!confirm("Xóa đánh giá này?")) return;
+    await fetch(`/api/admin/reviews?id=${id}`, { method: "DELETE" });
+    load();
   };
 
-  const pendingCount = reviews.filter((r) => !r.isApproved).length;
+  const parseImages = (r: Review): string[] => {
+    if (r.images) {
+      try { return JSON.parse(r.images); } catch { return []; }
+    }
+    return r.image ? [r.image] : [];
+  };
+
+  const tabs: { id: Tab; label: string; color: string }[] = [
+    { id: "pending",  label: `Chờ duyệt (${counts.pending || 0})`,   color: "#d97706" },
+    { id: "approved", label: `Đã duyệt (${counts.approved || 0})`,   color: "#059669" },
+    { id: "rejected", label: `Từ chối (${counts.rejected || 0})`,    color: "#dc2626" },
+    { id: "all",      label: "Tất cả",                              color: "#6b7280" },
+  ];
 
   return (
-    <AdminPage title="Đánh giá" description="Quản lý và duyệt đánh giá khách hàng">
-      {/* Filter tabs */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-        <button
-          onClick={() => setFilter("pending")}
-          style={{
-            padding: "8px 16px",
-            borderRadius: 999,
-            border: "1.5px solid var(--border)",
-            background: filter === "pending" ? "var(--accent)" : "var(--bg-1)",
-            color: filter === "pending" ? "#fff" : "var(--text-1)",
-            fontWeight: 700,
-            cursor: "pointer",
-            fontSize: 13,
-          }}
-        >
-          ⏳ Chờ duyệt ({pendingCount})
-        </button>
-        <button
-          onClick={() => setFilter("approved")}
-          style={{
-            padding: "8px 16px",
-            borderRadius: 999,
-            border: "1.5px solid var(--border)",
-            background: filter === "approved" ? "var(--accent)" : "var(--bg-1)",
-            color: filter === "approved" ? "#fff" : "var(--text-1)",
-            fontWeight: 700,
-            cursor: "pointer",
-            fontSize: 13,
-          }}
-        >
-          ✅ Đã duyệt ({reviews.length - pendingCount})
-        </button>
-        <button
-          onClick={() => setFilter("all")}
-          style={{
-            padding: "8px 16px",
-            borderRadius: 999,
-            border: "1.5px solid var(--border)",
-            background: filter === "all" ? "var(--accent)" : "var(--bg-1)",
-            color: filter === "all" ? "#fff" : "var(--text-1)",
-            fontWeight: 700,
-            cursor: "pointer",
-            fontSize: 13,
-          }}
-        >
-          📋 Tất cả ({reviews.length})
-        </button>
+    <div style={{ padding: 24, maxWidth: 1400, margin: "0 auto" }}>
+      <h1 style={{ fontSize: 28, fontWeight: 900, marginBottom: 8 }}>Quản lý đánh giá</h1>
+      <p style={{ color: "#6b7280", marginBottom: 24 }}>
+        Duyệt đánh giá để hiển thị trên trang chủ
+      </p>
+
+      {/* Tabs */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            style={{
+              padding: "10px 18px",
+              borderRadius: 12,
+              border: `2px solid ${tab === t.id ? t.color : "#e5e7eb"}`,
+              background: tab === t.id ? t.color : "#fff",
+              color: tab === t.id ? "#fff" : "#374151",
+              fontWeight: 800,
+              fontSize: 13,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
-      {/* List */}
-      {loading ? (
-        <p style={{ color: "var(--text-2)" }}>Đang tải...</p>
-      ) : filtered.length === 0 ? (
-        <p style={{ color: "var(--text-2)" }}>
-          {filter === "pending"
-            ? "Không có đánh giá nào chờ duyệt."
-            : "Không có đánh giá nào."}
-        </p>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {filtered.map((r) => (
-            <div
-              key={r.id}
-              style={{
-                padding: 16,
-                background: "var(--bg-1)",
-                border: "1px solid var(--border)",
-                borderRadius: 12,
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  marginBottom: 10,
-                }}
-              >
-                <div
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: "50%",
-                    background: "linear-gradient(135deg, #a78bfa, #7c3aed)",
-                    color: "#fff",
-                    fontWeight: 700,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  {r.initial}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700 }}>{r.name}</div>
-                  <div style={{ fontSize: 12, color: "var(--text-2)" }}>
-                    {new Date(r.createdAt).toLocaleString("vi-VN")}
-                  </div>
-                </div>
-                <div style={{ color: "#fbbf24", fontSize: 14, whiteSpace: "nowrap" }}>
-                  {"★".repeat(r.rating)}
-                  <span style={{ color: "var(--text-2)" }}>
-                    {"★".repeat(5 - r.rating)}
-                  </span>
-                </div>
-                <span
-                  className={`status-badge ${r.isApproved ? "paid" : "pending"}`}
-                  style={{ flexShrink: 0 }}
-                >
-                  {r.isApproved ? "Đã duyệt" : "Chờ"}
-                </span>
-              </div>
+      {loading && <div style={{ padding: 60, textAlign: "center", color: "#6b7280" }}>Đang tải...</div>}
 
-              <p
-                style={{
-                  fontSize: 14,
-                  color: "var(--text-1)",
-                  marginBottom: 12,
-                  lineHeight: 1.5,
-                }}
-              >
-                {r.text}
-              </p>
-
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {!r.isApproved && (
-                  <button
-                    onClick={() => handleApprove(r.id)}
-                    disabled={actionLoading === r.id}
-                    style={{
-                      padding: "8px 16px",
-                      borderRadius: 8,
-                      background: "#10b981",
-                      color: "#fff",
-                      border: "none",
-                      fontWeight: 700,
-                      cursor: actionLoading === r.id ? "wait" : "pointer",
-                      fontSize: 13,
-                      opacity: actionLoading === r.id ? 0.6 : 1,
-                    }}
-                  >
-                    {actionLoading === r.id ? "Đang xử lý..." : "✅ Duyệt"}
-                  </button>
-                )}
-                {r.isApproved && (
-                  <button
-                    onClick={() => handleUnapprove(r.id)}
-                    disabled={actionLoading === r.id}
-                    style={{
-                      padding: "8px 16px",
-                      borderRadius: 8,
-                      background: "rgba(251,191,36,0.15)",
-                      color: "#fbbf24",
-                      border: "none",
-                      fontWeight: 700,
-                      cursor: actionLoading === r.id ? "wait" : "pointer",
-                      fontSize: 13,
-                      opacity: actionLoading === r.id ? 0.6 : 1,
-                    }}
-                  >
-                    {actionLoading === r.id ? "Đang xử lý..." : "↩️ Bỏ duyệt"}
-                  </button>
-                )}
-                <button
-                  onClick={() => handleDelete(r.id)}
-                  disabled={actionLoading === r.id}
-                  style={{
-                    padding: "8px 16px",
-                    borderRadius: 8,
-                    background: "rgba(248,113,113,0.15)",
-                    color: "#f87171",
-                    border: "none",
-                    fontWeight: 700,
-                    cursor: actionLoading === r.id ? "wait" : "pointer",
-                    fontSize: 13,
-                    opacity: actionLoading === r.id ? 0.6 : 1,
-                  }}
-                >
-                  🗑️ Xóa
-                </button>
-              </div>
-            </div>
-          ))}
+      {!loading && reviews.length === 0 && (
+        <div style={{
+          padding: 60,
+          textAlign: "center",
+          background: "#f9fafb",
+          borderRadius: 16,
+          color: "#6b7280",
+        }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>📭</div>
+          <div>Không có đánh giá nào</div>
         </div>
       )}
-    </AdminPage>
+
+      {!loading && reviews.length > 0 && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 16 }}>
+          {reviews.map((r) => {
+            const imgs = parseImages(r);
+            return (
+              <div key={r.id} style={{
+                background: "#fff",
+                border: "1px solid #e5e7eb",
+                borderRadius: 16,
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+              }}>
+                {/* Images row */}
+                {imgs.length > 0 && (
+                  <div style={{
+                    display: "flex",
+                    gap: 4,
+                    padding: 8,
+                    background: "#f9fafb",
+                    overflowX: "auto",
+                  }}>
+                    {imgs.map((img, i) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        key={i}
+                        src={img}
+                        alt=""
+                        onClick={() => setLightbox(img)}
+                        style={{
+                          width: 80,
+                          height: 140,
+                          objectFit: "cover",
+                          borderRadius: 8,
+                          cursor: "zoom-in",
+                          flexShrink: 0,
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Content */}
+                <div style={{ padding: 16, flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{
+                      width: 36, height: 36,
+                      borderRadius: "50%",
+                      background: "linear-gradient(135deg,#a78bfa,#7c3aed)",
+                      color: "#fff",
+                      fontWeight: 800,
+                      fontSize: 14,
+                      display: "grid", placeItems: "center",
+                    }}>
+                      {r.initial}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: "#111827" }}>{r.name}</div>
+                      {r.user && (
+                        <div style={{ fontSize: 11, color: "#6b7280", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {r.user.email}
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 11, color: "#9ca3af" }}>
+                      {new Date(r.createdAt).toLocaleDateString("vi-VN")}
+                    </div>
+                  </div>
+
+                  {/* Rating */}
+                  <div style={{ fontSize: 14, color: "#fbbf24" }}>
+                    {"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}
+                  </div>
+
+                  {/* Text */}
+                  <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.5 }}>
+                    {r.text}
+                  </div>
+
+                  {/* Badges */}
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {r.isFeatured && (
+                      <span style={{
+                        padding: "3px 8px", background: "#fef3c7", color: "#b45309",
+                        fontSize: 10, fontWeight: 800, borderRadius: 4,
+                      }}>
+                        ⭐ NỔI BẬT
+                      </span>
+                    )}
+                    <span style={{
+                      padding: "3px 8px",
+                      background: r.status === "approved" ? "#ecfdf5" : r.status === "rejected" ? "#fef2f2" : "#fffbeb",
+                      color: r.status === "approved" ? "#059669" : r.status === "rejected" ? "#dc2626" : "#d97706",
+                      fontSize: 10,
+                      fontWeight: 800,
+                      borderRadius: 4,
+                      textTransform: "uppercase",
+                    }}>
+                      {r.status === "pending" ? "CHỜ DUYỆT" : r.status === "approved" ? "ĐÃ DUYỆT" : "TỪ CHỐI"}
+                    </span>
+                    {r.orderId && (
+                      <span style={{ padding: "3px 8px", background: "#f3f4f6", color: "#374151", fontSize: 10, fontWeight: 700, borderRadius: 4 }}>
+                        Đơn: {r.orderId.slice(0, 8)}...
+                      </span>
+                    )}
+                  </div>
+
+                  {r.rejectReason && (
+                    <div style={{ fontSize: 11, color: "#dc2626", fontStyle: "italic" }}>
+                      Lý do: {r.rejectReason}
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div style={{ display: "flex", gap: 6, marginTop: "auto", paddingTop: 10, borderTop: "1px solid #f3f4f6" }}>
+                    {r.status === "pending" && (
+                      <>
+                        <button
+                          onClick={() => handleAction(r.id, "approve")}
+                          style={{
+                            flex: 1, padding: "8px 12px",
+                            background: "#10b981", color: "#fff",
+                            border: "none", borderRadius: 8,
+                            fontSize: 12, fontWeight: 800, cursor: "pointer",
+                            fontFamily: "inherit",
+                          }}
+                        >
+                          ✓ Duyệt
+                        </button>
+                        <button
+                          onClick={() => {
+                            const reason = prompt("Lý do từ chối:");
+                            if (reason) handleAction(r.id, "reject", reason);
+                          }}
+                          style={{
+                            flex: 1, padding: "8px 12px",
+                            background: "#fff", color: "#dc2626",
+                            border: "1px solid #fecaca", borderRadius: 8,
+                            fontSize: 12, fontWeight: 800, cursor: "pointer",
+                            fontFamily: "inherit",
+                          }}
+                        >
+                          ✕ Từ chối
+                        </button>
+                      </>
+                    )}
+                    {r.status === "approved" && (
+                      <button
+                        onClick={() => handleAction(r.id, r.isFeatured ? "unfeature" : "feature")}
+                        style={{
+                          flex: 1, padding: "8px 12px",
+                          background: r.isFeatured ? "#fef3c7" : "#fff",
+                          color: r.isFeatured ? "#b45309" : "#6b7280",
+                          border: "1px solid #e5e7eb", borderRadius: 8,
+                          fontSize: 12, fontWeight: 800, cursor: "pointer",
+                          fontFamily: "inherit",
+                        }}
+                      >
+                        {r.isFeatured ? "⭐ Bỏ nổi bật" : "☆ Đặt nổi bật"}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleDelete(r.id)}
+                      style={{
+                        padding: "8px 12px",
+                        background: "#fff", color: "#6b7280",
+                        border: "1px solid #e5e7eb", borderRadius: 8,
+                        fontSize: 12, fontWeight: 800, cursor: "pointer",
+                        fontFamily: "inherit",
+                      }}
+                    >
+                      🗑
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          onClick={() => setLightbox(null)}
+          style={{
+            position: "fixed", inset: 0,
+            background: "rgba(0,0,0,0.9)",
+            display: "grid", placeItems: "center",
+            zIndex: 999, cursor: "zoom-out",
+            padding: 20,
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={lightbox} alt="" style={{ maxWidth: "90vw", maxHeight: "90vh", borderRadius: 12 }} />
+        </div>
+      )}
+    </div>
   );
 }

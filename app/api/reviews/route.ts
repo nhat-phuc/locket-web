@@ -1,81 +1,110 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getSession } from "@/lib/session";
 
+// POST — User gửi đánh giá mới
 export async function POST(req: Request) {
   try {
-    const { userId, orderId, rating, text } = await req.json();
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ success: false, error: "Chưa đăng nhập" }, { status: 401 });
+    }
 
-    if (!userId || !text || !rating) {
-      return NextResponse.json(
-        { success: false, error: "Thiếu thông tin" },
-        { status: 400 }
-      );
+    const { orderId, rating, text, images } = await req.json();
+
+    if (!text || !rating) {
+      return NextResponse.json({ success: false, error: "Thiếu thông tin" }, { status: 400 });
     }
 
     if (rating < 1 || rating > 5) {
-      return NextResponse.json(
-        { success: false, error: "Đánh giá phải từ 1-5 sao" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: "Đánh giá phải từ 1-5 sao" }, { status: 400 });
     }
 
     if (text.trim().length < 5) {
-      return NextResponse.json(
-        { success: false, error: "Đánh giá phải có ít nhất 5 ký tự" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: "Đánh giá phải có ít nhất 5 ký tự" }, { status: 400 });
+    }
+
+    // Check order nếu có (chỉ cho phép đánh giá đơn đã paid)
+    if (orderId) {
+      const order = await prisma.order.findFirst({
+        where: { id: orderId, userId: session.userId, status: "paid" },
+      });
+      if (!order) {
+        return NextResponse.json({ success: false, error: "Đơn hàng không hợp lệ" }, { status: 400 });
+      }
+
+      // Chặn đánh giá trùng
+      const existing = await prisma.review.findFirst({
+        where: { userId: session.userId, orderId },
+      });
+      if (existing) {
+        return NextResponse.json({ success: false, error: "Bạn đã đánh giá đơn này rồi" }, { status: 400 });
+      }
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { name: true, email: true },
+      where: { id: session.userId },
+      select: { username: true, email: true },
     });
 
     if (!user) {
-      return NextResponse.json(
-        { success: false, error: "Không tìm thấy user" },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: "Không tìm thấy user" }, { status: 404 });
     }
+
+    // Tạo tên viết tắt: trannhatphuc → tr***uc
+    const fullName = user.username || user.email.split("@")[0];
+    const name = maskName(fullName);
+    const initial = fullName[0].toUpperCase();
 
     const review = await prisma.review.create({
       data: {
-        userId,
-        name: user.name || user.email.split("@")[0],
-        initial: (user.name || user.email)[0].toUpperCase(),
+        userId: session.userId,
+        orderId: orderId || null,
+        name,
+        initial,
         text: text.trim(),
         rating,
+        images: images ? JSON.stringify(images) : null,
+        image: images && images[0] ? images[0] : null,
         time: "Vừa xong",
+        status: "pending",
         isApproved: false,
       },
     });
 
     return NextResponse.json({
       success: true,
-      message: "Cảm ơn bạn đã gửi đánh giá!",
+      message: "Cảm ơn bạn! Đánh giá sẽ hiển thị sau khi được duyệt.",
       review,
     });
   } catch (error) {
-    console.error("Review error:", error);
-    return NextResponse.json(
-      { success: false, error: "Có lỗi xảy ra" },
-      { status: 500 }
-    );
+    console.error("[reviews/POST]", error);
+    return NextResponse.json({ success: false, error: "Có lỗi xảy ra" }, { status: 500 });
   }
 }
 
-export async function GET() {
+// GET — Lấy reviews cho trang chủ (chỉ approved)
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url);
+    const limit = Number(searchParams.get("limit") || 20);
+
     const reviews = await prisma.review.findMany({
-      where: { isApproved: true },
-      orderBy: { createdAt: "desc" },
-      take: 50,
+      where: { status: "approved", isApproved: true },
+      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+      take: limit,
     });
+
     return NextResponse.json({ success: true, reviews });
-  } catch {
-    return NextResponse.json(
-      { success: false, error: "Có lỗi xảy ra" },
-      { status: 500 }
-    );
+  } catch (error) {
+    console.error("[reviews/GET]", error);
+    return NextResponse.json({ success: false, error: "Có lỗi xảy ra" }, { status: 500 });
   }
+}
+
+function maskName(name: string): string {
+  if (name.length <= 4) return name[0] + "***" + name[name.length - 1];
+  const first = name.slice(0, 2);
+  const last = name.slice(-2);
+  return `${first}***${last}`;
 }
