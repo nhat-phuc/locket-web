@@ -11,6 +11,7 @@ import Marquee from "@/components/Marquee";
 import IconShowcase from "@/components/IconShowcase";
 import Deposits from "@/components/Deposits";
 import Reviews from "@/components/Reviews";
+import RecentTransactions from "@/components/RecentTransactions";
 import Gallery from "@/components/Gallery";
 import CTA from "@/components/CTA";
 import Steps from "@/components/Steps";
@@ -46,6 +47,7 @@ export default function HomePage() {
           <Marquee />
           <IconShowcase />
           <Deposits />
+          <RecentTransactions />
           <Reviews />
           <Gallery />
           <CTA />
