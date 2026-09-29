@@ -4120,3 +4120,107 @@ body[data-mode="light"] .icon-map-grid-bg {
 .pay-input-wrap input {
   padding-right: 42px;
 }
+
+/* ═══════════════════════════════════════════
+   SALES POPUP (Live Notifications)
+   ═══════════════════════════════════════════ */
+.sales-popup {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 40px 12px 12px;
+  background: linear-gradient(135deg, rgba(20, 15, 40, 0.95), rgba(30, 20, 60, 0.95));
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(167, 139, 250, 0.15);
+  backdrop-filter: blur(20px);
+  max-width: 380px;
+  min-width: 300px;
+  transform: translateX(0);
+  opacity: 1;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: auto;
+}
+
+.sales-popup.hide {
+  transform: translateX(-120%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sales-popup-img {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: visible;
+  position: relative;
+  border: 2px solid rgba(167, 139, 250, 0.4);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sales-popup-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sales-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.35;
+}
+
+.sales-desc {
+  font-size: 13px;
+  font-weight: 700;
+  color: #a78bfa;
+  line-height: 1.35;
+}
+
+.sales-time {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 2px;
+}
+
+.sales-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.5);
+  transition: all 0.2s;
+}
+
+.sales-close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sales-close svg {
+  width: 14px;
+  height: 14px;
+}
+
+@media (max-width: 500px) {
+  .sales-popup {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    max-width: none;
+    min-width: 0;
+  }
+}
