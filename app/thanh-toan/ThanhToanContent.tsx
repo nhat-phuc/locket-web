@@ -18,6 +18,7 @@ interface LocketProfile {
   valid: boolean;
   username?: string;
   avatar?: string | null;
+  message?: string;
 }
 
 type Step = "info" | "method";
