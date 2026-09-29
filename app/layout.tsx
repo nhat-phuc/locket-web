@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BottomNav from "@/components/BottomNav";
 import FloatingWidgets from "@/components/FloatingWidgets";
@@ -24,6 +25,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <CatLoader />
         <FallingCanvas />
         <FXEffects />
+
+        {/* Header */}
+        <Header />
 
         {/* Nội dung */}
         {children}
