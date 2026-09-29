@@ -15,14 +15,17 @@ interface Review {
   createdAt: string;
 }
 
+const INITIAL_COUNT = 8;
+const LOAD_MORE = 8;
+
 export default function Reviews() {
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [shown, setShown] = useState(8);
+  const [shown, setShown] = useState(INITIAL_COUNT);
   const [lightboxImg, setLightboxImg] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/reviews?limit=50")
+    fetch("/api/reviews?limit=100")
       .then((r) => r.json())
       .then((d) => { if (d.success) setReviews(d.reviews); })
       .catch(() => {})
@@ -47,6 +50,10 @@ export default function Reviews() {
     return `${days} ngày trước`;
   };
 
+  const visible = reviews.slice(0, shown);
+  const hasMore = shown < reviews.length;
+  const canCollapse = shown > INITIAL_COUNT;
+
   if (loading) {
     return (
       <section>
@@ -69,24 +76,57 @@ export default function Reviews() {
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8, marginBottom: 20 }}>
-        {reviews.slice(0, shown).map((r) => {
+        {visible.map((r, i) => {
           const imgs = parseImages(r);
           const mainImg = imgs[0];
           return (
-            <div key={r.id} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: 6, display: "flex", flexDirection: "column", gap: 5, width: "calc((100% - 7 * 8px) / 8)", minWidth: 130 }}>
+            <div key={r.id} style={{
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 10,
+              padding: 6,
+              display: "flex",
+              flexDirection: "column",
+              gap: 5,
+              width: "calc((100% - 7 * 8px) / 8)",
+              minWidth: 130,
+              animation: "rvFadeIn 0.5s ease both",
+              animationDelay: `${(i % LOAD_MORE) * 0.04}s`,
+            }}>
               {mainImg && (
-                <div style={{ width: "100%", aspectRatio: "9 / 16", borderRadius: 10, overflow: "hidden", cursor: "zoom-in", position: "relative" }} onClick={() => setLightboxImg(mainImg)}>
+                <div
+                  style={{ width: "100%", aspectRatio: "9 / 16", borderRadius: 10, overflow: "hidden", cursor: "zoom-in", position: "relative" }}
+                  onClick={() => setLightboxImg(mainImg)}
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={mainImg} alt={r.name} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                  <img
+                    src={mainImg}
+                    alt={r.name}
+                    loading="lazy"
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                  />
                   {r.isFeatured && (
-                    <div style={{ position: "absolute", top: 6, right: 6, background: "#fbbf24", color: "#fff", fontSize: 10, fontWeight: 900, padding: "2px 6px", borderRadius: 4 }}>
+                    <div style={{
+                      position: "absolute", top: 6, right: 6,
+                      background: "#fbbf24", color: "#fff",
+                      fontSize: 10, fontWeight: 900,
+                      padding: "2px 6px", borderRadius: 4,
+                    }}>
                       ⭐
                     </div>
                   )}
                 </div>
               )}
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg,#a78bfa,#7c3aed)", color: "#fff", fontWeight: 700, fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{r.initial}</div>
+                <div style={{
+                  width: 28, height: 28, borderRadius: "50%",
+                  background: "linear-gradient(135deg,#a78bfa,#7c3aed)",
+                  color: "#fff", fontWeight: 700, fontSize: 12,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  flexShrink: 0,
+                }}>
+                  {r.initial}
+                </div>
                 <div style={{ fontWeight: 700, fontSize: 12, color: "var(--text-0)" }}>{r.name}</div>
               </div>
               <div style={{ fontSize: 12.5, color: "var(--text-1)", lineHeight: 1.45 }}>{r.text}</div>
@@ -96,26 +136,31 @@ export default function Reviews() {
         })}
       </div>
 
-      {shown < reviews.length && (
-        <div style={{ textAlign: "center", marginTop: 12 }}>
+      {/* Nút Xem thêm / Thu gọn */}
+      <div className="rv-actions">
+        {hasMore && (
           <button
-            onClick={() => setShown((s) => s + 8)}
-            style={{
-              padding: "10px 24px",
-              background: "rgba(167,139,250,0.1)",
-              color: "var(--accent-bright)",
-              border: "1px solid rgba(167,139,250,0.3)",
-              borderRadius: 10,
-              fontSize: 13,
-              fontWeight: 700,
-              cursor: "pointer",
-              fontFamily: "inherit",
-            }}
+            onClick={() => setShown((s) => s + LOAD_MORE)}
+            className="rv-btn rv-btn-more"
           >
-            Xem thêm ({reviews.length - shown})
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+            Xem thêm đánh giá
           </button>
-        </div>
-      )}
+        )}
+        {canCollapse && (
+          <button
+            onClick={() => setShown(INITIAL_COUNT)}
+            className="rv-btn rv-btn-collapse"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 15l-6-6-6 6" />
+            </svg>
+            Thu gọn
+          </button>
+        )}
+      </div>
 
       {lightboxImg && (
         <div
@@ -132,6 +177,68 @@ export default function Reviews() {
           <img src={lightboxImg} alt="" style={{ maxWidth: "90vw", maxHeight: "90vh", borderRadius: 12 }} />
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes rvFadeIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .rv-actions {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 12px;
+          margin-top: 24px;
+          flex-wrap: wrap;
+        }
+
+        .rv-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 11px 24px;
+          border-radius: 999px;
+          font-size: 14px;
+          font-weight: 800;
+          font-family: inherit;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          border: none;
+        }
+
+        .rv-btn-more {
+          background: rgba(167,139,250,0.12);
+          color: #a78bfa;
+          border: 1.5px solid rgba(167,139,250,0.3);
+        }
+        .rv-btn-more:hover {
+          background: rgba(167,139,250,0.2);
+          border-color: rgba(167,139,250,0.5);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(167,139,250,0.2);
+        }
+        .rv-btn-more svg {
+          transition: transform 0.3s;
+        }
+        .rv-btn-more:hover svg {
+          transform: translateY(2px);
+        }
+
+        .rv-btn-collapse {
+          background: transparent;
+          color: var(--text-2);
+        }
+        .rv-btn-collapse:hover {
+          color: var(--text-0);
+        }
+        .rv-btn-collapse svg {
+          transition: transform 0.3s;
+        }
+        .rv-btn-collapse:hover svg {
+          transform: translateY(-2px);
+        }
+      `}</style>
     </section>
   );
 }
