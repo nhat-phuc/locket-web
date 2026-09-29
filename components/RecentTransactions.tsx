@@ -70,34 +70,34 @@ export default function RecentTransactions() {
           <div className="tx-grid">
             {visible.map((tx, i) => {
               const useFallback = failed[tx.id] || !tx.avatar;
-              const imgSrc = useFallback ? null : tx.avatar!;
+              const imgSrc = useFallback ? uiAvatar(tx.name) : tx.avatar!;
 
               return (
-                <div key={tx.id} className="tx-card" style={{ animationDelay: `${(i % LOAD_MORE) * 0.03}s` }}>
-                  {/* Avatar: ảnh user + viền màu, hoặc icon type */}
-                  <div
-                    className="tx-avatar-wrap"
-                    style={{
-                      background: imgSrc ? "transparent" : tx.typeMeta.bg,
-                      borderColor: tx.typeMeta.color,
-                    }}
-                  >
-                    {imgSrc ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={imgSrc}
-                        alt={tx.name}
-                        referrerPolicy="no-referrer"
-                        loading="lazy"
-                        className="tx-avatar-img"
-                        onError={() => setFailed((f) => ({ ...f, [tx.id]: true }))}
-                      />
-                    ) : (
-                      <span className="tx-avatar-icon">{tx.typeMeta.icon}</span>
-                    )}
+                <div
+                  key={tx.id}
+                  className="tx-card"
+                  style={{
+                    animationDelay: `${(i % LOAD_MORE) * 0.03}s`,
+                    "--ring-color": tx.typeMeta.color,
+                  } as React.CSSProperties}
+                >
+                  {/* Avatar với viền màu theo gói */}
+                  <div className="tx-avatar-wrap">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={imgSrc}
+                      alt={tx.name}
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                      className="tx-avatar-img"
+                      onError={() => {
+                        if (!useFallback) setFailed((f) => ({ ...f, [tx.id]: true }));
+                      }}
+                    />
                   </div>
 
                   <div className="tx-body">
+                    {/* Tên + badge gói cùng dòng */}
                     <div className="tx-head">
                       <span className="tx-name">{tx.name}</span>
                       <span
@@ -108,10 +108,12 @@ export default function RecentTransactions() {
                       </span>
                     </div>
 
+                    {/* Badge giảm giá */}
                     {tx.discountPercent > 0 && (
                       <div className="tx-discount">✓ Giảm {tx.discountPercent}%</div>
                     )}
 
+                    {/* Time + Amount cùng dòng cuối */}
                     <div className="tx-bottom">
                       <span className="tx-time">{tx.time}</span>
                       <span className="tx-amount">+{tx.amount.toLocaleString("vi-VN")}đ</span>
@@ -122,6 +124,7 @@ export default function RecentTransactions() {
             })}
           </div>
 
+          {/* Nút Xem thêm / Thu gọn */}
           <div className="tx-actions">
             {hasMore && (
               <button onClick={() => setShown((s) => s + LOAD_MORE)} className="tx-btn tx-btn-more">
@@ -148,56 +151,77 @@ export default function RecentTransactions() {
         @media (max-width: 900px) { .tx-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 600px) { .tx-grid { grid-template-columns: 1fr; } }
 
+        /* Card — viền nét đứt tím */
         .tx-card {
+          position: relative;
           display: flex;
           align-items: center;
           gap: 14px;
           padding: 14px 16px;
-          background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 18px;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          background: rgba(167, 139, 250, 0.04);
+          border: 2px dashed rgba(167, 139, 250, 0.4);
+          border-radius: 14px;
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
           animation: txFadeIn 0.5s ease both;
         }
         .tx-card:hover {
           transform: translateY(-3px);
-          border-color: rgba(167,139,250,0.3);
-          box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+          background: rgba(167, 139, 250, 0.08);
+          border-color: rgba(167, 139, 250, 0.7);
+          box-shadow: 0 12px 32px rgba(167, 139, 250, 0.2);
         }
+
         @keyframes txFadeIn {
           from { opacity: 0; transform: translateY(12px); }
           to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Avatar wrapper — hình tròn có viền màu */
+        /* ═══════ AVATAR với viền màu theo gói ═══════ */
         .tx-avatar-wrap {
           width: 56px;
           height: 56px;
           flex-shrink: 0;
           border-radius: 50%;
-          display: grid;
-          place-items: center;
-          border: 2.5px solid;  /* màu set inline */
-          overflow: hidden;
-          position: relative;
+          padding: 2.5px;
+          background: conic-gradient(
+            from 0deg,
+            var(--ring-color) 0%,
+            var(--ring-color) 70%,
+            rgba(255, 255, 255, 0.3) 85%,
+            var(--ring-color) 100%
+          );
           transition: all 0.3s;
+          position: relative;
         }
+
+        /* Glow nhẹ phía sau */
+        .tx-avatar-wrap::before {
+          content: "";
+          position: absolute;
+          inset: -4px;
+          border-radius: 50%;
+          background: var(--ring-color);
+          opacity: 0.25;
+          filter: blur(8px);
+          z-index: -1;
+          transition: opacity 0.3s;
+        }
+
         .tx-card:hover .tx-avatar-wrap {
           transform: scale(1.05);
-          box-shadow: 0 0 20px currentColor;
+        }
+        .tx-card:hover .tx-avatar-wrap::before {
+          opacity: 0.5;
         }
 
         .tx-avatar-img {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          display: block;
           border-radius: 50%;
-        }
-
-        .tx-avatar-icon {
-          font-size: 26px;
-          line-height: 1;
+          display: block;
+          border: 2px solid var(--bg-0, #0a0a0f);
+          background: #1a1230;
         }
 
         .tx-body {
@@ -208,7 +232,7 @@ export default function RecentTransactions() {
           gap: 5px;
         }
 
-        /* Header: tên + type badge cùng dòng */
+        /* Tên + badge gói */
         .tx-head {
           display: flex;
           align-items: center;
@@ -236,10 +260,11 @@ export default function RecentTransactions() {
           flex-shrink: 0;
         }
 
+        /* Badge giảm giá */
         .tx-discount {
           display: inline-block;
           padding: 3px 10px;
-          background: rgba(16,185,129,0.15);
+          background: rgba(16, 185, 129, 0.15);
           color: #10b981;
           border-radius: 999px;
           font-size: 10.5px;
@@ -247,6 +272,7 @@ export default function RecentTransactions() {
           align-self: flex-start;
         }
 
+        /* Time + Amount cùng dòng */
         .tx-bottom {
           display: flex;
           align-items: center;
@@ -289,15 +315,15 @@ export default function RecentTransactions() {
           border: none;
         }
         .tx-btn-more {
-          background: rgba(167,139,250,0.12);
+          background: rgba(167, 139, 250, 0.12);
           color: #a78bfa;
-          border: 1.5px solid rgba(167,139,250,0.3);
+          border: 1.5px solid rgba(167, 139, 250, 0.3);
         }
         .tx-btn-more:hover {
-          background: rgba(167,139,250,0.2);
-          border-color: rgba(167,139,250,0.5);
+          background: rgba(167, 139, 250, 0.2);
+          border-color: rgba(167, 139, 250, 0.5);
           transform: translateY(-2px);
-          box-shadow: 0 8px 24px rgba(167,139,250,0.2);
+          box-shadow: 0 8px 24px rgba(167, 139, 250, 0.2);
         }
         .tx-btn-collapse {
           background: transparent;
