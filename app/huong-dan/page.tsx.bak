@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Header from "@/components/Header";
+import Navbar from "@/components/Navbar";   // ← THÊM DÒNG NÀY
 // 
 
 import Hero from "@/components/Hero";
@@ -129,6 +131,7 @@ export default function HuongDanPage() {
       {/* Progress bar */}
       <div className="guide-progress" style={{ transform: `scaleX(${progress / 100})` }} />
 
+      <Header />
 
       <main className="wrap center-y" style={{ paddingTop: 40, paddingBottom: 80 }}>
         <div className="page-shell">
@@ -278,6 +281,7 @@ export default function HuongDanPage() {
       </main>
 
       {/*  */}
+      <Navbar />
 
       {/* Back to top */}
       {showTop && (
