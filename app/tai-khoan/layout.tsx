@@ -2,39 +2,68 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-// import Footer from "@/components/Footer";
-import UserSidebar from "@/components/user/UserSidebar";
 
 export default function TaiKhoanLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [user, setUser] = useState<{ username: string; email: string } | null>(null);
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    const stored = sessionStorage.getItem("locket_user");
-    if (!stored) {
-      router.push("/dang-nhap");
-      return;
-    }
-    try {
-      setUser(JSON.parse(stored));
-      setChecked(true);
-    } catch {
-      router.push("/dang-nhap");
-    }
+    let cancelled = false;
+
+    const verifyAuth = async () => {
+      // 1. Check sessionStorage trước (nhanh)
+      const stored = sessionStorage.getItem("locket_user");
+      if (stored) {
+        try {
+          JSON.parse(stored);
+          if (!cancelled) setChecked(true);
+          return;
+        } catch {
+          sessionStorage.removeItem("locket_user");
+        }
+      }
+
+      // 2. Không có local → verify với cookie session qua API
+      try {
+        const res = await fetch("/api/auth/me", {
+          credentials: "include",
+        });
+        const data = await res.json();
+
+        if (data.success && data.user) {
+          // Cookie còn valid → lưu lại sessionStorage và cho vào
+          sessionStorage.setItem("locket_user", JSON.stringify(data.user));
+          if (!cancelled) setChecked(true);
+          return;
+        }
+      } catch (err) {
+        console.error("[tai-khoan] verify failed:", err);
+      }
+
+      // 3. Không có cả 2 → đá về đăng nhập
+      if (!cancelled) router.push("/dang-nhap");
+    };
+
+    verifyAuth();
+
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
-  if (!checked) return null;
-
-  return (
-    <>
+  if (!checked) {
+    return (
       <main className="wrap" style={{ minHeight: "80vh", paddingTop: 32, paddingBottom: 60 }}>
-        <div className="user-layout">
-          <UserSidebar />
-          <div className="user-content">{children}</div>
+        <div style={{ textAlign: "center", padding: 80, color: "var(--text-2)" }}>
+          Đang kiểm tra đăng nhập...
         </div>
       </main>
-      {/* <Footer /> */}
-    </>
+    );
+  }
+
+  return (
+    <main className="wrap" style={{ minHeight: "80vh", paddingTop: 32, paddingBottom: 60 }}>
+      {children}
+    </main>
   );
 }
