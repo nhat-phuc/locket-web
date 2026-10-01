@@ -46,23 +46,39 @@ export default function Header({ user: propUser, onLogout }: HeaderProps) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Đọc user từ sessionStorage + lắng nghe thay đổi
   useEffect(() => {
     if (propUser !== undefined) return;
-    const stored = sessionStorage.getItem("locket_user");
-    if (!stored) return;
-    try {
-      const u = JSON.parse(stored);
-      setUser(u);
-      if (u.email) {
-        fetch("/api/balance?email=" + encodeURIComponent(u.email))
-          .then((r) => r.json())
-          .then((data) => {
-            if (data.success)
-              setBalance((data.balance || 0).toLocaleString("vi-VN") + "đ");
-          })
-          .catch(() => {});
+    
+    const checkUser = () => {
+      const stored = sessionStorage.getItem("locket_user");
+      if (stored) {
+        try {
+          const u = JSON.parse(stored);
+          setUser(u);
+          if (u.email) {
+            fetch("/api/balance?email=" + encodeURIComponent(u.email))
+              .then((r) => r.json())
+              .then((data) => {
+                if (data.success)
+                  setBalance((data.balance || 0).toLocaleString("vi-VN") + "đ");
+              })
+              .catch(() => {});
+          }
+        } catch {}
+      } else {
+        setUser(null);
       }
-    } catch {}
+    };
+
+    checkUser();
+    const interval = setInterval(checkUser, 1000);
+    window.addEventListener("storage", checkUser);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("storage", checkUser);
+    };
   }, [propUser]);
 
   useEffect(() => {
@@ -96,8 +112,9 @@ export default function Header({ user: propUser, onLogout }: HeaderProps) {
   const handleLogout = () => {
     if (!confirm("Bạn có chắc muốn đăng xuất?")) return;
     sessionStorage.removeItem("locket_user");
+    setUser(null);
     if (onLogout) onLogout();
-    else window.location.reload();
+    else window.location.href = "/";
   };
 
   const displayName = user
@@ -294,21 +311,75 @@ export default function Header({ user: propUser, onLogout }: HeaderProps) {
               {l.label}
             </Link>
           ))}
-          {user && (
+
+          {user ? (
             <>
               <div className="user-menu-divider" style={{ marginTop: 12 }} />
-              <Link href="/tai-khoan" className="nav-link" onClick={() => setSidebarOpen(false)}>Tài Khoản Của Tôi</Link>
-              <Link href="/nap-tien" className="nav-link" onClick={() => setSidebarOpen(false)}>Nạp Tiền</Link>
-              <Link href="/tai-khoan/don-hang" className="nav-link" onClick={() => setSidebarOpen(false)}>Lịch Sử Đơn Hàng</Link>
-              <Link href="/tai-khoan/giao-dich" className="nav-link" onClick={() => setSidebarOpen(false)}>Lịch Sử Giao Dịch</Link>
-              <Link href="/tai-khoan/ho-so" className="nav-link" onClick={() => setSidebarOpen(false)}>Thông Tin Cá Nhân</Link>
-              <Link href="/tai-khoan/ma-giam-gia" className="nav-link" onClick={() => setSidebarOpen(false)}>Mã Giảm Giá</Link>
+
+              <Link
+                href="/tai-khoan/don-hang"
+                className="nav-link"
+                onClick={() => setSidebarOpen(false)}
+              >
+                Lịch Sử Đơn Hàng
+              </Link>
+
+              <Link
+                href="/tai-khoan"
+                className="nav-link"
+                onClick={() => setSidebarOpen(false)}
+              >
+                Quản Lý Tài Khoản
+              </Link>
+
+              <Link
+                href="/gioi-thieu"
+                className="nav-link"
+                onClick={() => setSidebarOpen(false)}
+              >
+                Giới Thiệu Nhận Quà
+              </Link>
+
+              <div className="user-menu-divider" style={{ marginTop: 12 }} />
+
+              <button
+                onClick={() => {
+                  setSidebarOpen(false);
+                  handleLogout();
+                }}
+                className="nav-link"
+                style={{
+                  color: "#ef4444",
+                  background: "transparent",
+                  border: "none",
+                  textAlign: "left",
+                  cursor: "pointer",
+                  width: "100%",
+                  font: "inherit",
+                  padding: "14px 16px",
+                  fontSize: 16,
+                  fontWeight: 600,
+                }}
+              >
+                Đăng xuất
+              </button>
             </>
-          )}
-          {!user && (
+          ) : (
             <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--border)" }}>
-              <Link href="/dang-nhap" className="nav-link" onClick={() => setSidebarOpen(false)}>Đăng nhập</Link>
-              <Link href="/dang-ky" className="nav-link" onClick={() => setSidebarOpen(false)}>Đăng ký</Link>
+              <Link
+                href="/dang-nhap"
+                className="nav-link"
+                onClick={() => setSidebarOpen(false)}
+              >
+                Đăng nhập
+              </Link>
+              <Link
+                href="/dang-ky"
+                className="nav-link"
+                onClick={() => setSidebarOpen(false)}
+              >
+                Đăng ký
+              </Link>
             </div>
           )}
         </div>
