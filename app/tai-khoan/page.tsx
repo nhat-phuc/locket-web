@@ -80,7 +80,7 @@ export default function TaiKhoanPage() {
         <div className="tk-badge">THÀNH VIÊN</div>
       </div>
 
-      {/* Card 1: Thông Tin Cá Nhân */}
+      {/* Card 1 */}
       <div className="tk-card">
         <div className="tk-card-header">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -112,7 +112,7 @@ export default function TaiKhoanPage() {
         </div>
       </div>
 
-      {/* Card 2: Liên Kết Telegram */}
+      {/* Card 2 */}
       <div className="tk-card">
         <div className="tk-card-header">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2">
@@ -121,9 +121,7 @@ export default function TaiKhoanPage() {
           </svg>
           <h2>Liên Kết Telegram</h2>
         </div>
-        <p className="tk-desc">
-          Kết nối với Bot Telegram để nhận thông báo giao dịch, mua gói VIP và nhận ưu đãi tự động.
-        </p>
+        <p className="tk-desc">Kết nối với Bot Telegram để nhận thông báo giao dịch, mua gói VIP và nhận ưu đãi tự động.</p>
         <div className="tk-telegram-box">
           <p className="tk-telegram-status">Chưa liên kết tài khoản</p>
           <button className="tk-telegram-btn">
@@ -136,7 +134,7 @@ export default function TaiKhoanPage() {
         </div>
       </div>
 
-      {/* Card 3: Bảo Mật Tài Khoản */}
+      {/* Card 3 */}
       <div className="tk-card">
         <div className="tk-card-header">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -149,12 +147,10 @@ export default function TaiKhoanPage() {
         <input type="password" placeholder="Mật khẩu cũ" className="tk-input" />
         <input type="password" placeholder="Mật khẩu mới" className="tk-input" />
 
-        <button className="tk-btn-primary">
-          Đổi Mật Khẩu
-        </button>
+        <button className="tk-btn-primary">Đổi Mật Khẩu</button>
       </div>
 
-      {/* Card 4: Nâng cấp gói */}
+      {/* Card 4 */}
       <div className="tk-card tk-card-upgrade">
         <div className="tk-card-header">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e85d04" strokeWidth="2">
@@ -163,12 +159,10 @@ export default function TaiKhoanPage() {
           </svg>
           <h2>Nâng cấp lên gói cao hơn</h2>
         </div>
-        <p className="tk-desc">
-          Đã trả 0k cho MEMBER. Chỉ cần thanh toán chênh lệch để lên gói mới.
-        </p>
+        <p className="tk-desc">Đã trả 0k cho MEMBER. Chỉ cần thanh toán chênh lệch để lên gói mới.</p>
       </div>
 
-      {/* Card 5: Lịch sử nâng cấp */}
+      {/* Card 5 */}
       <div className="tk-card">
         <div className="tk-card-header">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
