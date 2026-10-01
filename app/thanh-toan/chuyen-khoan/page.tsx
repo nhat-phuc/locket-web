@@ -12,10 +12,15 @@ function ChuyenKhoanContent() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState(15 * 60);
+  const [paid, setPaid] = useState(false);
+  const [checkError, setCheckError] = useState("");
 
   // Fetch order info
   useEffect(() => {
-    if (!orderId) return;
+    if (!orderId) {
+      setLoading(false);
+      return;
+    }
     fetch(`/api/payments/create`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -34,26 +39,46 @@ function ChuyenKhoanContent() {
 
   // Countdown
   useEffect(() => {
-    if (timeLeft <= 0) return;
+    if (timeLeft <= 0 || paid) return;
     const t = setInterval(() => setTimeLeft((v) => Math.max(0, v - 1)), 1000);
     return () => clearInterval(t);
-  }, [timeLeft]);
+  }, [timeLeft, paid]);
 
-  // Polling check status mỗi 3s
+  // Polling check status mỗi 3s — FIX
   useEffect(() => {
-    if (!orderId) return;
-    const interval = setInterval(async () => {
+    if (!orderId || paid) return;
+
+    console.log("[polling] Bắt đầu check:", orderId);
+
+    const checkStatus = async () => {
       try {
-        const res = await fetch(`/api/payments/check?orderId=${orderId}`);
+        const res = await fetch(`/api/payments/check?orderId=${orderId}`, {
+          cache: "no-store",
+          credentials: "include",
+        });
         const data = await res.json();
+        console.log("[polling] Response:", data);
+
         if (data.status === "paid") {
-          clearInterval(interval);
-          router.push(`/thanh-toan/thanh-cong?orderId=${orderId}`);
+          console.log("[polling] ✓ PAID! Chuyển trang...");
+          setPaid(true);
+          setTimeout(() => {
+            router.push(`/thanh-toan/thanh-cong?orderId=${orderId}`);
+          }, 1000);
+        } else if (res.status === 401) {
+          setCheckError("Phiên đăng nhập hết hạn");
+        } else if (data.status === "expired") {
+          setCheckError("Đơn hàng đã hết hạn");
         }
-      } catch {}
-    }, 3000);
+      } catch (e) {
+        console.error("[polling] Error:", e);
+      }
+    };
+
+    checkStatus();
+    const interval = setInterval(checkStatus, 3000);
     return () => clearInterval(interval);
-  }, [orderId, router]);
+  }, [orderId, paid, router]);
 
   const copy = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
@@ -74,25 +99,68 @@ function ChuyenKhoanContent() {
 
   return (
     <main className="ck-page">
+      {paid && (
+        <div style={{
+          position: "fixed", inset: 0,
+          background: "rgba(0,0,0,0.85)",
+          backdropFilter: "blur(8px)",
+          display: "grid", placeItems: "center",
+          zIndex: 999,
+          animation: "fadeIn 0.3s ease",
+        }}>
+          <div style={{
+            background: "#fff", borderRadius: 24, padding: 40, textAlign: "center",
+            maxWidth: 400, width: "100%",
+            animation: "popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)",
+          }}>
+            <div style={{
+              width: 72, height: 72, borderRadius: "50%",
+              background: "linear-gradient(135deg, #10b981, #34d399)",
+              color: "#fff", fontSize: 36, fontWeight: 900,
+              display: "grid", placeItems: "center",
+              margin: "0 auto 16px",
+              boxShadow: "0 12px 30px rgba(16,185,129,0.4)",
+              animation: "popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both",
+            }}>✓</div>
+            <div style={{ fontSize: 22, fontWeight: 900, color: "#111827", marginBottom: 8 }}>
+              Thanh toán thành công!
+            </div>
+            <div style={{ fontSize: 14, color: "#6b7280", marginBottom: 16 }}>
+              Đơn hàng đã được xác nhận
+            </div>
+            <div style={{ fontSize: 12, color: "#9ca3af" }}>
+              Đang chuyển hướng...
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="ck-wrap">
         <div className="ck-header">
-          <h1>Thanh toán chuyển khoản</h1>
+          <h1>Chuyển khoản ngân hàng</h1>
           <p>Quét mã QR hoặc chuyển khoản thủ công</p>
         </div>
 
+        {checkError && (
+          <div style={{
+            padding: 14, background: "#fef2f2", border: "1px solid #fecaca",
+            borderRadius: 12, color: "#dc2626", fontSize: 13.5,
+            fontWeight: 600, marginBottom: 16,
+          }}>
+            ⚠️ {checkError}
+          </div>
+        )}
+
         <div className="ck-card">
-          {/* Countdown */}
           <div className="ck-timer">
             ⏱ Thời gian còn lại: <b>{mm}:{ss}</b>
           </div>
 
-          {/* QR */}
           <div className="ck-qr">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={order.qrUrl} alt="QR thanh toán" />
           </div>
 
-          {/* Info */}
           <div className="ck-info">
             <div className="ck-row">
               <span className="ck-label">Ngân hàng</span>
@@ -143,19 +211,25 @@ function ChuyenKhoanContent() {
       </div>
 
       <style jsx>{`
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes popIn {
+          0% { opacity: 0; transform: scale(0.85); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+
         .ck-page {
           min-height: 100vh;
           padding: 110px 20px 60px;
-          background: linear-gradient(180deg, #fafbfc, #f5f7fa);
+          background: var(--bg-0);
         }
         .ck-wrap { max-width: 560px; margin: 0 auto; }
         .ck-header { text-align: center; margin-bottom: 32px; }
         .ck-header h1 { font-size: 28px; font-weight: 900; color: #1a1d21; margin-bottom: 8px; }
-        .ck-header p { font-size: 14px; color: #6b7280; }
+        .ck-header p { font-size: 14px; color: var(--text-2); }
 
         .ck-card {
-          background: #fff;
-          border: 1px solid #e5e7eb;
+          background: var(--bg-1);
+          border: 1px solid var(--border);
           border-radius: 20px;
           padding: 24px;
           box-shadow: 0 10px 40px rgba(0,0,0,0.06);
@@ -181,7 +255,7 @@ function ChuyenKhoanContent() {
           width: 240px;
           height: 240px;
           border-radius: 12px;
-          border: 1px solid #e5e7eb;
+          border: 1px solid var(--border);
         }
 
         .ck-info {
@@ -195,7 +269,7 @@ function ChuyenKhoanContent() {
           align-items: center;
           justify-content: space-between;
           padding: 12px 14px;
-          background: #f9fafb;
+          background: var(--bg-2);
           border-radius: 10px;
           font-size: 14px;
           gap: 12px;
@@ -205,7 +279,7 @@ function ChuyenKhoanContent() {
           border: 1px solid #86efac;
         }
         .ck-label {
-          color: #6b7280;
+          color: var(--text-2);
           font-weight: 600;
           flex-shrink: 0;
         }
@@ -213,7 +287,7 @@ function ChuyenKhoanContent() {
           display: flex;
           align-items: center;
           gap: 8px;
-          color: #111827;
+          color: var(--text-0);
           font-weight: 700;
           text-align: right;
           word-break: break-all;
@@ -223,12 +297,12 @@ function ChuyenKhoanContent() {
 
         .ck-value button {
           padding: 3px 8px;
-          background: #fff;
+          background: var(--bg-1);
           border: 1px solid #d1d5db;
           border-radius: 5px;
           font-size: 11px;
           font-weight: 600;
-          color: #374151;
+          color: var(--text-1);
           cursor: pointer;
         }
         .ck-value button:hover { background: #f3f4f6; }

@@ -17,6 +17,7 @@ const NAV_LINKS = [
   { href: "/bang-gia", label: "Bảng giá" },
   { href: "/bai-viet", label: "Bài viết" },
   { href: "/lien-he", label: "Liên hệ" },
+  { href: "/add-locket", label: "Add Locket" },
 ];
 
 export default function Header({ user: propUser, onLogout }: HeaderProps) {

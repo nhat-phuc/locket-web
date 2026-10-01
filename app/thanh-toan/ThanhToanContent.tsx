@@ -420,26 +420,26 @@ export default function ThanhToanContent() {
       <style jsx>{`
         .pay-wrap { width: 100%; max-width: 560px; margin: 40px auto 60px; padding: 0 16px; }
         .pay-head { text-align: center; margin-bottom: 28px; }
-        .pay-h1 { font-size: 30px; font-weight: 900; color: #111827; margin-bottom: 6px; letter-spacing: -0.02em; }
-        .pay-sub { font-size: 14px; color: #6b7280; }
+        .pay-h1 { font-size: 30px; font-weight: 900; color: var(--text-0); margin-bottom: 6px; letter-spacing: -0.02em; }
+        .pay-sub { font-size: 14px; color: var(--text-2); }
         .pay-steps { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 24px; }
-        .pay-step { display: flex; align-items: center; gap: 8px; color: #9ca3af; font-size: 12px; font-weight: 700; }
+        .pay-step { display: flex; align-items: center; gap: 8px; color: var(--text-2); font-size: 12px; font-weight: 700; }
         .pay-step.is-active { color: #7c3aed; }
         .pay-step.is-done { color: #10b981; }
-        .pay-step-num { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: #f3f4f6; color: #6b7280; font-size: 12px; font-weight: 800; border: 1.5px solid #e5e7eb; }
-        .pay-step.is-active .pay-step-num { background: linear-gradient(135deg, #7c3aed, #a78bfa); color: #fff; border-color: transparent; box-shadow: 0 4px 12px rgba(124,58,237,0.35); }
-        .pay-step.is-done .pay-step-num { background: #10b981; color: #fff; border-color: transparent; }
+        .pay-step-num { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: #f3f4f6; color: var(--text-2); font-size: 12px; font-weight: 800; border: 1.5px solid var(--border); }
+        .pay-step.is-active .pay-step-num { background: linear-gradient(135deg, #7c3aed, #a78bfa); color: var(--text-0); border-color: transparent; box-shadow: 0 4px 12px rgba(124,58,237,0.35); }
+        .pay-step.is-done .pay-step-num { background: #10b981; color: var(--text-0); border-color: transparent; }
         .pay-step-line { width: 40px; height: 2px; background: #e5e7eb; border-radius: 2px; }
         .pay-step-line.is-done { background: #10b981; }
         .pay-error { padding: 12px 16px; background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; border-radius: 12px; font-size: 13.5px; margin-bottom: 16px; }
-        .pay-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 20px; padding: 28px 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
+        .pay-card { background: var(--bg-1); border: 1px solid var(--border); border-radius: 20px; padding: 28px 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
         @media (max-width: 500px) { .pay-card { padding: 20px 16px; } .pay-h1 { font-size: 24px; } }
         .pay-field { margin-bottom: 20px; }
         .pay-field label { display: block; font-size: 13.5px; font-weight: 700; color: #1f2937; margin-bottom: 8px; }
         .pay-req { color: #ef4444; }
         .pay-input-wrap { position: relative; }
-        .pay-input-wrap input { width: 100%; padding: 13px 42px 13px 16px; background: #f9fafb; border: 1.5px solid #e5e7eb; border-radius: 12px; font-size: 14.5px; font-family: inherit; color: #111827; outline: none; transition: all 0.2s; }
-        .pay-input-wrap input:focus { border-color: #7c3aed; background: #fff; box-shadow: 0 0 0 4px rgba(124,58,237,0.1); }
+        .pay-input-wrap input { width: 100%; padding: 13px 42px 13px 16px; background: var(--bg-2); border: 1.5px solid var(--border); border-radius: 12px; font-size: 14.5px; font-family: inherit; color: var(--text-0); outline: none; transition: all 0.2s; }
+        .pay-input-wrap input:focus { border-color: #7c3aed; background: var(--bg-1); box-shadow: 0 0 0 4px rgba(124,58,237,0.1); }
         .pay-input-wrap input.is-valid { border-color: #10b981; background: #f0fdf4; }
         .pay-input-wrap input.is-invalid { border-color: #ef4444; background: #fef2f2; }
         .pay-input-status { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; font-weight: 900; display: grid; place-items: center; }
@@ -447,28 +447,28 @@ export default function ThanhToanContent() {
         .pay-status-err { color: #ef4444; }
         .pay-mini-spinner { width: 16px; height: 16px; border: 2px solid #e5e7eb; border-top-color: #7c3aed; border-radius: 50%; animation: paySpin 0.6s linear infinite; }
         @keyframes paySpin { to { transform: rotate(360deg); } }
-        .pay-hint { display: block; margin-top: 8px; font-size: 12px; color: #6b7280; line-height: 1.5; }
+        .pay-hint { display: block; margin-top: 8px; font-size: 12px; color: var(--text-2); line-height: 1.5; }
         .pay-hint-error { display: block; margin-top: 8px; font-size: 12px; color: #ef4444; font-weight: 600; line-height: 1.5; }
         .pay-profile-preview { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 12px 14px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; animation: payFadeIn 0.3s ease; }
         @keyframes payFadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
         .pay-profile-avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid #10b981; flex-shrink: 0; }
-        .pay-profile-avatar-fallback { display: grid; place-items: center; background: linear-gradient(135deg, #7c3aed, #a78bfa); color: #fff; font-weight: 900; font-size: 20px; }
+        .pay-profile-avatar-fallback { display: grid; place-items: center; background: linear-gradient(135deg, #7c3aed, #a78bfa); color: var(--text-0); font-weight: 900; font-size: 20px; }
         .pay-profile-info { flex: 1; min-width: 0; }
         .pay-profile-name { font-size: 14px; font-weight: 800; color: #065f46; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .pay-profile-status { font-size: 11.5px; color: #059669; margin-top: 2px; font-weight: 600; }
-        .pay-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #7c3aed, #a78bfa); color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; font-family: inherit; cursor: pointer; transition: all 0.25s; box-shadow: 0 8px 24px rgba(124,58,237,0.3); margin-top: 8px; }
+        .pay-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #7c3aed, #a78bfa); color: var(--text-0); border: none; border-radius: 12px; font-size: 15px; font-weight: 800; font-family: inherit; cursor: pointer; transition: all 0.25s; box-shadow: 0 8px 24px rgba(124,58,237,0.3); margin-top: 8px; }
         .pay-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(124,58,237,0.45); }
         .pay-btn:active:not(:disabled) { transform: translateY(0); }
         .pay-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .pay-btn-back { width: 100%; padding: 12px; background: transparent; border: none; color: #6b7280; font-size: 13.5px; font-weight: 600; font-family: inherit; cursor: pointer; margin-top: 8px; border-radius: 10px; }
-        .pay-btn-back:hover { background: #f9fafb; color: #111827; }
-        .pay-summary { padding: 16px 18px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 14px; margin-bottom: 24px; }
-        .pay-summary-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; font-size: 13.5px; color: #6b7280; gap: 12px; }
-        .pay-summary-row b { color: #111827; font-weight: 700; text-align: right; word-break: break-word; }
+        .pay-btn-back { width: 100%; padding: 12px; background: transparent; border: none; color: var(--text-2); font-size: 13.5px; font-weight: 600; font-family: inherit; cursor: pointer; margin-top: 8px; border-radius: 10px; }
+        .pay-btn-back:hover { background: var(--bg-2); color: var(--text-0); }
+        .pay-summary { padding: 16px 18px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 24px; }
+        .pay-summary-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; font-size: 13.5px; color: var(--text-2); gap: 12px; }
+        .pay-summary-row b { color: var(--text-0); font-weight: 700; text-align: right; word-break: break-word; }
         .pay-summary-total { padding-top: 12px; margin-top: 6px; border-top: 1px dashed #d1d5db; font-size: 14.5px; }
         .pay-summary-total b { font-size: 20px; background: linear-gradient(135deg, #7c3aed, #ec4899); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
         .pay-methods { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
-        .pay-method { display: flex; align-items: flex-start; gap: 14px; padding: 16px; background: #fff; border: 2px solid #e5e7eb; border-radius: 14px; cursor: pointer; transition: all 0.25s; text-align: left; font-family: inherit; width: 100%; }
+        .pay-method { display: flex; align-items: flex-start; gap: 14px; padding: 16px; background: var(--bg-1); border: 2px solid #e5e7eb; border-radius: 14px; cursor: pointer; transition: all 0.25s; text-align: left; font-family: inherit; width: 100%; }
         .pay-method:hover:not(:disabled) { border-color: #c4b5fd; background: #faf5ff; }
         .pay-method.is-on { border-color: #7c3aed; background: #faf5ff; box-shadow: 0 0 0 4px rgba(124,58,237,0.1); }
         .pay-method.is-disabled { opacity: 0.65; cursor: not-allowed; }
@@ -476,10 +476,10 @@ export default function ThanhToanContent() {
         .pay-method.is-on .pay-method-radio { border-color: #7c3aed; }
         .pay-method-dot { width: 10px; height: 10px; background: #7c3aed; border-radius: 50%; }
         .pay-method-body { flex: 1; min-width: 0; }
-        .pay-method-title { display: flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 800; color: #111827; margin-bottom: 4px; }
+        .pay-method-title { display: flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 800; color: var(--text-0); margin-bottom: 4px; }
         .pay-method-icon { font-size: 18px; }
-        .pay-method-desc { font-size: 12.5px; color: #6b7280; line-height: 1.5; }
-        .pay-method-desc b { color: #111827; font-weight: 700; }
+        .pay-method-desc { font-size: 12.5px; color: var(--text-2); line-height: 1.5; }
+        .pay-method-desc b { color: var(--text-0); font-weight: 700; }
         .pay-warn { color: #ef4444 !important; }
         .pay-ok { color: #10b981 !important; }
         .pay-method-action { margin-top: 8px; }

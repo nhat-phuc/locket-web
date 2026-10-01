@@ -47,3 +47,22 @@ fix.sh
 nextjs-dashboard/
 .vercel
 .env*
+# Vercel
+.vercel
+
+# Env
+.env
+.env.local
+.env*.local
+
+# OS
+.DS_Store
+
+# Backups
+*.bak
+*.bak2
+*.tmp
+
+# Dev scripts (optional - chỉ bỏ nếu không muốn deploy lên production)
+# scripts/seed-orders.ts
+# scripts/seed-reviews.ts

@@ -241,12 +241,7 @@ export default function LienHePage() {
         </div>
 
         <style jsx>{`
-          .ct-page {
-            position: relative;
-            min-height: 100vh;
-            padding: 120px 20px 80px;
-            overflow: hidden;
-            background: #0a0a0f;
+          .ct-page { position: relative; min-height: 100vh; padding: 100px 20px 60px; overflow: hidden; background: var(--bg-0);
             font-family: inherit;
           }
 
@@ -317,10 +312,7 @@ export default function LienHePage() {
             50% { opacity: 0.5; transform: scale(0.85); }
           }
 
-          .ct-h1 {
-            font-size: clamp(34px, 5.5vw, 56px);
-            font-weight: 900;
-            color: #fff;
+          .ct-h1 { font-size: clamp(32px, 5vw, 48px); font-weight: 900; color: var(--text-0);
             margin-bottom: 18px;
             line-height: 1.1;
             letter-spacing: -0.03em;
@@ -338,8 +330,7 @@ export default function LienHePage() {
             50% { background-position: 100% 50%; }
           }
 
-          .ct-sub {
-            color: #9ca3af;
+          .ct-sub { color: var(--text-2); font-size: 15px;
             font-size: 16px;
             max-width: 620px;
             margin: 0 auto;
@@ -360,8 +351,8 @@ export default function LienHePage() {
           /* CARD */
           .ct-card {
             position: relative;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: var(--bg-1);
+            border: 1px solid var(--border);
             border-radius: 24px;
             padding: 28px;
             backdrop-filter: blur(24px);
@@ -396,8 +387,8 @@ export default function LienHePage() {
             background: linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(59, 130, 246, 0.2));
             border-color: rgba(59, 130, 246, 0.2);
           }
-          .ct-card-head h2 { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 2px; }
-          .ct-card-head p { font-size: 13px; color: #9ca3af; }
+          .ct-card-head h2 { font-size: 18px; font-weight: 800; color: var(--text-0); margin-bottom: 2px; }
+          .ct-card-head p { font-size: 13px; color: var(--text-2); }
 
           /* CHANNELS */
           .ct-channels { display: flex; flex-direction: column; gap: 10px; }
@@ -408,8 +399,8 @@ export default function LienHePage() {
             align-items: center;
             gap: 14px;
             padding: 14px 16px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: var(--bg-2);
+            border: 1px solid var(--border);
             border-radius: 16px;
             text-decoration: none;
             color: inherit;
@@ -424,7 +415,7 @@ export default function LienHePage() {
           .ct-channel:hover {
             transform: translateX(6px);
             border-color: rgba(255,255,255,0.2);
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--bg-1);
           }
           .ct-channel-glow {
             position: absolute;
@@ -450,14 +441,14 @@ export default function LienHePage() {
             box-shadow: 0 8px 20px rgba(0,0,0,0.3);
           }
           .ct-channel-body { flex: 1; min-width: 0; position: relative; z-index: 1; }
-          .ct-channel-label { font-size: 12px; color: #9ca3af; margin-bottom: 2px; font-weight: 600; letter-spacing: 0.3px; }
-          .ct-channel-value { font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+          .ct-channel-label { font-size: 12px; color: var(--text-2); margin-bottom: 2px; font-weight: 600; letter-spacing: 0.3px; }
+          .ct-channel-value { font-size: 14px; font-weight: 700; color: var(--text-0); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
           .ct-channel-arrow {
-            font-size: 18px; color: #6b7280;
+            font-size: 18px; color: var(--text-2);
             transition: all 0.3s;
             position: relative; z-index: 1;
           }
-          .ct-channel:hover .ct-channel-arrow { transform: translateX(4px); color: #fff; }
+          .ct-channel:hover .ct-channel-arrow { transform: translateX(4px); color: var(--text-0); }
 
           /* TIME BOX */
           .ct-time {
@@ -482,7 +473,7 @@ export default function LienHePage() {
           @keyframes ctRotate { to { transform: rotate(360deg); } }
           .ct-time-icon { font-size: 26px; position: relative; z-index: 1; }
           .ct-time-title { font-size: 13px; font-weight: 700; color: #c4b5fd; margin-bottom: 3px; }
-          .ct-time-desc { font-size: 13px; color: #d1d5db; }
+          .ct-time-desc { font-size: 13px; color: var(--text-1); }
 
           /* STATS */
           .ct-stats {
@@ -492,8 +483,8 @@ export default function LienHePage() {
           }
           .ct-stat {
             padding: 18px 12px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.07);
+            background: var(--bg-1);
+            border: 1px solid var(--border);
             border-radius: 16px;
             text-align: center;
             transition: all 0.3s;
@@ -512,7 +503,7 @@ export default function LienHePage() {
             -webkit-text-fill-color: transparent;
             margin-bottom: 4px;
           }
-          .ct-stat-label { font-size: 11px; color: #9ca3af; font-weight: 600; }
+          .ct-stat-label { font-size: 11px; color: var(--text-2); font-weight: 600; }
 
           /* FORM */
           .ct-card-form { padding: 32px; }
@@ -552,7 +543,7 @@ export default function LienHePage() {
             display: block;
             font-size: 13px;
             font-weight: 600;
-            color: #d1d5db;
+            color: var(--text-1);
             margin-bottom: 8px;
             transition: color 0.25s;
           }
@@ -563,10 +554,10 @@ export default function LienHePage() {
           .ct-field textarea {
             width: 100%;
             padding: 14px 16px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1.5px solid rgba(255, 255, 255, 0.1);
+            background: var(--bg-1);
+            border: 1.5px solid var(--border);
             border-radius: 12px;
-            color: #fff;
+            color: var(--text-0);
             font-size: 14px;
             font-family: inherit;
             outline: none;
@@ -597,7 +588,7 @@ export default function LienHePage() {
             background-size: 200% 200%;
             border: none;
             border-radius: 14px;
-            color: #fff;
+            color: var(--text-0);
             font-size: 15px;
             font-weight: 800;
             font-family: inherit;
@@ -628,7 +619,7 @@ export default function LienHePage() {
           .ct-spin {
             width: 16px; height: 16px;
             border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top-color: #fff;
+            border-top-color: var(--text-0);
             border-radius: 50%;
             animation: ctSpin 0.6s linear infinite;
           }
@@ -638,7 +629,7 @@ export default function LienHePage() {
             margin-top: 16px;
             text-align: center;
             font-size: 12px;
-            color: #6b7280;
+            color: var(--text-2);
           }
 
           /* Responsive */

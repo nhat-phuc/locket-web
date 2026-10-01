@@ -10,6 +10,7 @@ export default function RegisterForm() {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,6 +19,12 @@ export default function RegisterForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    // Validate phone
+    if (!/^0\d{9}$/.test(phone)) {
+      setError("Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0)");
+      return;
+    }
 
     if (password !== confirm) {
       setError("Mật khẩu xác nhận không khớp");
@@ -33,7 +40,7 @@ export default function RegisterForm() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, username, password, name }),
+        body: JSON.stringify({ email, username, password, name, phone }),
       });
       const data = await res.json();
 
@@ -101,6 +108,26 @@ export default function RegisterForm() {
           onChange={(e) => setName(e.target.value)}
           placeholder="Nguyễn Văn A"
         />
+      </div>
+
+      <div className="auth-field">
+        <label>
+          Số điện thoại <span style={{ color: "var(--red)" }}>*</span>
+        </label>
+        <input
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+          placeholder="0912345678"
+          required
+          pattern="0[0-9]{9}"
+          maxLength={10}
+          autoComplete="tel"
+          inputMode="numeric"
+        />
+        <small style={{ color: "var(--text-2)", fontSize: 12 }}>
+          10 số, bắt đầu bằng 0
+        </small>
       </div>
 
       <div className="auth-field">

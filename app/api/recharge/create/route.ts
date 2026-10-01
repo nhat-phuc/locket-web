@@ -11,16 +11,23 @@ export async function POST(req: Request) {
 
     const { email, username, amount, content, orderCode } = await req.json();
 
-    if (!email || !amount || !content || !orderCode) {
+    if (!amount || !content || !orderCode) {
       return NextResponse.json({ success: false, message: "Thiếu thông tin" }, { status: 400 });
     }
 
+    // Kiểm tra đơn đã tồn tại
     const existing = await prisma.order.findFirst({ where: { orderCode } });
     if (existing) {
-      return NextResponse.json({ success: true, message: "Đơn đã tồn tại" });
+      return NextResponse.json({
+        success: true,
+        message: "Đơn đã tồn tại",
+        orderId: existing.id,
+        order: existing,
+      });
     }
 
-    await prisma.order.create({
+    // Tạo đơn mới
+    const order = await prisma.order.create({
       data: {
         orderCode,
         userId: session.userId,
@@ -37,9 +44,14 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ success: true, message: "Đã tạo đơn nạp tiền" });
+    return NextResponse.json({
+      success: true,
+      message: "Đã tạo đơn nạp tiền",
+      orderId: order.id,
+      order,
+    });
   } catch (error) {
-    console.error(error);
+    console.error("[recharge/create]", error);
     return NextResponse.json({ success: false, message: "Lỗi hệ thống" }, { status: 500 });
   }
 }

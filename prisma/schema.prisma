@@ -23,6 +23,10 @@ model User {
   referredBy    String?
   resetToken        String?
   resetTokenExpiry  DateTime?
+  otpCode           String?
+  otpExpiry         DateTime?
+
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -248,4 +252,24 @@ model PendingTransaction {
 
   @@index([status])
   @@index([orderCode])
+}
+
+model LocketProfile {
+  id            String    @id @default(cuid())
+  username      String    @unique
+  displayName   String?
+  avatar        String?
+  coverImage    String?
+  badge         String?
+  bio           String?
+  age           Int?
+  gender        String?
+  interests     String?
+  profileUrl    String?
+  savedBy       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([username])
+  @@index([createdAt])
 }

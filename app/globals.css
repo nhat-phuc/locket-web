@@ -4224,3 +4224,96 @@ body[data-mode="light"] .icon-map-grid-bg {
     min-width: 0;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   STICKY FOOTER - Footer luôn dính đáy màn hình
+   ═══════════════════════════════════════════════════════════════ */
+
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main content co giãn để đẩy footer xuống đáy */
+body > main,
+body > .main {
+  flex: 1 0 auto;
+}
+
+/* Footer luôn ở đáy */
+body > footer,
+footer {
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STICKY FOOTER — Footer luôn ở đáy màn hình
+   ═══════════════════════════════════════════════════════════════ */
+
+html, body {
+  min-height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Main content co giãn */
+body > main,
+main {
+  flex: 1 0 auto;
+}
+
+/* Footer luôn ở đáy */
+body > footer,
+footer,
+.jsx-8da23154a5621c0f {
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+/* Cho admin không bị ảnh hưởng */
+body:has(.admin-layout) {
+  display: block;
+}
+body:has(.admin-layout) footer {
+  margin-top: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STICKY FOOTER
+   ═══════════════════════════════════════════════════════════════ */
+
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Nội dung chính co giãn */
+body > main {
+  flex: 1 0 auto;
+}
+
+/* Footer luôn ở đáy */
+body > footer {
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+/* Admin layout không bị ảnh hưởng */
+body:has(.admin-layout) {
+  display: block;
+}

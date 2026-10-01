@@ -40,7 +40,7 @@ export default function RecentTransactions() {
         .finally(() => setLoading(false));
     };
     load();
-    const interval = setInterval(load, 60000);
+    const interval = setInterval(load, 5000);
     return () => clearInterval(interval);
   }, []);
 

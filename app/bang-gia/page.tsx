@@ -225,7 +225,7 @@ export default function BangGiaPage() {
             position: relative;
             min-height: 100vh;
             padding: 110px 20px 80px;
-            background: linear-gradient(180deg, #fafbfc 0%, #f5f7fa 100%);
+            background: var(--bg-0);
             overflow: hidden;
           }
 
@@ -275,7 +275,7 @@ export default function BangGiaPage() {
           }
           .pr-sub {
             font-size: 16px;
-            color: #6b7280;
+            color: var(--text-2);
             max-width: 520px;
             margin: 0 auto;
             line-height: 1.6;
@@ -288,7 +288,7 @@ export default function BangGiaPage() {
             align-items: center;
             gap: 14px;
             padding: 80px 20px;
-            color: #9ca3af;
+            color: var(--text-2);
             font-size: 14px;
           }
           .pr-spin {
@@ -452,7 +452,7 @@ function PriceCard({
 
         .pc-note {
           font-size: 11.5px;
-          color: #6b7280;
+          color: var(--text-2);
           font-style: italic;
           margin-bottom: 20px;
         }
@@ -498,7 +498,7 @@ function PriceCard({
 
         .pc-feat-text {
           font-size: 12px;
-          color: #374151;
+          color: var(--text-1);
           line-height: 1.45;
         }
         .pc-feat-text :global(.hl) {
@@ -525,7 +525,7 @@ function PriceCard({
           gap: 4px;
           padding: 12px 10px;
           background: var(--c-pill);
-          color: #fff;
+          color: var(--text-0);
           border-radius: 14px;
           text-decoration: none;
           transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
@@ -556,7 +556,7 @@ function PriceCard({
           padding-top: 14px;
           border-top: 1px dashed color-mix(in srgb, var(--c) 25%, transparent);
           font-size: 10.5px;
-          color: #6b7280;
+          color: var(--text-2);
           font-style: italic;
           line-height: 1.55;
         }

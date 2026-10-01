@@ -303,8 +303,8 @@ export default function DanhGiaPage() {
         .dg-alert.is-err { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
 
         .dg-card {
-          background: #fff;
-          border: 1px solid #e5e7eb;
+          background: var(--bg-1);
+          border: 1px solid var(--border);
           border-radius: 20px;
           padding: 24px;
           box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
@@ -322,12 +322,12 @@ export default function DanhGiaPage() {
         .dg-select {
           width: 100%;
           padding: 12px 14px;
-          border: 1.5px solid #e5e7eb;
+          border: 1.5px solid var(--border);
           border-radius: 12px;
           font-size: 14px;
           font-family: inherit;
-          background: #fff;
-          color: #111827;
+          background: var(--bg-1);
+          color: var(--text-0);
           cursor: pointer;
           outline: none;
         }
@@ -412,13 +412,13 @@ export default function DanhGiaPage() {
         .dg-textarea {
           width: 100%;
           padding: 13px 16px;
-          border: 1.5px solid #e5e7eb;
+          border: 1.5px solid var(--border);
           border-radius: 12px;
           font-size: 14px;
           font-family: inherit;
           resize: vertical;
           outline: none;
-          color: #111827;
+          color: var(--text-0);
         }
         .dg-textarea:focus {
           border-color: #7c3aed;
@@ -426,7 +426,7 @@ export default function DanhGiaPage() {
         }
         .dg-counter {
           font-size: 11px;
-          color: #9ca3af;
+          color: var(--text-2);
           margin-top: 4px;
         }
 
@@ -444,7 +444,7 @@ export default function DanhGiaPage() {
           height: 120px;
           object-fit: cover;
           border-radius: 10px;
-          border: 1px solid #e5e7eb;
+          border: 1px solid var(--border);
           display: block;
         }
         .dg-upload-remove {
@@ -454,7 +454,7 @@ export default function DanhGiaPage() {
           width: 22px;
           height: 22px;
           background: rgba(0, 0, 0, 0.7);
-          color: #fff;
+          color: var(--text-0);
           border: none;
           border-radius: 50%;
           font-size: 12px;
@@ -468,9 +468,9 @@ export default function DanhGiaPage() {
           display: grid;
           place-items: center;
           cursor: pointer;
-          background: #f9fafb;
+          background: var(--bg-2);
           font-size: 24px;
-          color: #9ca3af;
+          color: var(--text-2);
           transition: all 0.2s;
         }
         .dg-upload-add:hover {
@@ -484,7 +484,7 @@ export default function DanhGiaPage() {
           width: 100%;
           padding: 15px;
           background: linear-gradient(135deg, #7c3aed, #a78bfa);
-          color: #fff;
+          color: var(--text-0);
           border: none;
           border-radius: 12px;
           font-size: 15px;
@@ -518,8 +518,8 @@ export default function DanhGiaPage() {
         }
         .dg-mine-item {
           padding: 14px;
-          background: #fff;
-          border: 1px solid #e5e7eb;
+          background: var(--bg-1);
+          border: 1px solid var(--border);
           border-radius: 12px;
         }
         .dg-mine-head {
@@ -539,7 +539,7 @@ export default function DanhGiaPage() {
         .dg-mine-badge.is-ok { background: #ecfdf5; color: #059669; }
         .dg-mine-badge.is-err { background: #fef2f2; color: #dc2626; }
         .dg-mine-badge.is-pending { background: #fffbeb; color: #d97706; }
-        .dg-mine-text { font-size: 13px; color: #374151; }
+        .dg-mine-text { font-size: 13px; color: var(--text-1); }
 
         @media (max-width: 500px) {
           .star-emoji { font-size: 40px; }

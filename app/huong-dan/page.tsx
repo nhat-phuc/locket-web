@@ -721,7 +721,7 @@ export default function HuongDanPage() {
         }
         .guide-btn.primary {
           background: linear-gradient(135deg, #a78bfa, #7c3aed);
-          color: #fff;
+          color: var(--text-0);
           box-shadow: 0 10px 30px rgba(124,58,237,.5), inset 0 1px 0 rgba(255,255,255,.2);
         }
         .guide-btn.primary:hover {
@@ -828,7 +828,7 @@ export default function HuongDanPage() {
         }
         .guide-faq-item.open .guide-faq-icon {
           background: linear-gradient(135deg, #a78bfa, #7c3aed);
-          color: #fff;
+          color: var(--text-0);
           transform: rotate(360deg) scale(1.1);
           box-shadow: 0 8px 22px rgba(124,58,237,.5);
         }
@@ -847,7 +847,7 @@ export default function HuongDanPage() {
         .guide-faq-item.open .guide-faq-chevron {
           transform: rotate(180deg);
           background: var(--accent);
-          color: #fff;
+          color: var(--text-0);
           box-shadow: 0 6px 18px rgba(124,58,237,.4);
         }
         .guide-faq-a {
@@ -883,7 +883,7 @@ export default function HuongDanPage() {
           height: 48px;
           border-radius: 50%;
           background: linear-gradient(135deg, #a78bfa, #7c3aed);
-          color: #fff;
+          color: var(--text-0);
           border: none;
           cursor: pointer;
           display: flex;

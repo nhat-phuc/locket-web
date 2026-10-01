@@ -20,6 +20,7 @@ export async function POST(req: Request) {
 
     const method = paymentMethod || "bank_transfer";
 
+    // Update paymentMethod + expiresAt
     await prisma.order.update({
       where: { id: orderId },
       data: {
@@ -30,7 +31,6 @@ export async function POST(req: Request) {
     });
 
     if (method === "bank_transfer") {
-      // Đọc từ .env — fallback nếu thiếu
       const BANK_INFO = {
         bank: process.env.NEXT_PUBLIC_BANK_NAME || "TPBANK",
         bankId: process.env.NEXT_PUBLIC_BANK_ID || "TPBANK",
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
         accountNumber: BANK_INFO.accountNumber,
         accountName: BANK_INFO.accountName,
         qrUrl,
-        expiresAt: order.expiresAt,
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
       });
     }
 
