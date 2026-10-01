@@ -3,192 +3,182 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-interface UserData {
+interface UserInfo {
   id: string;
   email: string;
   username: string;
   name: string | null;
+  picture: string | null;
+  phone: string | null;
   balance: number;
+  role: string;
   createdAt: string;
 }
 
 export default function TaiKhoanPage() {
-  const [user, setUser] = useState<UserData | null>(null);
-  const [stats, setStats] = useState({ orders: 0, paid: 0, spent: 0 });
+  const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/users/me").then((r) => r.json()),
-      fetch("/api/users/orders?limit=100").then((r) => r.json()),
-    ])
-      .then(([meData, ordersData]) => {
-        if (meData.success) setUser(meData.user);
-        if (ordersData.success) {
-          const orders = ordersData.orders || [];
-          setStats({
-            orders: orders.length,
-            paid: orders.filter((o: any) => o.status === "paid" || o.status === "completed").length,
-            spent: orders
-              .filter((o: any) => o.status === "paid" || o.status === "completed")
-              .reduce((sum: number, o: any) => sum + o.finalAmount, 0),
-          });
-        }
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    const load = async () => {
+      try {
+        const res = await fetch("/api/users/me", { credentials: "include" });
+        const data = await res.json();
+        if (data.success) setUser(data.user);
+      } catch {}
+      finally { setLoading(false); }
+    };
+    load();
   }, []);
 
-  if (loading)
+  if (loading) {
+    return <div style={{ textAlign: "center", padding: 80, color: "var(--text-2)" }}>Đang tải...</div>;
+  }
+
+  if (!user) {
     return (
-      <div style={{ padding: 40, textAlign: "center", color: "var(--text-2)" }}>
-        Đang tải...
+      <div style={{ textAlign: "center", padding: 80 }}>
+        <p style={{ color: "var(--text-2)", marginBottom: 16 }}>Vui lòng đăng nhập</p>
+        <Link href="/dang-nhap" className="btn-nav">Đăng nhập</Link>
       </div>
     );
-  if (!user) return null;
+  }
+
+  const initial = (user.name || user.username || "U").charAt(0).toUpperCase();
+  const displayName = user.name || user.username || user.email.split("@")[0];
+  const memberSince = new Date(user.createdAt).toLocaleDateString("vi-VN");
 
   return (
-    <>
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 26, fontWeight: 900, marginBottom: 6 }}>
-          Xin chào, {user.name || user.username}!
-        </h1>
-        <p style={{ color: "var(--text-2)", fontSize: 14 }}>
-          Quản lý tài khoản và đơn hàng của bạn
+    <div className="tai-khoan-page">
+      {/* Avatar lớn + Tên */}
+      <div className="tk-hero">
+        <div className="tk-avatar-wrapper">
+          {user.picture ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={user.picture}
+              alt={displayName}
+              referrerPolicy="no-referrer"
+              crossOrigin="anonymous"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+                const parent = e.currentTarget.parentElement;
+                if (parent && !parent.querySelector(".tk-avatar-fallback")) {
+                  const div = document.createElement("div");
+                  div.className = "tk-avatar-fallback";
+                  div.textContent = initial;
+                  parent.appendChild(div);
+                }
+              }}
+            />
+          ) : (
+            <div className="tk-avatar-fallback">{initial}</div>
+          )}
+        </div>
+
+        <h1 className="tk-title">Quản Lý Tài Khoản</h1>
+        <div className="tk-badge">THÀNH VIÊN</div>
+      </div>
+
+      {/* Card 1: Thông Tin Cá Nhân */}
+      <div className="tk-card">
+        <div className="tk-card-header">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          <h2>Thông Tin Cá Nhân</h2>
+        </div>
+
+        <div className="tk-row">
+          <span className="tk-label">Tên đăng nhập (Email)</span>
+          <span className="tk-value">{user.email}</span>
+        </div>
+        <div className="tk-row">
+          <span className="tk-label">Số điện thoại</span>
+          <span className="tk-value">{user.phone || "Chưa cập nhật"}</span>
+        </div>
+        <div className="tk-row">
+          <span className="tk-label">Ngày tham gia</span>
+          <span className="tk-value">{memberSince}</span>
+        </div>
+        <div className="tk-row">
+          <span className="tk-label">Lượt kích hoạt</span>
+          <span className="tk-value">0 / 1 ID</span>
+        </div>
+        <div className="tk-row">
+          <span className="tk-label">Cấp bậc</span>
+          <span className="tk-value">{user.role === "admin" ? "ADMIN" : "THÀNH VIÊN"}</span>
+        </div>
+      </div>
+
+      {/* Card 2: Liên Kết Telegram */}
+      <div className="tk-card">
+        <div className="tk-card-header">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2">
+            <path d="M22 2L11 13" />
+            <path d="M22 2l-7 20-4-9-9-4 20-7z" />
+          </svg>
+          <h2>Liên Kết Telegram</h2>
+        </div>
+        <p className="tk-desc">
+          Kết nối với Bot Telegram để nhận thông báo giao dịch, mua gói VIP và nhận ưu đãi tự động.
+        </p>
+        <div className="tk-telegram-box">
+          <p className="tk-telegram-status">Chưa liên kết tài khoản</p>
+          <button className="tk-telegram-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M22 2L11 13" />
+              <path d="M22 2l-7 20-4-9-9-4 20-7z" />
+            </svg>
+            Liên kết ngay qua Bot
+          </button>
+        </div>
+      </div>
+
+      {/* Card 3: Bảo Mật Tài Khoản */}
+      <div className="tk-card">
+        <div className="tk-card-header">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          <h2>Bảo Mật Tài Khoản</h2>
+        </div>
+
+        <input type="password" placeholder="Mật khẩu cũ" className="tk-input" />
+        <input type="password" placeholder="Mật khẩu mới" className="tk-input" />
+
+        <button className="tk-btn-primary">
+          Đổi Mật Khẩu
+        </button>
+      </div>
+
+      {/* Card 4: Nâng cấp gói */}
+      <div className="tk-card tk-card-upgrade">
+        <div className="tk-card-header">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e85d04" strokeWidth="2">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+            <polyline points="17 6 23 6 23 12" />
+          </svg>
+          <h2>Nâng cấp lên gói cao hơn</h2>
+        </div>
+        <p className="tk-desc">
+          Đã trả 0k cho MEMBER. Chỉ cần thanh toán chênh lệch để lên gói mới.
         </p>
       </div>
 
-      <div className="user-stats-grid">
-        <div className="user-stat-card">
-          <div style={{ fontSize: 24, marginBottom: 8 }}>💰</div>
-          <div style={{ fontSize: 13, color: "var(--text-2)", marginBottom: 4 }}>Số dư</div>
-          <div style={{ fontSize: 22, fontWeight: 900, color: "#4ade80" }}>
-            {user.balance.toLocaleString("vi-VN")}đ
-          </div>
+      {/* Card 5: Lịch sử nâng cấp */}
+      <div className="tk-card">
+        <div className="tk-card-header">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+          <h2>Lịch Sử Nâng Cấp</h2>
         </div>
-        <div className="user-stat-card">
-          <div style={{ fontSize: 24, marginBottom: 8 }}>📦</div>
-          <div style={{ fontSize: 13, color: "var(--text-2)", marginBottom: 4 }}>Tổng đơn</div>
-          <div style={{ fontSize: 22, fontWeight: 900, color: "var(--accent-bright)" }}>
-            {stats.orders}
-          </div>
-        </div>
-        <div className="user-stat-card">
-          <div style={{ fontSize: 24, marginBottom: 8 }}>✅</div>
-          <div style={{ fontSize: 13, color: "var(--text-2)", marginBottom: 4 }}>Đã thanh toán</div>
-          <div style={{ fontSize: 22, fontWeight: 900, color: "#34d399" }}>
-            {stats.paid}
-          </div>
-        </div>
-        <div className="user-stat-card">
-          <div style={{ fontSize: 24, marginBottom: 8 }}>💸</div>
-          <div style={{ fontSize: 13, color: "var(--text-2)", marginBottom: 4 }}>Tổng chi tiêu</div>
-          <div style={{ fontSize: 22, fontWeight: 900, color: "#fbbf24" }}>
-            {stats.spent.toLocaleString("vi-VN")}đ
-          </div>
-        </div>
+        <div className="tk-empty">Bạn chưa có hóa đơn giao dịch nào.</div>
       </div>
-
-      {/* Nút hành động chính */}
-      <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
-        <Link
-          href="/nap-tien"
-          style={{
-            padding: "14px 24px",
-            borderRadius: 12,
-            background: "linear-gradient(135deg, var(--accent), var(--accent-bright))",
-            color: "#fff",
-            textDecoration: "none",
-            fontWeight: 700,
-          }}
-        >
-          💰 Nạp tiền
-        </Link>
-        <Link
-          href="/bang-gia"
-          style={{
-            padding: "14px 24px",
-            borderRadius: 12,
-            background: "var(--bg-1)",
-            border: "1px solid var(--border)",
-            color: "var(--text-1)",
-            textDecoration: "none",
-            fontWeight: 600,
-          }}
-        >
-          🛒 Mua dịch vụ
-        </Link>
-        <Link
-          href="/tai-khoan/don-hang"
-          style={{
-            padding: "14px 24px",
-            borderRadius: 12,
-            background: "var(--bg-1)",
-            border: "1px solid var(--border)",
-            color: "var(--text-1)",
-            textDecoration: "none",
-            fontWeight: 600,
-          }}
-        >
-          📦 Xem đơn hàng
-        </Link>
-        <Link
-          href="/tai-khoan/danh-gia"
-          style={{
-            padding: "14px 24px",
-            borderRadius: 12,
-            background: "var(--bg-1)",
-            border: "1px solid var(--border)",
-            color: "var(--text-1)",
-            textDecoration: "none",
-            fontWeight: 600,
-          }}
-        >
-          ⭐ Đánh giá dịch vụ
-        </Link>
-        <Link
-          href="/tai-khoan/ma-giam-gia"
-          style={{
-            padding: "14px 24px",
-            borderRadius: 12,
-            background: "var(--bg-1)",
-            border: "1px solid var(--border)",
-            color: "var(--text-1)",
-            textDecoration: "none",
-            fontWeight: 600,
-          }}
-        >
-          🎁 Mã giảm giá
-        </Link>
-      </div>
-
-      <div
-        style={{
-          marginTop: 32,
-          padding: 20,
-          background: "var(--bg-1)",
-          border: "1px solid var(--border)",
-          borderRadius: 16,
-        }}
-      >
-        <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>Thông tin tài khoản</h3>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, fontSize: 14 }}>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ color: "var(--text-2)" }}>Email</span>
-            <span style={{ fontWeight: 600 }}>{user.email}</span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ color: "var(--text-2)" }}>Username</span>
-            <span style={{ fontWeight: 600 }}>{user.username}</span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ color: "var(--text-2)" }}>Ngày tham gia</span>
-            <span style={{ fontWeight: 600 }}>
-              {new Date(user.createdAt).toLocaleDateString("vi-VN")}
-            </span>
-          </div>
-        </div>
-      </div>
-    </>
+    </div>
   );
 }

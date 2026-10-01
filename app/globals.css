@@ -4317,3 +4317,225 @@ body > footer {
 body:has(.admin-layout) {
   display: block;
 }
+
+/* ═══════════ TRANG TÀI KHOẢN - LOCKETGOLD STYLE ═══════════ */
+.tai-khoan-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 16px 120px;
+}
+
+/* Hero: Avatar + Title gradient */
+.tk-hero {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.tk-avatar-wrapper {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #a78bfa, #7c3aed);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.25);
+  position: relative;
+}
+
+.tk-avatar-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tk-avatar-fallback {
+  font-size: 56px;
+  font-weight: 900;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.tk-title {
+  font-size: 32px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #a78bfa, #10b981);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+
+.tk-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  background: rgba(167, 139, 250, 0.12);
+  color: #a78bfa;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  border-radius: 999px;
+}
+
+/* Card chung */
+.tk-card {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1.5px solid rgba(167, 139, 250, 0.2);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 24px rgba(167, 139, 250, 0.08);
+}
+
+.tk-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.tk-card-header h2 {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-0);
+}
+
+.tk-card-header svg {
+  color: var(--accent-bright);
+}
+
+/* Rows */
+.tk-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.tk-row:last-child {
+  border-bottom: none;
+}
+
+.tk-label {
+  font-size: 15px;
+  color: var(--text-2);
+}
+
+.tk-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-0);
+}
+
+/* Description */
+.tk-desc {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+/* Telegram box */
+.tk-telegram-box {
+  background: rgba(0, 0, 0, 0.04);
+  border: 2px dashed rgba(0, 0, 0, 0.1);
+  border-radius: 14px;
+  padding: 20px;
+  text-align: center;
+}
+
+.tk-telegram-status {
+  font-size: 14px;
+  color: var(--text-2);
+  margin-bottom: 12px;
+}
+
+.tk-telegram-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tk-telegram-btn:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+}
+
+/* Input */
+.tk-input {
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  font-size: 15px;
+  font-family: inherit;
+  margin-bottom: 12px;
+  transition: all 0.2s;
+}
+
+.tk-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* Button */
+.tk-btn-primary {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #a78bfa, #7c3aed);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.tk-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(124, 58, 237, 0.3);
+}
+
+/* Upgrade card */
+.tk-card-upgrade {
+  border-color: rgba(232, 93, 4, 0.3);
+}
+
+.tk-card-upgrade .tk-card-header h2 {
+  color: #e85d04;
+}
+
+/* Empty state */
+.tk-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-2);
+  font-size: 14px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 12px;
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .tk-title { font-size: 26px; }
+  .tk-card { padding: 16px; border-radius: 16px; }
+  .tk-card-header h2 { font-size: 18px; }
+  .tk-row { padding: 10px 0; font-size: 14px; }
+}
