@@ -14,6 +14,7 @@
     "@prisma/client": "^5.22.0",
     "@vercel/blob": "^2.8.0",
     "bcryptjs": "^3.0.3",
+    "grammy": "^1.46.0",
     "jsonwebtoken": "^9.0.3",
     "next": "latest",
     "react": "latest",
