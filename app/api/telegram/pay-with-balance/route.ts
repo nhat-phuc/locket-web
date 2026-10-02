@@ -5,14 +5,11 @@ export async function POST(req: Request) {
   try {
     const { orderId, chatId } = await req.json();
 
-    const user = await prisma.user.findFirst({
-      where: { telegramChatId: String(chatId) },
-    });
-
-    if (!user) return NextResponse.json({ success: false, message: "Chưa đăng nhập" });
+    const user = await prisma.user.findFirst({ where: { telegramId: String(chatId) } });
+    if (!user) return NextResponse.json({ success: false, message: "Chưa liên kết" });
 
     const order = await prisma.order.findUnique({ where: { id: orderId } });
-    if (!order) return NextResponse.json({ success: false, message: "Đơn không tồn tại" });
+    if (!order) return NextResponse.json({ success: false, message: "Không tìm thấy đơn" });
     if (order.userId !== user.id) return NextResponse.json({ success: false, message: "Không có quyền" });
     if (order.status === "paid") return NextResponse.json({ success: false, message: "Đã thanh toán" });
     if (user.balance < order.finalAmount) return NextResponse.json({ success: false, message: "Số dư không đủ" });
@@ -20,14 +17,8 @@ export async function POST(req: Request) {
     const newBalance = user.balance - order.finalAmount;
 
     await prisma.$transaction([
-      prisma.user.update({
-        where: { id: user.id },
-        data: { balance: newBalance },
-      }),
-      prisma.order.update({
-        where: { id: order.id },
-        data: { status: "paid", paidAt: new Date() },
-      }),
+      prisma.user.update({ where: { id: user.id }, data: { balance: newBalance } }),
+      prisma.order.update({ where: { id: order.id }, data: { status: "paid", paidAt: new Date() } }),
       prisma.transaction.create({
         data: {
           userId: user.id,
@@ -37,7 +28,7 @@ export async function POST(req: Request) {
           balanceAfter: newBalance,
           status: "completed",
           method: "balance",
-          description: `Mua ${order.serviceName}`,
+          description: `Mua ${order.serviceName} qua bot`,
           orderId: order.id,
           completedAt: new Date(),
         },
@@ -51,7 +42,6 @@ export async function POST(req: Request) {
       newBalance,
     });
   } catch (error) {
-    console.error(error);
     return NextResponse.json({ success: false, message: "Lỗi" }, { status: 500 });
   }
 }

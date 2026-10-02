@@ -5,11 +5,8 @@ export async function POST(req: Request) {
   try {
     const { chatId } = await req.json();
 
-    const user = await prisma.user.findFirst({
-      where: { telegramChatId: String(chatId) },
-    });
-
-    if (!user) return NextResponse.json({ success: false, message: "Chưa đăng nhập" });
+    const user = await prisma.user.findFirst({ where: { telegramId: String(chatId) } });
+    if (!user) return NextResponse.json({ success: false, message: "Chưa liên kết" });
 
     let rechargeService = await prisma.service.findFirst({ where: { slug: "nap-tien" } });
     if (!rechargeService) {
@@ -45,7 +42,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, order });
   } catch (error) {
-    console.error(error);
     return NextResponse.json({ success: false, message: "Lỗi" }, { status: 500 });
   }
 }

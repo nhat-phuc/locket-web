@@ -1,42 +1,73 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
+// POST /api/telegram/link
+// Body: { token, chatId }
 export async function POST(req: Request) {
   try {
-    const { code, telegramId } = await req.json();
+    const { token, chatId, code } = await req.json();
+    const linkToken = token || code; // Hỗ trợ cả 2
 
-    if (!code || !telegramId) {
-      return NextResponse.json({ success: false, message: "Thiếu dữ liệu" }, { status: 400 });
+    if (!linkToken || !chatId) {
+      return NextResponse.json({ success: false, message: "Thiếu thông tin" });
     }
 
-    // Tìm user có telegramLinkCode = code
+    // Tìm user theo token (hỗ trợ cả telegramLinkCode cũ)
     const user = await prisma.user.findFirst({
-      where: { telegramLinkCode: code.toUpperCase() },
+      where: {
+        OR: [
+          { telegramLinkCode: linkToken },
+        ],
+        telegramLinkExpiry: { gt: new Date() },
+      },
     });
 
     if (!user) {
-      return NextResponse.json(
-        { success: false, message: "Mã không hợp lệ hoặc đã hết hạn" },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, message: "Token không hợp lệ hoặc hết hạn" });
     }
 
-    // Cập nhật telegramId + xóa linkCode
+    // Check chatId đã link với user khác chưa
+    const existing = await prisma.user.findFirst({
+      where: {
+        telegramId: String(chatId),
+        id: { not: user.id },
+      },
+    });
+
+    if (existing) {
+      return NextResponse.json({ success: false, message: "Chat Telegram đã liên kết tài khoản khác" });
+    }
+
+    // Liên kết
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        telegramId: String(telegramId),
+        telegramId: String(chatId),
         telegramLinkCode: null,
+        telegramLinkExpiry: null,
         telegramLinkedAt: new Date(),
       },
     });
 
+    const [totalOrders, paidOrders] = await Promise.all([
+      prisma.order.count({ where: { userId: user.id } }),
+      prisma.order.count({ where: { userId: user.id, status: "paid" } }),
+    ]);
+
     return NextResponse.json({
       success: true,
-      userName: user.name || user.username || user.email,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+        balance: user.balance,
+        totalOrders,
+        paidOrders,
+      },
     });
   } catch (error) {
     console.error("[telegram/link]", error);
-    return NextResponse.json({ success: false, message: "Lỗi hệ thống" }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Lỗi" }, { status: 500 });
   }
 }

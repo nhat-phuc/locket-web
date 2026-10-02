@@ -28,7 +28,6 @@ model User {
 
   // ═══ TELEGRAM ═══
   telegramId        String?   @unique
-  telegramLinkCode  String?
   telegramLinkedAt  DateTime?
 
 

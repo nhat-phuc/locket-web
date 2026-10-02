@@ -6,14 +6,14 @@ export async function POST(req: Request) {
     const { chatId, serviceId, locketUsername } = await req.json();
 
     const user = await prisma.user.findFirst({
-      where: { telegramChatId: String(chatId) },
+      where: { telegramId: String(chatId) },
     });
 
-    if (!user) return NextResponse.json({ success: false, message: "Chưa đăng nhập" });
+    if (!user) return NextResponse.json({ success: false, message: "Chưa liên kết" });
 
     const service = await prisma.service.findFirst({
       where: {
-        OR: [{ slug: serviceId }, { id: serviceId }, { type: serviceId }],
+        OR: [{ slug: serviceId }, { id: serviceId }],
         isActive: true,
       },
     });
@@ -39,7 +39,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, order });
   } catch (error) {
-    console.error(error);
     return NextResponse.json({ success: false, message: "Lỗi" }, { status: 500 });
   }
 }

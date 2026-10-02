@@ -4,30 +4,34 @@ import { prisma } from "@/lib/db";
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const telegramId = searchParams.get("telegramId");
+    const chatId = searchParams.get("chatId");
 
-    if (!telegramId) {
-      return NextResponse.json({ success: false, message: "Thiếu telegramId" }, { status: 400 });
-    }
+    if (!chatId) return NextResponse.json({ success: false });
 
     const user = await prisma.user.findFirst({
-      where: { telegramId: String(telegramId) },
-      select: {
-        email: true,
-        name: true,
-        username: true,
-        balance: true,
-        role: true,
-      },
+      where: { telegramId: String(chatId) },
     });
 
-    if (!user) {
-      return NextResponse.json({ success: false, message: "Chưa liên kết" }, { status: 404 });
-    }
+    if (!user) return NextResponse.json({ success: false });
 
-    return NextResponse.json({ success: true, user });
+    const [totalOrders, paidOrders] = await Promise.all([
+      prisma.order.count({ where: { userId: user.id } }),
+      prisma.order.count({ where: { userId: user.id, status: "paid" } }),
+    ]);
+
+    return NextResponse.json({
+      success: true,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+        balance: user.balance,
+        totalOrders,
+        paidOrders,
+      },
+    });
   } catch (error) {
-    console.error("[telegram/me]", error);
-    return NextResponse.json({ success: false, message: "Lỗi hệ thống" }, { status: 500 });
+    return NextResponse.json({ success: false }, { status: 500 });
   }
 }

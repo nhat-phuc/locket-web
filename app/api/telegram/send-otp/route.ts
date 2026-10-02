@@ -9,11 +9,8 @@ export async function POST(req: Request) {
       where: { email: email.toLowerCase().trim() },
     });
 
-    if (!user) {
-      return NextResponse.json({ success: false, message: "Email không tồn tại" });
-    }
+    if (!user) return NextResponse.json({ success: false, message: "Email không tồn tại" });
 
-    // Tạo OTP 6 số
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiry = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -22,15 +19,13 @@ export async function POST(req: Request) {
       data: { otpCode: otp, otpExpiry: expiry },
     });
 
-    // TODO: Gửi email thật
     const isDev = process.env.NODE_ENV === "development" || !process.env.RESEND_API_KEY;
 
     return NextResponse.json({
       success: true,
-      message: "OTP đã gửi",
       ...(isDev && { devOtp: otp }),
     });
   } catch (error) {
-    return NextResponse.json({ success: false, message: "Lỗi" }, { status: 500 });
+    return NextResponse.json({ success: false }, { status: 500 });
   }
 }

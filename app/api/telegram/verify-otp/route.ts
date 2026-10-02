@@ -17,18 +17,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "OTP hết hạn" });
     }
 
-    // Liên kết chat_id
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        telegramChatId: String(chatId),
+        telegramId: String(chatId),
         otpCode: null,
         otpExpiry: null,
       },
     });
 
-    const totalOrders = await prisma.order.count({ where: { userId: user.id } });
-    const paidOrders = await prisma.order.count({ where: { userId: user.id, status: "paid" } });
+    const [totalOrders, paidOrders] = await Promise.all([
+      prisma.order.count({ where: { userId: user.id } }),
+      prisma.order.count({ where: { userId: user.id, status: "paid" } }),
+    ]);
 
     return NextResponse.json({
       success: true,
@@ -43,6 +44,6 @@ export async function POST(req: Request) {
       },
     });
   } catch (error) {
-    return NextResponse.json({ success: false, message: "Lỗi" }, { status: 500 });
+    return NextResponse.json({ success: false }, { status: 500 });
   }
 }
