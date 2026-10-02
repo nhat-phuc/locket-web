@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 interface Tx {
   id: string;
@@ -17,8 +17,9 @@ interface Tx {
   timestamp: number;
 }
 
-const INITIAL_COUNT = 15;
-const LOAD_MORE = 15;
+const INITIAL_COUNT = 8;
+const LOAD_MORE = 8;
+const POLL_INTERVAL = 5000; // 5s
 
 function uiAvatar(name: string): string {
   const clean = name.replace(/\*/g, "").trim() || "User";
@@ -30,17 +31,55 @@ export default function RecentTransactions() {
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState<Record<string, boolean>>({});
   const [shown, setShown] = useState(INITIAL_COUNT);
+  const [newIds, setNewIds] = useState<Set<string>>(new Set());
 
+  const prevIdsRef = useRef<Set<string>>(new Set());
+  const isFirstLoadRef = useRef(true);
+
+  // ═══ POLLING 5s — tự động thêm giao dịch mới ═══
   useEffect(() => {
-    const load = () => {
-      fetch("/api/recent-transactions?limit=100")
-        .then((r) => r.json())
-        .then((d) => { if (d.success) setTxs(d.transactions); })
-        .catch(() => {})
-        .finally(() => setLoading(false));
+    const load = async () => {
+      try {
+        const res = await fetch("/api/recent-transactions?limit=100");
+        const d = await res.json();
+
+        if (!d.success) return;
+
+        const incoming: Tx[] = d.transactions || [];
+
+        // Lần đầu load
+        if (isFirstLoadRef.current) {
+          setTxs(incoming);
+          prevIdsRef.current = new Set(incoming.map((t) => t.id));
+          isFirstLoadRef.current = false;
+          setLoading(false);
+          return;
+        }
+
+        // Lần sau: tìm giao dịch MỚI
+        const currentIds = new Set(incoming.map((t) => t.id));
+        const brandNew = incoming.filter((t) => !prevIdsRef.current.has(t.id));
+
+        if (brandNew.length > 0) {
+          // Đánh dấu animation
+          setNewIds(new Set(brandNew.map((t) => t.id)));
+
+          // Tự động xóa highlight sau 6s
+          setTimeout(() => setNewIds(new Set()), 6000);
+        }
+
+        // Cập nhật danh sách
+        setTxs(incoming);
+        prevIdsRef.current = currentIds;
+      } catch {
+        // silent
+      } finally {
+        if (isFirstLoadRef.current) setLoading(false);
+      }
     };
+
     load();
-    const interval = setInterval(load, 5000);
+    const interval = setInterval(load, POLL_INTERVAL);
     return () => clearInterval(interval);
   }, []);
 
@@ -51,13 +90,19 @@ export default function RecentTransactions() {
   return (
     <section style={{ marginTop: 40 }}>
       <div style={{ textAlign: "center", marginTop: 40, marginBottom: 20 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: "var(--text-0)" }}>Lịch Sử Nạp Tiền</h2>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: "var(--text-0)" }}>
+          Lịch Sử Nạp Tiền
+        </h2>
         <p style={{ color: "var(--text-2)", fontSize: 14, marginTop: 8 }}>
           Giao dịch mua gói VIP thành công gần đây
         </p>
       </div>
 
-      {loading && <div style={{ textAlign: "center", padding: 40, color: "var(--text-2)" }}>Đang tải...</div>}
+      {loading && (
+        <div style={{ textAlign: "center", padding: 40, color: "var(--text-2)" }}>
+          Đang tải...
+        </div>
+      )}
 
       {!loading && txs.length === 0 && (
         <div style={{ textAlign: "center", padding: 40, color: "var(--text-2)", fontSize: 14 }}>
@@ -71,16 +116,20 @@ export default function RecentTransactions() {
             {visible.map((tx, i) => {
               const useFallback = failed[tx.id] || !tx.avatar;
               const imgSrc = useFallback ? uiAvatar(tx.name) : tx.avatar!;
+              const isNew = newIds.has(tx.id);
 
               return (
                 <div
                   key={tx.id}
-                  className="tx-card"
+                  className={`tx-card ${isNew ? "tx-new" : ""}`}
                   style={{
                     animationDelay: `${(i % LOAD_MORE) * 0.03}s`,
                     "--ring-color": tx.typeMeta.color,
                   } as React.CSSProperties}
                 >
+                  {/* Badge NEW */}
+                  {isNew && <div className="tx-new-badge">MỚI</div>}
+
                   <div className="tx-avatar-wrap">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -120,6 +169,7 @@ export default function RecentTransactions() {
             })}
           </div>
 
+          {/* Nút Xem thêm / Thu gọn */}
           <div className="tx-actions">
             {hasMore && (
               <button onClick={() => setShown((s) => s + LOAD_MORE)} className="tx-btn tx-btn-more">
@@ -147,14 +197,9 @@ export default function RecentTransactions() {
           grid-template-columns: repeat(3, 1fr);
           gap: 12px;
           margin-top: 24px;
-          width: 100%;
         }
-        @media (max-width: 900px) {
-          .tx-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 600px) {
-          .tx-grid { grid-template-columns: 1fr; gap: 10px; }
-        }
+        @media (max-width: 900px) { .tx-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { .tx-grid { grid-template-columns: 1fr; } }
 
         .tx-card {
           position: relative;
@@ -167,9 +212,6 @@ export default function RecentTransactions() {
           border-radius: 14px;
           transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
           animation: txFadeIn 0.5s ease both;
-          width: 100%;
-          box-sizing: border-box;
-          overflow: hidden;
         }
         .tx-card:hover {
           transform: translateY(-3px);
@@ -178,11 +220,63 @@ export default function RecentTransactions() {
           box-shadow: 0 12px 32px rgba(167, 139, 250, 0.2);
         }
 
+        /* Highlight giao dịch mới */
+        .tx-card.tx-new {
+          background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(52, 211, 153, 0.06));
+          border-color: #10b981;
+          border-style: solid;
+          animation: txNewPulse 0.6s ease-out, txFadeIn 0.5s ease both;
+          box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
+        }
+        .tx-card.tx-new::before {
+          content: "";
+          position: absolute;
+          inset: -2px;
+          border-radius: 14px;
+          background: linear-gradient(135deg, #10b981, #34d399, #10b981);
+          z-index: -1;
+          opacity: 0.4;
+          filter: blur(8px);
+          animation: glowPulse 1.5s ease-in-out infinite;
+        }
+        @keyframes txNewPulse {
+          0% { transform: scale(0.95); }
+          50% { transform: scale(1.03); }
+          100% { transform: scale(1); }
+        }
+        @keyframes glowPulse {
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 0.6; }
+        }
+
+        /* Badge MỚI */
+        .tx-new-badge {
+          position: absolute;
+          top: -8px;
+          right: 12px;
+          padding: 3px 10px;
+          background: linear-gradient(135deg, #10b981, #34d399);
+          color: #fff;
+          font-size: 10px;
+          font-weight: 900;
+          border-radius: 999px;
+          letter-spacing: 0.5px;
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+          animation: badgeBounce 0.6s ease-out;
+          z-index: 2;
+        }
+        @keyframes badgeBounce {
+          0% { transform: translateY(10px) scale(0); opacity: 0; }
+          60% { transform: translateY(-2px) scale(1.1); }
+          100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
         @keyframes txFadeIn {
           from { opacity: 0; transform: translateY(12px); }
           to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Avatar */
         .tx-avatar-wrap {
           width: 56px;
           height: 56px;
@@ -229,7 +323,6 @@ export default function RecentTransactions() {
           display: flex;
           flex-direction: column;
           gap: 5px;
-          overflow: hidden;
         }
 
         .tx-head {
@@ -245,7 +338,6 @@ export default function RecentTransactions() {
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
-          max-width: 100%;
         }
         .tx-type {
           display: inline-flex;
@@ -277,12 +369,10 @@ export default function RecentTransactions() {
           justify-content: space-between;
           gap: 8px;
           margin-top: 2px;
-          flex-wrap: wrap;
         }
         .tx-time {
           font-size: 11.5px;
           color: var(--text-2);
-          flex-shrink: 0;
         }
         .tx-amount {
           font-size: 16px;
@@ -290,9 +380,12 @@ export default function RecentTransactions() {
           color: #a78bfa;
           white-space: nowrap;
           letter-spacing: -0.01em;
-          flex-shrink: 0;
+        }
+        .tx-card.tx-new .tx-amount {
+          color: #10b981;
         }
 
+        /* Actions */
         .tx-actions {
           display: flex;
           justify-content: center;
@@ -330,50 +423,6 @@ export default function RecentTransactions() {
           color: var(--text-2);
         }
         .tx-btn-collapse:hover { color: var(--text-0); }
-
-        /* ═══ MOBILE ≤ 480px — Fix tràn số tiền ═══ */
-        @media (max-width: 480px) {
-          .tx-card {
-            padding: 12px 12px;
-            gap: 10px;
-          }
-          .tx-avatar-wrap {
-            width: 44px;
-            height: 44px;
-            padding: 2px;
-          }
-          .tx-name {
-            font-size: 14px;
-          }
-          .tx-type {
-            font-size: 9px;
-            padding: 2px 6px;
-          }
-          .tx-amount {
-            font-size: 15px;
-          }
-          .tx-time {
-            font-size: 11px;
-          }
-        }
-
-        /* Mobile rất nhỏ */
-        @media (max-width: 360px) {
-          .tx-card {
-            padding: 10px 10px;
-            gap: 8px;
-          }
-          .tx-avatar-wrap {
-            width: 40px;
-            height: 40px;
-          }
-          .tx-name {
-            font-size: 13px;
-          }
-          .tx-amount {
-            font-size: 14px;
-          }
-        }
       `}</style>
     </section>
   );
