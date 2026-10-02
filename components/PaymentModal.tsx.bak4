@@ -1,0 +1,727 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+interface Order {
+  id: string;
+  orderCode: string;
+  serviceName: string;
+  finalAmount: number;
+  locketUsername: string;
+  status: string;
+  expiresAt: string | null;
+}
+
+interface Props {
+  order: Order;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+const BANK = {
+  name: "TPBank",
+  accountNo: "36886368888",
+  accountName: "TRAN NHAT PHUC",
+};
+
+export default function PaymentModal({ order, onClose, onSuccess }: Props) {
+  const [qrUrl, setQrUrl] = useState("");
+  const [countdown, setCountdown] = useState(900);
+  const [status, setStatus] = useState<"pending" | "paid" | "expired">("pending");
+  const [toast, setToast] = useState<{ type: string; msg: string } | null>(null);
+  const [creating, setCreating] = useState(true);
+  const [activeTab, setActiveTab] = useState<"qr" | "manual">("qr");
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const showToast = (type: string, msg: string) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  useEffect(() => {
+    if (!order.id) return;
+    setCreating(true);
+    fetch("/api/payments/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId: order.id }),
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success && d.qrUrl) setQrUrl(d.qrUrl);
+        else showToast("error", d.message || "Không tạo được QR");
+      })
+      .catch(() => showToast("error", "Lỗi kết nối"))
+      .finally(() => setCreating(false));
+  }, [order.id]);
+
+  useEffect(() => {
+    if (status !== "pending") return;
+    const t = setInterval(() => {
+      setCountdown((c) => {
+        if (c <= 1) {
+          setStatus("expired");
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+    return () => clearInterval(t);
+  }, [status]);
+
+  useEffect(() => {
+    if (status !== "pending" || !order.id) return;
+    const t = setInterval(async () => {
+      try {
+        const r = await fetch(`/api/payments/check?orderId=${order.id}`);
+        const d = await r.json();
+        if (d.status === "paid") {
+          setStatus("paid");
+          showToast("success", "Thanh toán thành công!");
+          setTimeout(() => onSuccess(), 2500);
+        } else if (d.status === "expired" || d.status === "cancelled") {
+          setStatus("expired");
+        }
+      } catch {}
+    }, 3000);
+    return () => clearInterval(t);
+  }, [status, order.id, onSuccess]);
+
+  const copy = async (text: string, field: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      showToast("success", `Đã copy ${field}`);
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch {
+      showToast("error", "Không copy được");
+    }
+  };
+
+  const mins = Math.floor(countdown / 60);
+  const secs = countdown % 60;
+  const timeStr = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  const progress = countdown / 900;
+
+  return (
+    <>
+      <style>{`
+        /* ═══════════════════════════════════════════════════════ */
+        .pmw-overlay {
+          position: fixed !important;
+          inset: 0 !important;
+          z-index: 999999 !important;
+          background: rgba(15, 15, 30, 0.65) !important;
+          backdrop-filter: blur(8px) !important;
+          -webkit-backdrop-filter: blur(8px) !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          padding: 16px !important;
+          overflow-y: auto !important;
+          box-sizing: border-box !important;
+        }
+
+        .pmw-modal {
+          width: 100% !important;
+          max-width: 640px !important;
+          min-width: 0 !important;
+          background: #ffffff !important;
+          border: 1px solid rgba(167, 139, 250, 0.2) !important;
+          border-radius: 20px !important;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2) !important;
+          overflow: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+          max-height: 92vh !important;
+          color: #111827 !important;
+          box-sizing: border-box !important;
+          margin: auto !important;
+        }
+
+        /* HEADER */
+        .pmw-header {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: space-between !important;
+          padding: 18px 22px !important;
+          border-bottom: 1px solid rgba(167, 139, 250, 0.12) !important;
+          gap: 12px !important;
+          box-sizing: border-box !important;
+        }
+        .pmw-header-left {
+          display: flex !important;
+          align-items: center !important;
+          gap: 12px !important;
+          min-width: 0 !important;
+        }
+        .pmw-icon {
+          width: 44px !important;
+          height: 44px !important;
+          border-radius: 12px !important;
+          background: linear-gradient(135deg, #a78bfa, #7c3aed) !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          font-size: 20px !important;
+          box-shadow: 0 6px 18px rgba(124, 58, 237, 0.3) !important;
+          flex-shrink: 0 !important;
+        }
+        .pmw-title {
+          font-size: 16px !important;
+          font-weight: 900 !important;
+          color: #111827 !important;
+          line-height: 1.2 !important;
+          letter-spacing: -0.3px !important;
+        }
+        .pmw-code {
+          font-size: 12px !important;
+          color: #6b7280 !important;
+          font-family: ui-monospace, monospace !important;
+          font-weight: 700 !important;
+          margin-top: 2px !important;
+        }
+        .pmw-close {
+          width: 36px !important;
+          height: 36px !important;
+          border-radius: 10px !important;
+          background: rgba(0, 0, 0, 0.04) !important;
+          border: 1px solid rgba(0, 0, 0, 0.08) !important;
+          color: #6b7280 !important;
+          font-size: 16px !important;
+          cursor: pointer !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          flex-shrink: 0 !important;
+          transition: all 0.2s !important;
+        }
+        .pmw-close:hover {
+          background: rgba(239, 68, 68, 0.1) !important;
+          border-color: rgba(239, 68, 68, 0.3) !important;
+          color: #ef4444 !important;
+        }
+
+        /* BODY */
+        .pmw-body {
+          padding: 22px !important;
+          overflow-y: auto !important;
+          display: flex !important;
+          flex-direction: column !important;
+          gap: 16px !important;
+          box-sizing: border-box !important;
+        }
+
+        /* TIMER */
+        .pmw-timer {
+          position: relative !important;
+          display: flex !important;
+          align-items: center !important;
+          gap: 12px !important;
+          padding: 14px 18px !important;
+          border-radius: 14px !important;
+          background: linear-gradient(135deg, #fffbeb, #fef3c7) !important;
+          border: 1px solid #fcd34d !important;
+          overflow: hidden !important;
+          box-sizing: border-box !important;
+        }
+        .pmw-timer-icon { font-size: 26px !important; flex-shrink: 0 !important; }
+        .pmw-timer-info { flex: 1 !important; min-width: 0 !important; }
+        .pmw-timer-label {
+          font-size: 11px !important;
+          font-weight: 800 !important;
+          color: #92400e !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          margin-bottom: 2px !important;
+        }
+        .pmw-timer-value {
+          font-size: 24px !important;
+          font-weight: 900 !important;
+          color: #d97706 !important;
+          font-family: ui-monospace, monospace !important;
+          letter-spacing: 1.5px !important;
+          line-height: 1 !important;
+        }
+        .pmw-timer-bar {
+          position: absolute !important;
+          bottom: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          height: 3px !important;
+          background: rgba(251, 191, 36, 0.2) !important;
+        }
+        .pmw-timer-bar-fill {
+          height: 100% !important;
+          background: linear-gradient(90deg, #fbbf24, #f59e0b) !important;
+          transition: width 1s linear !important;
+        }
+
+        /* AMOUNT */
+        .pmw-amount {
+          text-align: center !important;
+          padding: 20px !important;
+          border-radius: 14px !important;
+          background: linear-gradient(135deg, #f5f3ff, #ede9fe) !important;
+          border: 1px solid #c4b5fd !important;
+          box-sizing: border-box !important;
+        }
+        .pmw-amount-label {
+          font-size: 11.5px !important;
+          font-weight: 800 !important;
+          color: #7c3aed !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.8px !important;
+          margin-bottom: 8px !important;
+        }
+        .pmw-amount-value {
+          font-size: 36px !important;
+          font-weight: 900 !important;
+          background: linear-gradient(135deg, #7c3aed, #ec4899) !important;
+          -webkit-background-clip: text !important;
+          background-clip: text !important;
+          -webkit-text-fill-color: transparent !important;
+          letter-spacing: -1px !important;
+          line-height: 1 !important;
+        }
+        .pmw-amount-service {
+          font-size: 14px !important;
+          color: #6b7280 !important;
+          font-weight: 600 !important;
+          margin-top: 8px !important;
+        }
+
+        /* TABS */
+        .pmw-tabs {
+          display: flex !important;
+          gap: 4px !important;
+          padding: 4px !important;
+          background: rgba(167, 139, 250, 0.08) !important;
+          border-radius: 12px !important;
+          box-sizing: border-box !important;
+        }
+        .pmw-tab {
+          flex: 1 !important;
+          padding: 11px 14px !important;
+          border-radius: 9px !important;
+          border: none !important;
+          background: transparent !important;
+          color: #6b7280 !important;
+          font-size: 14px !important;
+          font-weight: 700 !important;
+          font-family: inherit !important;
+          cursor: pointer !important;
+          transition: all 0.2s !important;
+          box-sizing: border-box !important;
+          white-space: nowrap !important;
+        }
+        .pmw-tab:hover { color: #7c3aed !important; }
+        .pmw-tab.active {
+          background: linear-gradient(135deg, #a78bfa, #7c3aed) !important;
+          color: #ffffff !important;
+          box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3) !important;
+        }
+
+        /* QR */
+        .pmw-qr-section {
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          gap: 14px !important;
+        }
+        .pmw-qr-wrap {
+          background: #ffffff !important;
+          padding: 18px !important;
+          border-radius: 16px !important;
+          border: 1px solid rgba(167, 139, 250, 0.15) !important;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+        }
+        .pmw-qr-brand {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          gap: 4px !important;
+          font-size: 17px !important;
+          font-weight: 900 !important;
+          margin-bottom: 12px !important;
+        }
+        .pmw-qr-brand .viet { color: #ef4444 !important; }
+        .pmw-qr-brand .qr { color: #3b82f6 !important; }
+        .pmw-qr {
+          width: 240px !important;
+          height: 240px !important;
+          border-radius: 12px !important;
+          overflow: hidden !important;
+        }
+        .pmw-qr img {
+          width: 100% !important;
+          height: 100% !important;
+          border-radius: 12px !important;
+          display: block !important;
+        }
+        .pmw-qr-loading {
+          width: 240px !important;
+          height: 240px !important;
+          border-radius: 12px !important;
+          background: linear-gradient(90deg, #f3f3f3 25%, #e9e9e9 50%, #f3f3f3 75%) !important;
+          background-size: 200% 100% !important;
+          animation: pmwShimmer 1.5s infinite !important;
+        }
+        @keyframes pmwShimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+        .pmw-qr-hint {
+          font-size: 13px !important;
+          color: #6b7280 !important;
+          text-align: center !important;
+        }
+
+        /* BANK */
+        .pmw-bank {
+          background: #f9fafb !important;
+          border: 1px solid rgba(167, 139, 250, 0.15) !important;
+          border-radius: 14px !important;
+          overflow: hidden !important;
+          box-sizing: border-box !important;
+        }
+        .pmw-bank-row {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: space-between !important;
+          padding: 13px 18px !important;
+          gap: 12px !important;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+          box-sizing: border-box !important;
+        }
+        .pmw-bank-row:last-child { border-bottom: none !important; }
+        .pmw-bank-label {
+          font-size: 12.5px !important;
+          color: #6b7280 !important;
+          font-weight: 700 !important;
+          flex-shrink: 0 !important;
+        }
+        .pmw-bank-value {
+          font-size: 14px !important;
+          font-weight: 800 !important;
+          color: #111827 !important;
+          display: flex !important;
+          align-items: center !important;
+          gap: 8px !important;
+          text-align: right !important;
+          min-width: 0 !important;
+          word-break: break-all !important;
+        }
+        .pmw-bank-value.highlight { color: #10b981 !important; }
+        .pmw-copy {
+          width: 30px !important;
+          height: 30px !important;
+          border-radius: 8px !important;
+          background: rgba(167, 139, 250, 0.12) !important;
+          border: 1px solid rgba(167, 139, 250, 0.25) !important;
+          color: #7c3aed !important;
+          cursor: pointer !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          font-size: 13px !important;
+          flex-shrink: 0 !important;
+          padding: 0 !important;
+          transition: all 0.2s !important;
+        }
+        .pmw-copy:hover {
+          background: rgba(167, 139, 250, 0.25) !important;
+          transform: scale(1.1) !important;
+        }
+        .pmw-copy.copied {
+          background: rgba(16, 185, 129, 0.15) !important;
+          border-color: rgba(16, 185, 129, 0.4) !important;
+          color: #10b981 !important;
+        }
+
+        /* STATUS */
+        .pmw-status {
+          display: flex !important;
+          align-items: center !important;
+          gap: 10px !important;
+          padding: 13px 18px !important;
+          border-radius: 12px !important;
+          background: rgba(59, 130, 246, 0.08) !important;
+          border: 1px solid rgba(59, 130, 246, 0.25) !important;
+          color: #2563eb !important;
+          font-size: 13px !important;
+          font-weight: 600 !important;
+          box-sizing: border-box !important;
+        }
+        .pmw-status-dot {
+          width: 8px !important;
+          height: 8px !important;
+          border-radius: 50% !important;
+          background: #3b82f6 !important;
+          box-shadow: 0 0 8px #3b82f6 !important;
+          flex-shrink: 0 !important;
+          animation: pmwDot 1.5s infinite !important;
+        }
+        @keyframes pmwDot {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(1.3); }
+        }
+
+        /* SUCCESS */
+        .pmw-success {
+          text-align: center !important;
+          padding: 32px 20px !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          gap: 14px !important;
+        }
+        .pmw-success-icon {
+          width: 90px !important;
+          height: 90px !important;
+          border-radius: 50% !important;
+          background: linear-gradient(135deg, #4ade80, #22c55e) !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          font-size: 44px !important;
+          box-shadow: 0 15px 40px rgba(34, 197, 94, 0.4) !important;
+        }
+        .pmw-success-title {
+          font-size: 22px !important;
+          font-weight: 900 !important;
+          color: #10b981 !important;
+        }
+        .pmw-success-desc {
+          font-size: 14px !important;
+          color: #6b7280 !important;
+          line-height: 1.6 !important;
+        }
+
+        /* EXPIRED */
+        .pmw-expired {
+          text-align: center !important;
+          padding: 32px 20px !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          gap: 12px !important;
+        }
+        .pmw-expired-icon { font-size: 60px !important; }
+        .pmw-expired-title {
+          font-size: 20px !important;
+          font-weight: 900 !important;
+          color: #f59e0b !important;
+        }
+        .pmw-expired-desc {
+          font-size: 14px !important;
+          color: #6b7280 !important;
+        }
+
+        /* BUTTON */
+        .pmw-btn-primary {
+          padding: 14px 28px !important;
+          border-radius: 12px !important;
+          font-size: 15px !important;
+          font-weight: 800 !important;
+          background: linear-gradient(135deg, #a78bfa, #7c3aed) !important;
+          color: #fff !important;
+          border: none !important;
+          cursor: pointer !important;
+          font-family: inherit !important;
+          box-shadow: 0 8px 24px rgba(124, 58, 237, 0.3) !important;
+          transition: all 0.2s !important;
+        }
+        .pmw-btn-primary:hover {
+          transform: translateY(-2px) !important;
+          box-shadow: 0 12px 32px rgba(124, 58, 237, 0.4) !important;
+        }
+
+        /* TOAST */
+        .pmw-toast {
+          position: fixed !important;
+          bottom: 24px !important;
+          right: 24px !important;
+          z-index: 999999 !important;
+          padding: 14px 22px !important;
+          border-radius: 14px !important;
+          font-size: 13.5px !important;
+          font-weight: 700 !important;
+          color: #fff !important;
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
+        }
+        .pmw-toast.success { background: #22c55e !important; }
+        .pmw-toast.error { background: #ef4444 !important; }
+
+        /* MOBILE */
+        @media (max-width: 640px) {
+          .pmw-overlay { padding: 10px !important; }
+          .pmw-modal {
+            max-width: 100% !important;
+            border-radius: 16px !important;
+          }
+          .pmw-header { padding: 14px 16px !important; }
+          .pmw-icon { width: 38px !important; height: 38px !important; font-size: 18px !important; }
+          .pmw-title { font-size: 14px !important; }
+          .pmw-body { padding: 16px !important; gap: 12px !important; }
+          .pmw-qr { width: 200px !important; height: 200px !important; }
+          .pmw-qr-loading { width: 200px !important; height: 200px !important; }
+          .pmw-amount-value { font-size: 28px !important; }
+          .pmw-timer-value { font-size: 20px !important; }
+          .pmw-tab { font-size: 12.5px !important; padding: 9px 10px !important; }
+          .pmw-bank-row { padding: 11px 14px !important; }
+          .pmw-bank-value { font-size: 13px !important; }
+        }
+        @media (max-width: 400px) {
+          .pmw-qr { width: 180px !important; height: 180px !important; }
+          .pmw-qr-loading { width: 180px !important; height: 180px !important; }
+          .pmw-amount-value { font-size: 24px !important; }
+        }
+      `}</style>
+
+      <div className="pmw-overlay" onClick={onClose}>
+        <div className="pmw-modal" onClick={(e) => e.stopPropagation()}>
+          {/* HEADER */}
+          <div className="pmw-header">
+            <div className="pmw-header-left">
+              <div className="pmw-icon">💳</div>
+              <div>
+                <div className="pmw-title">Thanh toán đơn hàng</div>
+                <div className="pmw-code">#{order.orderCode}</div>
+              </div>
+            </div>
+            <button className="pmw-close" onClick={onClose} aria-label="Đóng">✕</button>
+          </div>
+
+          {/* BODY */}
+          <div className="pmw-body">
+            {status === "paid" ? (
+              <div className="pmw-success">
+                <div className="pmw-success-icon">🎉</div>
+                <div className="pmw-success-title">Thanh toán thành công!</div>
+                <div className="pmw-success-desc">
+                  Đơn hàng <strong>#{order.orderCode}</strong> đã được xác nhận.
+                </div>
+              </div>
+            ) : status === "expired" ? (
+              <div className="pmw-expired">
+                <div className="pmw-expired-icon">⏰</div>
+                <div className="pmw-expired-title">Đơn hàng đã hết hạn</div>
+                <div className="pmw-expired-desc">Vui lòng tạo đơn hàng mới.</div>
+                <button className="pmw-btn-primary" onClick={onClose}>🔄 Tạo đơn mới</button>
+              </div>
+            ) : (
+              <>
+                {/* TIMER */}
+                <div className="pmw-timer">
+                  <div className="pmw-timer-icon">⏱</div>
+                  <div className="pmw-timer-info">
+                    <div className="pmw-timer-label">Thời gian còn lại</div>
+                    <div className="pmw-timer-value">{timeStr}</div>
+                  </div>
+                  <div className="pmw-timer-bar">
+                    <div className="pmw-timer-bar-fill" style={{ width: `${progress * 100}%` }} />
+                  </div>
+                </div>
+
+                {/* AMOUNT */}
+                <div className="pmw-amount">
+                  <div className="pmw-amount-label">Số tiền cần thanh toán</div>
+                  <div className="pmw-amount-value">{order.finalAmount.toLocaleString("vi-VN")}đ</div>
+                  <div className="pmw-amount-service">{order.serviceName}</div>
+                </div>
+
+                {/* TABS */}
+                <div className="pmw-tabs">
+                  <button className={`pmw-tab${activeTab === "qr" ? " active" : ""}`} onClick={() => setActiveTab("qr")}>
+                    📱 Quét QR
+                  </button>
+                  <button className={`pmw-tab${activeTab === "manual" ? " active" : ""}`} onClick={() => setActiveTab("manual")}>
+                    💳 Chuyển khoản
+                  </button>
+                </div>
+
+                {/* QR TAB */}
+                {activeTab === "qr" && (
+                  <div className="pmw-qr-section">
+                    <div className="pmw-qr-wrap">
+                      <div className="pmw-qr-brand">
+                        <span className="viet">Viet</span>
+                        <span className="qr">QR</span>
+                      </div>
+                      <div className="pmw-qr">
+                        {creating || !qrUrl ? (
+                          <div className="pmw-qr-loading" />
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={qrUrl} alt="QR thanh toán" />
+                        )}
+                      </div>
+                    </div>
+                    <div className="pmw-qr-hint">📸 Mở app ngân hàng và quét mã QR để thanh toán</div>
+                  </div>
+                )}
+
+                {/* MANUAL TAB */}
+                {activeTab === "manual" && (
+                  <div className="pmw-bank">
+                    <div className="pmw-bank-row">
+                      <span className="pmw-bank-label">Ngân hàng</span>
+                      <span className="pmw-bank-value">{BANK.name}</span>
+                    </div>
+                    <div className="pmw-bank-row">
+                      <span className="pmw-bank-label">Số tài khoản</span>
+                      <span className="pmw-bank-value">
+                        {BANK.accountNo}
+                        <button className={`pmw-copy${copiedField === "STK" ? " copied" : ""}`} onClick={() => copy(BANK.accountNo, "STK")}>
+                          {copiedField === "STK" ? "✓" : "📋"}
+                        </button>
+                      </span>
+                    </div>
+                    <div className="pmw-bank-row">
+                      <span className="pmw-bank-label">Chủ tài khoản</span>
+                      <span className="pmw-bank-value">{BANK.accountName}</span>
+                    </div>
+                    <div className="pmw-bank-row">
+                      <span className="pmw-bank-label">Số tiền</span>
+                      <span className="pmw-bank-value highlight">
+                        {order.finalAmount.toLocaleString("vi-VN")}đ
+                        <button className={`pmw-copy${copiedField === "số tiền" ? " copied" : ""}`} onClick={() => copy(String(order.finalAmount), "số tiền")}>
+                          {copiedField === "số tiền" ? "✓" : "📋"}
+                        </button>
+                      </span>
+                    </div>
+                    <div className="pmw-bank-row">
+                      <span className="pmw-bank-label">Nội dung</span>
+                      <span className="pmw-bank-value">
+                        {order.orderCode}
+                        <button className={`pmw-copy${copiedField === "nội dung" ? " copied" : ""}`} onClick={() => copy(order.orderCode, "nội dung")}>
+                          {copiedField === "nội dung" ? "✓" : "📋"}
+                        </button>
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* STATUS */}
+                <div className="pmw-status">
+                  <span className="pmw-status-dot" />
+                  <span>Đang chờ thanh toán... Hệ thống tự động xác nhận sau 1-2 phút</span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {toast && (
+        <div className={`pmw-toast ${toast.type}`}>
+          {toast.type === "success" ? "✅" : "❌"} {toast.msg}
+        </div>
+      )}
+    </>
+  );
+}

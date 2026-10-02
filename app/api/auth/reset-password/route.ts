@@ -1,45 +1,37 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import bcrypt from "bcryptjs";
+import { hashPassword } from "@/lib/auth";
 
 export async function POST(req: Request) {
   try {
-    const { token, newPassword } = await req.json();
+    const { resetToken, newPassword } = await req.json();
 
-    if (!token || !newPassword) {
-      return NextResponse.json(
-        { success: false, error: "Thiếu thông tin" },
-        { status: 400 }
-      );
+    if (!resetToken || !newPassword) {
+      return NextResponse.json({ success: false, message: "Thiếu dữ liệu" }, { status: 400 });
     }
 
     if (newPassword.length < 6) {
-      return NextResponse.json(
-        { success: false, error: "Mật khẩu phải có ít nhất 6 ký tự" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, message: "Mật khẩu phải có ít nhất 6 ký tự" }, { status: 400 });
     }
 
     const user = await prisma.user.findFirst({
-      where: {
-        resetToken: token,
-        resetTokenExpiry: { gt: new Date() },
-      },
+      where: { resetToken },
     });
 
     if (!user) {
-      return NextResponse.json(
-        { success: false, error: "Link không hợp lệ hoặc đã hết hạn" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, message: "Token không hợp lệ" }, { status: 400 });
     }
 
-    const hashed = await bcrypt.hash(newPassword, 10);
+    if (!user.resetTokenExpiry || user.resetTokenExpiry < new Date()) {
+      return NextResponse.json({ success: false, message: "Phiên đổi mật khẩu đã hết hạn. Vui lòng làm lại." }, { status: 400 });
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
 
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        password: hashed,
+        password: hashedPassword,
         resetToken: null,
         resetTokenExpiry: null,
       },
@@ -47,13 +39,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "Đặt lại mật khẩu thành công",
+      message: "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.",
     });
   } catch (error) {
-    console.error("Reset password error:", error);
-    return NextResponse.json(
-      { success: false, error: "Có lỗi xảy ra" },
-      { status: 500 }
-    );
+    console.error("[reset-password]", error);
+    return NextResponse.json({ success: false, message: "Lỗi hệ thống" }, { status: 500 });
   }
 }

@@ -108,12 +108,26 @@ export default function Header({ user: propUser, onLogout }: HeaderProps) {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (!confirm("Bạn có chắc muốn đăng xuất?")) return;
+
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout API error:", err);
+    }
+
     sessionStorage.removeItem("locket_user");
+    localStorage.removeItem("locket_user");
+
     setUser(null);
+
     if (onLogout) onLogout();
-    else window.location.href = "/";
+
+    window.location.href = "/dang-nhap";
   };
 
   const displayName = user
@@ -233,11 +247,11 @@ export default function Header({ user: propUser, onLogout }: HeaderProps) {
                       Nạp Tiền
                     </Link>
 
-                    <Link href="/tai-khoan/lich-su-nap-tien">
+                    <Link href="/rut-tien">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                       </svg>
-                      Lịch Sử Nạp Tiền
+                      Rút Tiền
                     </Link>
 
                     <Link href="/tai-khoan/don-hang">
@@ -311,16 +325,98 @@ export default function Header({ user: propUser, onLogout }: HeaderProps) {
         <div className="sidebar-content">
           {isAccountPage ? (
             <>
-              <Link
-                href="/"
-                className="nav-link"
-                onClick={() => setSidebarOpen(false)}
-              >
-                Trang chủ
-              </Link>
-
-              {user && (
+              {user ? (
                 <>
+                  {/* User info header - inline style để hiển thị rõ trên nền sáng */}
+                  <div
+                    style={{
+                      padding: "16px",
+                      marginBottom: "8px",
+                      background: "var(--bg-2, #f9fafb)",
+                      borderRadius: "12px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                    }}
+                  >
+                    {/* Avatar */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={avatar}
+                      alt="User"
+                      referrerPolicy="no-referrer"
+                      crossOrigin="anonymous"
+                      onError={(e) => {
+                        e.currentTarget.src =
+                          "https://ui-avatars.com/api/?name=" +
+                          encodeURIComponent(displayName) +
+                          "&background=7c3aed&color=fff&size=100";
+                      }}
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                        flexShrink: 0,
+                        border: "2px solid #7c3aed",
+                      }}
+                    />
+
+                    {/* Thông tin */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          color: "var(--text-3, #6b7280)",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px",
+                          marginBottom: 2,
+                        }}
+                      >
+                        Đang đăng nhập
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 15,
+                          fontWeight: 700,
+                          color: "var(--text-1, #111827)",
+                          marginBottom: 4,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {displayName}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          color: "var(--text-2, #4b5563)",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 4,
+                        }}
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="#10b981"
+                          strokeWidth="2"
+                          style={{ width: 14, height: 14 }}
+                        >
+                          <rect x="2" y="5" width="20" height="14" rx="2" />
+                          <line x1="2" y1="10" x2="22" y2="10" />
+                        </svg>
+                        Số dư:{" "}
+                        <span style={{ color: "#10b981", fontWeight: 600 }}>
+                          {balance}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="user-menu-divider" />
+
                   <Link
                     href="/nap-tien"
                     className="nav-link"
@@ -330,7 +426,14 @@ export default function Header({ user: propUser, onLogout }: HeaderProps) {
                     + Nạp Tiền
                   </Link>
 
-                  <div className="user-menu-divider" style={{ marginTop: 12 }} />
+                  <Link
+                    href="/rut-tien"
+                    className="nav-link"
+                    onClick={() => setSidebarOpen(false)}
+                    style={{ color: "#ef4444", fontWeight: 600 }}
+                  >
+                    - Rút Tiền
+                  </Link>
 
                   <Link
                     href="/tai-khoan/lich-su-nap-tien"
@@ -388,17 +491,24 @@ export default function Header({ user: propUser, onLogout }: HeaderProps) {
                     Đăng xuất
                   </button>
                 </>
-              )}
-
-              {!user && (
-                <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--border)" }}>
-                  <Link href="/dang-nhap" className="nav-link" onClick={() => setSidebarOpen(false)}>
-                    Đăng nhập
+              ) : (
+                <>
+                  <Link
+                    href="/"
+                    className="nav-link"
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    Trang chủ
                   </Link>
-                  <Link href="/dang-ky" className="nav-link" onClick={() => setSidebarOpen(false)}>
-                    Đăng ký
-                  </Link>
-                </div>
+                  <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--border)" }}>
+                    <Link href="/dang-nhap" className="nav-link" onClick={() => setSidebarOpen(false)}>
+                      Đăng nhập
+                    </Link>
+                    <Link href="/dang-ky" className="nav-link" onClick={() => setSidebarOpen(false)}>
+                      Đăng ký
+                    </Link>
+                  </div>
+                </>
               )}
             </>
           ) : (

@@ -1,0 +1,372 @@
+/* ═══════════════════════════════════════════════════════════════
+   FORM THEME — ĐỒNG BỘ TRANG CHỦ LOCKET GOLD
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ═══ FORM WRAPPER — GIỚI HẠN 440px, CĂN GIỮA ═══ */
+.auth-form {
+  width: 100% !important;
+  max-width: 440px !important;
+  margin: 0 auto !important;
+  background: var(--bg-1, #ffffff);
+  border: 1.5px solid rgba(167, 139, 250, 0.2);
+  border-radius: 20px;
+  padding: 28px 24px;
+  box-shadow: 0 8px 32px rgba(167, 139, 250, 0.1);
+  box-sizing: border-box;
+}
+
+/* ═══ TITLE ═══ */
+.auth-title {
+  font-size: 26px !important;
+  font-weight: 900 !important;
+  text-align: center;
+  background: linear-gradient(135deg, #a78bfa, #7c3aed);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 6px !important;
+  letter-spacing: -0.5px;
+}
+
+.auth-sub {
+  font-size: 14px;
+  color: var(--text-2, #6a6a7a);
+  text-align: center;
+  margin-bottom: 24px !important;
+  line-height: 1.5;
+}
+
+/* ═══ FIELD ═══ */
+.auth-field {
+  margin-bottom: 16px !important;
+}
+
+.auth-field label {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-0, #0d0d18);
+  margin-bottom: 8px;
+  letter-spacing: -0.2px;
+}
+
+.auth-field label span[style*="red"],
+.auth-field label span[style*="--red"] {
+  color: #ef4444 !important;
+}
+
+/* ═══ INPUT ═══ */
+.auth-form input:not([type="checkbox"]):not([type="radio"]),
+.auth-field input {
+  width: 100% !important;
+  padding: 13px 16px !important;
+  background: var(--bg-1, #fafafa) !important;
+  color: var(--text-0, #0d0d18) !important;
+  border: 1.5px solid var(--border, rgba(0, 0, 0, 0.08)) !important;
+  border-radius: 12px !important;
+  font-size: 15px !important;
+  font-family: inherit !important;
+  line-height: 1.5 !important;
+  outline: none !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-sizing: border-box !important;
+  display: block !important;
+}
+
+.auth-form input::placeholder {
+  color: var(--text-2, #9a9aad) !important;
+  opacity: 0.7 !important;
+}
+
+.auth-form input:hover:not(:focus) {
+  border-color: rgba(167, 139, 250, 0.4) !important;
+}
+
+.auth-form input:focus {
+  border-color: #a78bfa !important;
+  background: var(--bg-1, #ffffff) !important;
+  box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.15) !important;
+}
+
+/* Helper text */
+.auth-field small {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px !important;
+  color: var(--text-2, #6a6a7a) !important;
+  line-height: 1.5;
+}
+
+/* ═══ BUTTON SUBMIT ═══ */
+.auth-btn,
+.auth-form button[type="submit"] {
+  width: 100% !important;
+  padding: 15px !important;
+  background: linear-gradient(135deg, #a78bfa, #7c3aed) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 12px !important;
+  font-size: 15.5px !important;
+  font-weight: 800 !important;
+  font-family: inherit !important;
+  cursor: pointer !important;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.3) !important;
+  letter-spacing: -0.2px !important;
+  margin-top: 8px !important;
+  box-sizing: border-box !important;
+}
+
+.auth-btn:hover:not(:disabled),
+.auth-form button[type="submit"]:hover:not(:disabled) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 14px 32px rgba(124, 58, 237, 0.4) !important;
+}
+
+.auth-btn:disabled,
+.auth-form button[type="submit"]:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+/* ═══ ERROR ═══ */
+.auth-error {
+  background: rgba(248, 113, 113, 0.1) !important;
+  border: 1px solid rgba(248, 113, 113, 0.3) !important;
+  color: #dc2626 !important;
+  padding: 12px 16px !important;
+  border-radius: 10px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  margin-bottom: 16px !important;
+  line-height: 1.5;
+}
+
+/* ═══ FOOTER LINK ═══ */
+.auth-footer {
+  text-align: center !important;
+  margin-top: 20px !important;
+  font-size: 14px !important;
+  color: var(--text-2, #6a6a7a) !important;
+}
+
+.auth-footer a {
+  color: #a78bfa !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  transition: color 0.2s !important;
+}
+
+.auth-footer a:hover {
+  color: #7c3aed !important;
+  text-decoration: underline !important;
+}
+
+/* ═══ GOOGLE BUTTON (nếu chưa style) ═══ */
+.google-btn,
+.google-login-btn,
+.auth-form > div:first-of-type button {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 13px 20px !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+  border: 1.5px solid var(--border, rgba(0, 0, 0, 0.08)) !important;
+  border-radius: 12px !important;
+  font-weight: 700 !important;
+  font-size: 14.5px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+  box-sizing: border-box !important;
+}
+
+.google-btn:hover,
+.auth-form > div:first-of-type button:hover {
+  background: #fafaff !important;
+  border-color: rgba(167, 139, 250, 0.4) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 16px rgba(167, 139, 250, 0.2) !important;
+}
+
+/* ═══ LIGHT MODE ═══ */
+body[data-mode="light"] .auth-form {
+  background: #ffffff !important;
+  border-color: rgba(124, 58, 237, 0.15) !important;
+}
+
+body[data-mode="light"] .auth-form input {
+  background: #fafaff !important;
+}
+
+body[data-mode="light"] .auth-form input:focus {
+  background: #ffffff !important;
+}
+
+/* ═══ MOBILE ═══ */
+@media (max-width: 480px) {
+  .auth-form {
+    max-width: 100% !important;
+    padding: 20px 16px !important;
+    border-radius: 16px !important;
+  }
+
+  .auth-title {
+    font-size: 22px !important;
+  }
+
+  .auth-sub {
+    font-size: 13px !important;
+    margin-bottom: 18px !important;
+  }
+
+  .auth-field {
+    margin-bottom: 14px !important;
+  }
+
+  .auth-form input {
+    padding: 12px 14px !important;
+    font-size: 14.5px !important;
+  }
+
+  .auth-btn {
+    font-size: 15px !important;
+    padding: 14px !important;
+  }
+}
+
+/* ═══ FIX KHOẢNG CÁCH NÚT GOOGLE ═══ */
+.auth-form > div:first-of-type,
+.auth-form > .google-wrap,
+.auth-form > div:has(button:has(svg[viewBox*="google"])),
+.auth-form > div:has(button:has(img[alt*="Google"])) {
+  margin-top: 20px !important;
+  margin-bottom: 20px !important;
+}
+
+/* Divider HOẶC */
+.auth-form > div:has(.auth-divider),
+.auth-form .auth-divider {
+  margin: 16px 0 !important;
+  gap: 12px !important;
+}
+
+/* Fix khoảng trắng thừa trước Email */
+.auth-field:first-of-type {
+  margin-top: 0 !important;
+}
+
+/* Đảm bảo form không có khoảng trắng lớn */
+.auth-form > *:not(h1):not(.auth-sub):not(.auth-error) {
+  margin-top: 0 !important;
+}
+
+.auth-form > * + *:not(h1):not(.auth-sub) {
+  margin-top: 12px !important;
+}
+
+/* ═══ FORCE GOOGLE BUTTON TRẮNG ═══ */
+.google-btn,
+.google-login-btn,
+button[class*="google"],
+button[class*="Google"] {
+  background: #ffffff !important;
+  color: #111827 !important;
+  border: 1.5px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+.google-btn:hover,
+button[class*="google"]:hover {
+  background: #fafaff !important;
+  border-color: rgba(167, 139, 250, 0.5) !important;
+  box-shadow: 0 6px 16px rgba(167, 139, 250, 0.2) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FIX KHOẢNG CÁCH FORM ĐĂNG KÝ
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Reset tất cả margin mặc định trong form */
+.auth-form > * {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Title + Sub */
+.auth-form > .auth-title {
+  margin-bottom: 6px !important;
+}
+.auth-form > .auth-sub {
+  margin-bottom: 20px !important;
+}
+
+/* Error */
+.auth-form > .auth-error {
+  margin-bottom: 16px !important;
+}
+
+/* Google wrapper — khoảng cách trên/dưới đều */
+.auth-form > div:has(button[class*="google"]),
+.auth-form > div:has(button[class*="Google"]),
+.auth-form > .google-wrap,
+.auth-form > div:first-of-type {
+  margin-bottom: 16px !important;
+}
+
+/* Divider HOẶC */
+.auth-form .auth-divider,
+.auth-form > div:has(.auth-divider) {
+  margin: 16px 0 !important;
+  padding: 0 !important;
+}
+
+/* Auth field — đều nhau */
+.auth-form .auth-field {
+  margin-top: 0 !important;
+  margin-bottom: 14px !important;
+}
+.auth-form .auth-field:first-of-type {
+  margin-top: 0 !important;
+}
+
+/* Field cuối cùng (trước button) */
+.auth-form .auth-field:last-of-type {
+  margin-bottom: 8px !important;
+}
+
+/* Button submit */
+.auth-form > .auth-btn {
+  margin-top: 8px !important;
+  margin-bottom: 0 !important;
+}
+
+/* Footer link */
+.auth-form > .auth-footer {
+  margin-top: 18px !important;
+  margin-bottom: 0 !important;
+}
+
+/* Override inline style marginTop: 20 */
+.auth-form .auth-field[style*="marginTop"],
+.auth-form .auth-field[style*="margin-top"] {
+  margin-top: 0 !important;
+}
+
+/* ═══ MOBILE ═══ */
+@media (max-width: 480px) {
+  .auth-form > .auth-sub {
+    margin-bottom: 16px !important;
+  }
+  .auth-form .auth-field {
+    margin-bottom: 12px !important;
+  }
+  .auth-form > .auth-btn {
+    margin-top: 6px !important;
+  }
+}

@@ -1,44 +1,41 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import crypto from "crypto";
 
 export async function POST(req: Request) {
   try {
-    const { email, otp } = await req.json();
+    const { email, phone, username, otp } = await req.json();
 
-    if (!email || !otp) {
-      return NextResponse.json(
-        { success: false, error: "Thiếu thông tin" },
-        { status: 400 }
-      );
+    if (!otp) {
+      return NextResponse.json({ success: false, message: "Thiếu OTP" }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
-    });
+    let user = null;
 
-    if (!user || !user.otpCode || !user.otpExpiry) {
-      return NextResponse.json(
-        { success: false, error: "Mã OTP không hợp lệ" },
-        { status: 400 }
-      );
+    if (email) {
+      user = await prisma.user.findUnique({ where: { email } });
+    } else if (phone) {
+      let p = String(phone).replace(/\D/g, "");
+      if (p.startsWith("84")) p = "0" + p.slice(2);
+      user = await prisma.user.findFirst({ where: { phone: p } });
+    } else if (username) {
+      user = await prisma.user.findFirst({ where: { username: String(username).trim() } });
     }
 
-    if (user.otpExpiry < new Date()) {
-      return NextResponse.json(
-        { success: false, error: "Mã OTP đã hết hạn" },
-        { status: 400 }
-      );
+    if (!user) {
+      return NextResponse.json({ success: false, message: "Không tìm thấy tài khoản" }, { status: 400 });
     }
 
-    if (user.otpCode !== otp.trim()) {
-      return NextResponse.json(
-        { success: false, error: "Mã OTP không đúng" },
-        { status: 400 }
-      );
+    if (!user.otpCode || user.otpCode !== otp) {
+      return NextResponse.json({ success: false, message: "Mã OTP không đúng" }, { status: 400 });
     }
 
-    const resetToken = Math.random().toString(36).substring(2) + Date.now().toString(36);
-    const resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000);
+    if (!user.otpExpiry || user.otpExpiry < new Date()) {
+      return NextResponse.json({ success: false, message: "OTP đã hết hạn. Gửi lại." }, { status: 400 });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetExpiry = new Date(Date.now() + 15 * 60 * 1000);
 
     await prisma.user.update({
       where: { id: user.id },
@@ -46,20 +43,17 @@ export async function POST(req: Request) {
         otpCode: null,
         otpExpiry: null,
         resetToken,
-        resetTokenExpiry,
+        resetTokenExpiry: resetExpiry,
       },
     });
 
     return NextResponse.json({
       success: true,
-      message: "Mã OTP chính xác",
+      message: "Xác thực thành công",
       resetToken,
     });
   } catch (error) {
     console.error("[verify-otp]", error);
-    return NextResponse.json(
-      { success: false, error: "Có lỗi xảy ra" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: "Lỗi hệ thống" }, { status: 500 });
   }
 }

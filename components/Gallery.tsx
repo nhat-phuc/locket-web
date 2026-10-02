@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 const images = [
   { src: "/img/logo/anh5.JPG", alt: "Locket Gold" },
   { src: "/img/logo/anh6.JPG", alt: "Các Tính Năng Gold" },
@@ -8,6 +12,8 @@ const images = [
 ];
 
 export default function Gallery() {
+  const [lightbox, setLightbox] = useState<string | null>(null);
+
   return (
     <>
       <div style={{ textAlign: "center", marginTop: 40, marginBottom: 24 }}>
@@ -21,19 +27,27 @@ export default function Gallery() {
 
       <div className="feature-gallery">
         {images.map((img, i) => (
-          <div className="gallery-img-wrap" key={i}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={img.src} alt={img.alt} loading="lazy" />
+          <div
+            className="gallery-frame"
+            key={i}
+            onClick={() => setLightbox(img.src)}
+          >
+            <div className="gallery-inner">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={img.src} alt={img.alt} loading="lazy" />
+            </div>
           </div>
         ))}
       </div>
 
+      {/* Cam kết quyền riêng tư */}
       <div
         style={{
           background: "transparent",
           border: "1px dashed var(--accent)",
           borderRadius: 12,
           padding: 18,
+          marginTop: 40,
           marginBottom: 40,
           textAlign: "center",
         }}
@@ -47,40 +61,119 @@ export default function Gallery() {
             marginBottom: 8,
           }}
         >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="var(--accent)"
-            strokeWidth="2"
-          >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>
-          <h4
-            style={{
-              color: "var(--accent)",
-              fontSize: 15,
-              fontWeight: 700,
-              margin: 0,
-              letterSpacing: 0.5,
-              textTransform: "uppercase",
-            }}
-          >
+          <h4 style={{ color: "var(--accent)", fontSize: 15, fontWeight: 700, margin: 0, letterSpacing: 0.5, textTransform: "uppercase" }}>
             Cam kết quyền riêng tư
           </h4>
         </div>
-        <p
-          style={{
-            color: "var(--text-2)",
-            fontSize: 14.5,
-            margin: 0,
-            lineHeight: 1.6,
-          }}
-        >
+        <p style={{ color: "var(--text-2)", fontSize: 14.5, margin: 0, lineHeight: 1.6 }}>
           Tài khoản của bạn sẽ được mở khóa toàn bộ các đặc quyền Premium. Xin lưu ý: Để đảm bảo quyền riêng tư tuyệt đối, hệ thống sẽ hoàn toàn không hiển thị Huy hiệu Vàng trên trang cá nhân của bạn cũng như với người dùng khác.
         </p>
       </div>
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          onClick={() => setLightbox(null)}
+          style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 999,
+            display: "flex", alignItems: "center", justifyContent: "center", padding: 20, cursor: "zoom-out",
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={lightbox}
+            alt="Preview"
+            style={{ maxWidth: "95vw", maxHeight: "90vh", borderRadius: 12, boxShadow: "0 20px 60px rgba(0,0,0,0.6)" }}
+          />
+          <button
+            onClick={() => setLightbox(null)}
+            style={{
+              position: "absolute", top: 20, right: 20, width: 44, height: 44, borderRadius: "50%",
+              background: "rgba(255,255,255,0.15)", color: "#fff", border: "none", fontSize: 24,
+              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      <style jsx>{`
+        /* Grid 6 cột trên desktop */
+        .feature-gallery {
+          display: grid;
+          grid-template-columns: repeat(6, 1fr);
+          gap: 16px;
+          margin-bottom: 16px;
+        }
+
+        @media (max-width: 1100px) {
+          .feature-gallery { grid-template-columns: repeat(4, 1fr); gap: 14px; }
+        }
+        @media (max-width: 768px) {
+          .feature-gallery { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        }
+        @media (max-width: 480px) {
+          .feature-gallery { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        }
+
+        /* Khung ảnh có viền gradient */
+        .gallery-frame {
+          position: relative;
+          padding: 3px;
+          border-radius: 20px;
+          background: linear-gradient(135deg, #a78bfa 0%, #ec4899 50%, #fbbf24 100%);
+          cursor: pointer;
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 4px 20px rgba(167, 139, 250, 0.2);
+        }
+
+        /* Glow phía sau */
+        .gallery-frame::before {
+          content: "";
+          position: absolute;
+          inset: -3px;
+          border-radius: 22px;
+          background: linear-gradient(135deg, #a78bfa 0%, #ec4899 50%, #fbbf24 100%);
+          opacity: 0.4;
+          filter: blur(12px);
+          z-index: -1;
+          transition: opacity 0.4s ease;
+        }
+
+        .gallery-frame:hover {
+          transform: translateY(-6px) scale(1.02);
+          box-shadow: 0 16px 40px rgba(167, 139, 250, 0.4);
+        }
+
+        .gallery-frame:hover::before {
+          opacity: 0.8;
+        }
+
+        /* Khung trong — chứa ảnh */
+        .gallery-inner {
+          border-radius: 18px;
+          overflow: hidden;
+          background: #0a0a0f;
+          display: block;
+        }
+
+        .gallery-inner img {
+          width: 100%;
+          height: auto;
+          display: block;
+          object-fit: contain;
+          border-radius: 18px;
+          transition: transform 0.5s ease;
+        }
+
+        .gallery-frame:hover .gallery-inner img {
+          transform: scale(1.04);
+        }
+      `}</style>
     </>
   );
 }

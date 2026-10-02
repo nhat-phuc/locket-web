@@ -81,7 +81,6 @@ export default function RecentTransactions() {
                     "--ring-color": tx.typeMeta.color,
                   } as React.CSSProperties}
                 >
-                  {/* Avatar với viền màu theo gói */}
                   <div className="tx-avatar-wrap">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -97,7 +96,6 @@ export default function RecentTransactions() {
                   </div>
 
                   <div className="tx-body">
-                    {/* Tên + badge gói cùng dòng */}
                     <div className="tx-head">
                       <span className="tx-name">{tx.name}</span>
                       <span
@@ -108,12 +106,10 @@ export default function RecentTransactions() {
                       </span>
                     </div>
 
-                    {/* Badge giảm giá */}
                     {tx.discountPercent > 0 && (
                       <div className="tx-discount">✓ Giảm {tx.discountPercent}%</div>
                     )}
 
-                    {/* Time + Amount cùng dòng cuối */}
                     <div className="tx-bottom">
                       <span className="tx-time">{tx.time}</span>
                       <span className="tx-amount">+{tx.amount.toLocaleString("vi-VN")}đ</span>
@@ -124,7 +120,6 @@ export default function RecentTransactions() {
             })}
           </div>
 
-          {/* Nút Xem thêm / Thu gọn */}
           <div className="tx-actions">
             {hasMore && (
               <button onClick={() => setShown((s) => s + LOAD_MORE)} className="tx-btn tx-btn-more">
@@ -147,11 +142,20 @@ export default function RecentTransactions() {
       )}
 
       <style jsx>{`
-        .tx-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 24px; }
-        @media (max-width: 900px) { .tx-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 600px) { .tx-grid { grid-template-columns: 1fr; } }
+        .tx-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 12px;
+          margin-top: 24px;
+          width: 100%;
+        }
+        @media (max-width: 900px) {
+          .tx-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+          .tx-grid { grid-template-columns: 1fr; gap: 10px; }
+        }
 
-        /* Card — viền nét đứt tím */
         .tx-card {
           position: relative;
           display: flex;
@@ -163,6 +167,9 @@ export default function RecentTransactions() {
           border-radius: 14px;
           transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
           animation: txFadeIn 0.5s ease both;
+          width: 100%;
+          box-sizing: border-box;
+          overflow: hidden;
         }
         .tx-card:hover {
           transform: translateY(-3px);
@@ -176,7 +183,6 @@ export default function RecentTransactions() {
           to { opacity: 1; transform: translateY(0); }
         }
 
-        /* ═══════ AVATAR với viền màu theo gói ═══════ */
         .tx-avatar-wrap {
           width: 56px;
           height: 56px;
@@ -193,8 +199,6 @@ export default function RecentTransactions() {
           transition: all 0.3s;
           position: relative;
         }
-
-        /* Glow nhẹ phía sau */
         .tx-avatar-wrap::before {
           content: "";
           position: absolute;
@@ -206,13 +210,8 @@ export default function RecentTransactions() {
           z-index: -1;
           transition: opacity 0.3s;
         }
-
-        .tx-card:hover .tx-avatar-wrap {
-          transform: scale(1.05);
-        }
-        .tx-card:hover .tx-avatar-wrap::before {
-          opacity: 0.5;
-        }
+        .tx-card:hover .tx-avatar-wrap { transform: scale(1.05); }
+        .tx-card:hover .tx-avatar-wrap::before { opacity: 0.5; }
 
         .tx-avatar-img {
           width: 100%;
@@ -230,9 +229,9 @@ export default function RecentTransactions() {
           display: flex;
           flex-direction: column;
           gap: 5px;
+          overflow: hidden;
         }
 
-        /* Tên + badge gói */
         .tx-head {
           display: flex;
           align-items: center;
@@ -246,6 +245,7 @@ export default function RecentTransactions() {
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+          max-width: 100%;
         }
         .tx-type {
           display: inline-flex;
@@ -260,7 +260,6 @@ export default function RecentTransactions() {
           flex-shrink: 0;
         }
 
-        /* Badge giảm giá */
         .tx-discount {
           display: inline-block;
           padding: 3px 10px;
@@ -272,17 +271,18 @@ export default function RecentTransactions() {
           align-self: flex-start;
         }
 
-        /* Time + Amount cùng dòng */
         .tx-bottom {
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 8px;
           margin-top: 2px;
+          flex-wrap: wrap;
         }
         .tx-time {
           font-size: 11.5px;
           color: var(--text-2);
+          flex-shrink: 0;
         }
         .tx-amount {
           font-size: 16px;
@@ -290,9 +290,9 @@ export default function RecentTransactions() {
           color: #a78bfa;
           white-space: nowrap;
           letter-spacing: -0.01em;
+          flex-shrink: 0;
         }
 
-        /* Actions */
         .tx-actions {
           display: flex;
           justify-content: center;
@@ -330,6 +330,50 @@ export default function RecentTransactions() {
           color: var(--text-2);
         }
         .tx-btn-collapse:hover { color: var(--text-0); }
+
+        /* ═══ MOBILE ≤ 480px — Fix tràn số tiền ═══ */
+        @media (max-width: 480px) {
+          .tx-card {
+            padding: 12px 12px;
+            gap: 10px;
+          }
+          .tx-avatar-wrap {
+            width: 44px;
+            height: 44px;
+            padding: 2px;
+          }
+          .tx-name {
+            font-size: 14px;
+          }
+          .tx-type {
+            font-size: 9px;
+            padding: 2px 6px;
+          }
+          .tx-amount {
+            font-size: 15px;
+          }
+          .tx-time {
+            font-size: 11px;
+          }
+        }
+
+        /* Mobile rất nhỏ */
+        @media (max-width: 360px) {
+          .tx-card {
+            padding: 10px 10px;
+            gap: 8px;
+          }
+          .tx-avatar-wrap {
+            width: 40px;
+            height: 40px;
+          }
+          .tx-name {
+            font-size: 13px;
+          }
+          .tx-amount {
+            font-size: 14px;
+          }
+        }
       `}</style>
     </section>
   );

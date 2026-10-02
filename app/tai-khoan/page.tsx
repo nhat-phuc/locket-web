@@ -18,6 +18,8 @@ interface UserInfo {
 export default function TaiKhoanPage() {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loadingTx, setLoadingTx] = useState(true);
 
   useEffect(() => {
     const load = async () => {
@@ -30,6 +32,17 @@ export default function TaiKhoanPage() {
     };
     load();
   }, []);
+
+  useEffect(() => {
+    fetch("/api/users/transactions", { credentials: "include" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success) setTransactions(d.transactions || []);
+      })
+      .catch(() => {})
+      .finally(() => setLoadingTx(false));
+  }, []);
+
 
   if (loading) {
     return <div style={{ textAlign: "center", padding: 80, color: "var(--text-2)" }}>Đang tải...</div>;
@@ -126,13 +139,40 @@ export default function TaiKhoanPage() {
         </p>
         <div className="tk-telegram-box">
           <p className="tk-telegram-status">Chưa liên kết tài khoản</p>
-          <button className="tk-telegram-btn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M22 2L11 13" />
-              <path d="M22 2l-7 20-4-9-9-4 20-7z" />
-            </svg>
-            Liên kết ngay qua Bot
-          </button>
+            <button
+              className="tk-telegram-btn"
+              onClick={async () => {
+                try {
+                  console.log("[TG] Gọi API generate-code...");
+                  const res = await fetch("/api/telegram/generate-code", {
+                    method: "POST",
+                    credentials: "include",
+                  });
+                  console.log("[TG] Status:", res.status);
+                  const data = await res.json();
+                  console.log("[TG] Data:", data);
+
+                  if (data.success && data.code) {
+                    const botUsername = "amirose_bot";
+                    const tgUrl = `https://t.me/${botUsername}?start=${data.code}`;
+                    console.log("[TG] Mở URL:", tgUrl);
+                    const win = window.open(tgUrl, "_blank");
+                    if (!win) window.location.href = tgUrl;
+                  } else {
+                    alert("Lỗi: " + (data.message || "Không tạo được mã"));
+                  }
+                } catch (err) {
+                  console.error("[TG] Lỗi:", err);
+                  alert("Lỗi kết nối");
+                }
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M22 2L11 13" />
+                <path d="M22 2l-7 20-4-9-9-4 20-7z" />
+              </svg>
+              Liên kết ngay qua Bot
+            </button>
         </div>
       </div>
 
@@ -166,17 +206,84 @@ export default function TaiKhoanPage() {
         </p>
       </div>
 
-      {/* Card 5: Lịch Sử Nâng Cấp */}
+      {/* Card 5: Lịch Sử Giao Dịch */}
       <div className="tk-card">
         <div className="tk-card-header">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
           </svg>
-          <h2>Lịch Sử Nâng Cấp</h2>
+          <h2>Lịch Sử Giao Dịch</h2>
         </div>
-        <div className="tk-empty">Bạn chưa có hóa đơn giao dịch nào.</div>
+
+        {loadingTx ? (
+          <div className="tk-empty">Đang tải...</div>
+        ) : transactions.length === 0 ? (
+          <div className="tk-empty">Bạn chưa có giao dịch nào.</div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {transactions.map((tx: any) => {
+              const isPlus = tx.type === "recharge" || tx.amount > 0;
+              const typeLabels: Record<string, string> = {
+                recharge: "Nạp tiền",
+                payment: "Thanh toán",
+                refund: "Hoàn tiền",
+                withdraw: "Rút tiền",
+              };
+              return (
+                <div
+                  key={tx.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "12px 14px",
+                    background: "var(--bg-2)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 12,
+                    gap: 12,
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 4 }}>
+                      {typeLabels[tx.type] || tx.type}
+                    </div>
+                    <div style={{ fontSize: 12, color: "var(--text-2)" }}>
+                      {tx.description || "Không có mô tả"}
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--text-2)", marginTop: 2 }}>
+                      {new Date(tx.createdAt).toLocaleString("vi-VN")}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right", flexShrink: 0 }}>
+                    <div
+                      style={{
+                        fontSize: 15,
+                        fontWeight: 900,
+                        color: isPlus ? "#10b981" : "#ef4444",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {isPlus ? "+" : "-"}
+                      {Math.abs(tx.amount).toLocaleString("vi-VN")}đ
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 10.5,
+                        color: tx.status === "completed" ? "#10b981" : "#f59e0b",
+                        fontWeight: 700,
+                        marginTop: 2,
+                      }}
+                    >
+                      {tx.status === "completed" ? "✓ Thành công" : "⏳ Chờ"}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
+
     </div>
   );
 }

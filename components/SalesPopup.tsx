@@ -31,7 +31,6 @@ export default function SalesPopup() {
 
   const hoveredRef = useRef(false);
 
-  // Fetch
   useEffect(() => {
     const load = () => {
       fetch("/api/live-notifications")
@@ -44,7 +43,6 @@ export default function SalesPopup() {
     return () => clearInterval(interval);
   }, []);
 
-  // Show notification
   useEffect(() => {
     if (notifs.length === 0 || dismissed) return;
 
@@ -58,7 +56,6 @@ export default function SalesPopup() {
       setVisible(true);
       setProgress(0);
 
-      // Progress bar animation
       const startTime = Date.now();
       const progressInterval = setInterval(() => {
         if (!mounted || hoveredRef.current) return;
@@ -66,13 +63,11 @@ export default function SalesPopup() {
         setProgress(Math.min((elapsed / DISPLAY_MS) * 100, 100));
       }, 50);
 
-      // Hide after 5s
       hideTimeout = setTimeout(() => {
-        if (hoveredRef.current) return; // Nếu hover → giữ
+        if (hoveredRef.current) return;
         clearInterval(progressInterval);
         setVisible(false);
 
-        // Đổi notif sau khi ẩn
         showTimeout = setTimeout(() => {
           setCurrentIdx((i) => (i + 1) % notifs.length);
           showNotif();
@@ -80,7 +75,6 @@ export default function SalesPopup() {
       }, DISPLAY_MS);
     };
 
-    // Bắt đầu sau 3s
     const initialTimer = setTimeout(showNotif, 3000);
 
     return () => {
@@ -106,10 +100,6 @@ export default function SalesPopup() {
       onMouseLeave={() => { hoveredRef.current = false; }}
     >
       <div className="np-card">
-        {/* Glow effect */}
-        <div className="np-glow" />
-
-        {/* Close button */}
         <button
           className="np-close"
           onClick={() => { setDismissed(true); setVisible(false); }}
@@ -121,9 +111,7 @@ export default function SalesPopup() {
           </svg>
         </button>
 
-        {/* Avatar */}
         <div className="np-avatar-wrap">
-          <div className={`np-avatar-ring np-ring-${n.kind}`} />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className="np-avatar"
@@ -148,14 +136,12 @@ export default function SalesPopup() {
           </div>
         </div>
 
-        {/* Content */}
         <div className="np-content">
           <div className="np-message">{n.message}</div>
           <div className={`np-detail np-detail-${n.kind}`}>{n.detail}</div>
           <div className="np-time">{n.time}</div>
         </div>
 
-        {/* Progress bar */}
         <div className="np-progress">
           <div className="np-progress-fill" style={{ width: `${progress}%` }} />
         </div>
@@ -166,13 +152,13 @@ export default function SalesPopup() {
           position: fixed;
           bottom: 24px;
           right: 24px;
-          z-index: 90;
+          z-index: 99997;
           opacity: 0;
           transform: translateY(20px) scale(0.95);
           transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
           pointer-events: none;
-          max-width: 380px;
-          min-width: 320px;
+          max-width: 340px;
+          min-width: 280px;
         }
 
         .np-wrapper.np-show {
@@ -181,44 +167,31 @@ export default function SalesPopup() {
           pointer-events: auto;
         }
 
+        /* ═══ CARD — NỀN XÁM TRONG (glassmorphism) ═══ */
         .np-card {
           position: relative;
           display: flex;
           align-items: center;
-          gap: 14px;
-          padding: 16px 44px 20px 16px;
-          background: linear-gradient(135deg, #0f0a1e 0%, #1a1230 100%);
-          border: 1px solid rgba(167, 139, 250, 0.25);
-          border-radius: 18px;
+          gap: 10px;
+          padding: 10px 34px 12px 10px;
+          background: rgba(30, 25, 50, 0.65);
+          border: 1px solid rgba(167, 139, 250, 0.35);
+          border-radius: 14px;
           box-shadow:
-            0 20px 50px rgba(0, 0, 0, 0.6),
-            0 0 0 1px rgba(255, 255, 255, 0.05),
-            inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            0 10px 30px rgba(0, 0, 0, 0.35),
+            0 0 0 1px rgba(255, 255, 255, 0.06),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
           overflow: hidden;
-          backdrop-filter: blur(20px);
-        }
-
-        .np-glow {
-          position: absolute;
-          top: -50%;
-          right: -50%;
-          width: 200%;
-          height: 200%;
-          background: radial-gradient(circle, rgba(167, 139, 250, 0.15), transparent 60%);
-          pointer-events: none;
-          animation: npRotate 15s linear infinite;
-        }
-
-        @keyframes npRotate {
-          to { transform: rotate(360deg); }
+          backdrop-filter: blur(20px) saturate(180%);
+          -webkit-backdrop-filter: blur(20px) saturate(180%);
         }
 
         .np-close {
           position: absolute;
-          top: 8px;
-          right: 8px;
-          width: 26px;
-          height: 26px;
+          top: 6px;
+          right: 6px;
+          width: 22px;
+          height: 22px;
           display: grid;
           place-items: center;
           background: transparent;
@@ -234,37 +207,17 @@ export default function SalesPopup() {
           background: rgba(255, 255, 255, 0.1);
         }
         .np-close svg {
-          width: 12px;
-          height: 12px;
+          width: 11px;
+          height: 11px;
         }
 
-        /* Avatar */
+        /* Avatar — nhỏ hơn */
         .np-avatar-wrap {
           position: relative;
-          width: 52px;
-          height: 52px;
+          width: 38px;
+          height: 38px;
           flex-shrink: 0;
           z-index: 1;
-        }
-
-        .np-avatar-ring {
-          position: absolute;
-          inset: -4px;
-          border-radius: 50%;
-          opacity: 0.6;
-          animation: npPulse 2s ease-in-out infinite;
-        }
-
-        .np-ring-order {
-          background: linear-gradient(135deg, #a78bfa, #ec4899);
-        }
-        .np-ring-recharge {
-          background: linear-gradient(135deg, #10b981, #3b82f6);
-        }
-
-        @keyframes npPulse {
-          0%, 100% { transform: scale(1); opacity: 0.6; }
-          50% { transform: scale(1.08); opacity: 0.3; }
         }
 
         .np-avatar {
@@ -274,7 +227,7 @@ export default function SalesPopup() {
           object-fit: cover;
           border-radius: 50%;
           display: block;
-          border: 2px solid #1a1230;
+          border: 2px solid rgba(255, 255, 255, 0.15);
           z-index: 1;
         }
 
@@ -282,21 +235,14 @@ export default function SalesPopup() {
           position: absolute;
           bottom: -2px;
           right: -2px;
-          width: 22px;
-          height: 22px;
+          width: 16px;
+          height: 16px;
           border-radius: 50%;
           display: grid;
           place-items: center;
           color: #fff;
-          border: 2px solid #0f0a1e;
+          border: 2px solid #1a1230;
           z-index: 2;
-          animation: npBounce 0.5s ease;
-        }
-
-        @keyframes npBounce {
-          0% { transform: scale(0); }
-          60% { transform: scale(1.2); }
-          100% { transform: scale(1); }
         }
 
         .np-badge-order {
@@ -307,32 +253,35 @@ export default function SalesPopup() {
         }
 
         .np-badge svg {
-          width: 11px;
-          height: 11px;
+          width: 8px;
+          height: 8px;
         }
 
-        /* Content */
+        /* Content — gọn hơn */
         .np-content {
           flex: 1;
           min-width: 0;
           z-index: 1;
           display: flex;
           flex-direction: column;
-          gap: 4px;
+          gap: 2px;
         }
 
         .np-message {
-          font-size: 13.5px;
+          font-size: 12px;
           font-weight: 800;
           color: #fff;
-          line-height: 1.35;
+          line-height: 1.3;
           letter-spacing: -0.01em;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .np-detail {
-          font-size: 13px;
+          font-size: 11.5px;
           font-weight: 700;
-          line-height: 1.35;
+          line-height: 1.3;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -346,8 +295,8 @@ export default function SalesPopup() {
         }
 
         .np-time {
-          font-size: 11px;
-          color: rgba(255, 255, 255, 0.45);
+          font-size: 10px;
+          color: rgba(255, 255, 255, 0.5);
           display: flex;
           align-items: center;
           gap: 4px;
@@ -355,8 +304,8 @@ export default function SalesPopup() {
 
         .np-time::before {
           content: "";
-          width: 5px;
-          height: 5px;
+          width: 4px;
+          height: 4px;
           border-radius: 50%;
           background: #10b981;
           box-shadow: 0 0 6px #10b981;
@@ -374,8 +323,8 @@ export default function SalesPopup() {
           bottom: 0;
           left: 0;
           right: 0;
-          height: 3px;
-          background: rgba(255, 255, 255, 0.05);
+          height: 2px;
+          background: rgba(255, 255, 255, 0.06);
           overflow: hidden;
         }
 
@@ -383,27 +332,63 @@ export default function SalesPopup() {
           height: 100%;
           background: linear-gradient(90deg, #a78bfa, #ec4899);
           transition: width 0.1s linear;
-          box-shadow: 0 0 10px rgba(167, 139, 250, 0.5);
+          box-shadow: 0 0 8px rgba(167, 139, 250, 0.5);
         }
 
-        /* Mobile */
+        /* Mobile — gọn, đặt trên nav */
         @media (max-width: 500px) {
           .np-wrapper {
-            bottom: 12px;
+            bottom: 82px;
             left: 12px;
             right: 12px;
             max-width: none;
             min-width: 0;
           }
           .np-card {
-            padding: 14px 40px 18px 14px;
+            padding: 8px 30px 10px 8px;
+            gap: 8px;
+            border-radius: 12px;
+          }
+          .np-avatar-wrap {
+            width: 34px;
+            height: 34px;
+          }
+          .np-badge {
+            width: 14px;
+            height: 14px;
+          }
+          .np-badge svg {
+            width: 7px;
+            height: 7px;
           }
           .np-message {
-            font-size: 12.5px;
+            font-size: 11.5px;
           }
           .np-detail {
-            font-size: 12px;
+            font-size: 11px;
           }
+          .np-time {
+            font-size: 9.5px;
+          }
+        }
+
+        @media (max-width: 400px) {
+          .np-wrapper {
+            bottom: 80px;
+            left: 10px;
+            right: 10px;
+          }
+          .np-card {
+            padding: 7px 26px 9px 7px;
+            gap: 7px;
+          }
+          .np-avatar-wrap {
+            width: 32px;
+            height: 32px;
+          }
+          .np-message { font-size: 11px; }
+          .np-detail { font-size: 10.5px; }
+          .np-time { font-size: 9px; }
         }
       `}</style>
     </div>

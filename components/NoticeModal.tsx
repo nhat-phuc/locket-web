@@ -13,6 +13,23 @@ export default function NoticeModal() {
     }
   }, []);
 
+  useEffect(() => {
+    if (visible) {
+      document.body.classList.add("notice-open");
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.classList.remove("notice-open");
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.classList.remove("notice-open");
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    };
+  }, [visible]);
+
   const close = () => setVisible(false);
   const close24h = () => {
     close();
@@ -25,263 +42,325 @@ export default function NoticeModal() {
   if (!visible) return null;
 
   return (
-    <div className="admin-modal show" style={{ zIndex: 99999 }}>
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 520,
-          padding: "32px 24px",
-          borderRadius: 24,
-          background: "linear-gradient(145deg, var(--bg-1), var(--bg-0))",
-          border: "1px solid var(--border-accent)",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
-          textAlign: "center",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            position: "absolute",
-            top: -20,
-            left: -20,
-            right: -20,
-            height: 120,
-            background: "linear-gradient(135deg, #64d5f2, transparent)",
-            opacity: 0.15,
-            zIndex: 0,
-            filter: "blur(20px)",
-          }}
-        />
-        <button
-          onClick={close}
-          style={{
-            position: "absolute",
-            top: 20,
-            right: 20,
-            background: "rgba(255,255,255,0.06)",
-            borderRadius: "50%",
-            width: 36,
-            height: 36,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            border: "1px solid rgba(255,255,255,0.1)",
-            color: "var(--text-2)",
-            cursor: "pointer",
-            zIndex: 10,
-          }}
-        >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
+    <div className="notice-overlay" onClick={close}>
+      <div className="notice-modal-box" onClick={(e) => e.stopPropagation()}>
+        <button onClick={close} className="notice-close-btn" aria-label="Đóng">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
-        <div style={{ position: "relative", zIndex: 1 }}>
-          <h2
-            style={{
-              fontSize: 24,
-              fontWeight: 800,
-              marginBottom: 12,
-              marginTop: 10,
-              letterSpacing: -0.5,
-              background: "linear-gradient(90deg, var(--accent-bright), #64d5f2)",
-              WebkitBackgroundClip: "text",
-              backgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            Thông Báo
-          </h2>
-          <div
-            style={{
-              fontSize: 16,
-              lineHeight: 1.7,
-              color: "var(--text-2)",
-              marginBottom: 20,
-              textAlign: "left",
-              wordWrap: "break-word",
-            }}
-          >
-            <div
-              style={{
-                textAlign: "center",
-                border: "2px solid #f1c40f",
-                padding: 15,
-                borderRadius: 12,
-                background: "linear-gradient(135deg, #fffcf0 0%, #ffffff 100%)",
-                maxWidth: 500,
-                margin: "0 auto",
-                boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-                fontFamily: "Arial, sans-serif",
-              }}
-            >
-              <p style={{ margin: "0 0 12px 0" }}>
-                <span
-                  style={{
-                    fontSize: 20,
-                    color: "#e74c3c",
-                    fontWeight: "bold",
-                  }}
-                >
-                  🚀 CHÀO MỪNG BẠN ĐẾN VỚI LOCKET GOLD 🚀
-                </span>
-              </p>
-              <div
-                style={{
-                  backgroundColor: "#fff9f9",
-                  border: "1px dashed #e74c3c",
-                  borderRadius: 8,
-                  padding: 10,
-                  marginBottom: 10,
-                }}
-              >
-                <p
-                  style={{
-                    margin: "0 0 5px 0",
-                    fontSize: 15,
-                    color: "#e74c3c",
-                    fontWeight: "bold",
-                  }}
-                >
-                  💎 NÂNG CẤP TỰ ĐỘNG 5S - AN TOÀN TUYỆT ĐỐI
-                </p>
-                <p style={{ margin: "3px 0", fontSize: 13, color: "#333" }}>
-                  ✅ <strong>Không cần Pass/iCloud</strong> - Chỉ cần duy nhất
-                  Username.
-                </p>
-                <p style={{ margin: "3px 0", fontSize: 13, color: "#333" }}>
-                  ✅ Hệ thống Auto từ A-Z, lên Gold cực mượt không cần chờ đợi.
-                </p>
-                <p
-                  style={{
-                    margin: "5px 0 3px 0",
-                    fontSize: 12,
-                    color: "#d35400",
-                  }}
-                >
-                  <i>*🎁 Đặc biệt: Chốt đơn là TẶNG NGAY Canva Edu 3 Năm</i>
-                </p>
-              </div>
-              <div
-                style={{
-                  backgroundColor: "#ffffff",
-                  border: "1px dashed #e67e22",
-                  borderRadius: 8,
-                  padding: 10,
-                  marginBottom: 15,
-                }}
-              >
-                <p
-                  style={{
-                    margin: "0 0 5px 0",
-                    fontSize: 15,
-                    color: "#d35400",
-                    fontWeight: "bold",
-                  }}
-                >
-                  🎰 VÒNG QUAY NHÂN PHẨM
-                </p>
-                <p style={{ margin: "3px 0", fontSize: 13, color: "#333" }}>
-                  Làm nhiệm vụ mỗi ngày nhận lượt quay FREE.
-                </p>
-                <p style={{ margin: "3px 0", fontSize: 13, color: "#2c3e50" }}>
-                  Cơ hội trúng ngay <strong>Tiền mặt</strong> hoặc Voucher{" "}
-                  <strong>FREE 100%</strong>.
-                </p>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 10,
-                }}
-              >
-                <a
-                  href="https://zalo.me/0344421026"
-                  style={{
-                    flex: 1,
-                    backgroundColor: "#0088cc",
-                    color: "#ffffff",
-                    padding: "10px 0",
-                    borderRadius: 6,
-                    textDecoration: "none",
-                    fontWeight: "bold",
-                    fontSize: 14,
-                    boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
-                  }}
-                >
-                  💬 BOX ZALO HỖ TRỢ
-                </a>
-                <a
-                  href="/vong-quay"
-                  style={{
-                    flex: 1,
-                    backgroundColor: "#f39c12",
-                    color: "#ffffff",
-                    padding: "10px 0",
-                    borderRadius: 6,
-                    textDecoration: "none",
-                    fontWeight: "bold",
-                    fontSize: 14,
-                    boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
-                  }}
-                >
-                  🎡 QUAY NGAY
-                </a>
-              </div>
+
+        <h2 className="notice-title">Thông Báo</h2>
+
+        <div className="notice-card">
+          <div className="notice-card-icon">⭐</div>
+          <div className="notice-card-text">
+            <div className="notice-card-heading">
+              🎉 Chính thức ra mắt gói Siêu VIP (SVIP) Độc Quyền!
+            </div>
+            <div className="notice-card-desc">
+              Trải nghiệm quyền lực tối thượng với gói SVIP: Chỉ cần Username,
+              Không cần Nhập DNS. Nâng cấp mượt mà, an toàn tuyệt đối và tự
+              động lên Gold trong 1 nốt nhạc!
             </div>
           </div>
-          <div style={{ display: "flex", gap: 12 }}>
-            <button
-              onClick={close}
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: 14,
-                borderRadius: 14,
-                fontWeight: 700,
-                fontSize: 15,
-                border: "none",
-                cursor: "pointer",
-                background: "#64d5f2",
-                color: "#111313",
-                boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
-              }}
-            >
-              Đã hiểu
-            </button>
-            <button
-              onClick={close24h}
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: 14,
-                borderRadius: 14,
-                fontWeight: 600,
-                fontSize: 15,
-                border: "1px solid rgba(248,113,113,0.3)",
-                cursor: "pointer",
-                background: "rgba(239,68,68,0.1)",
-                color: "var(--red)",
-              }}
-            >
-              Đóng trong 24h tới
-            </button>
-          </div>
+        </div>
+
+        <div className="notice-footer-row">
+          <button onClick={close} className="notice-footer-btn notice-footer-primary">
+            Đã hiểu
+          </button>
+          <button onClick={close24h} className="notice-footer-btn notice-footer-danger">
+            Đóng trong 24h tới
+          </button>
         </div>
       </div>
+
+      <style jsx global>{`
+        /* ═══ ẨN TẤT CẢ KHI POPUP MỞ ═══ */
+        body.notice-open {
+          overflow: hidden !important;
+          position: fixed !important;
+          width: 100% !important;
+          height: 100% !important;
+          top: 0 !important;
+          left: 0 !important;
+        }
+
+        body.notice-open > *:not(.notice-overlay):not(script):not(style),
+        body.notice-open nav,
+        body.notice-open footer,
+        body.notice-open .nav,
+        body.notice-open [class*="nav"],
+        body.notice-open [class*="popup"]:not(.notice-overlay):not(.notice-modal-box),
+        body.notice-open [class*="sales"],
+        body.notice-open [class*="float"],
+        body.notice-open [class*="spin"],
+        body.notice-open [class*="contact"],
+        body.notice-open [class*="bottom"],
+        body.notice-open [class*="mobile"] {
+          visibility: hidden !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+        }
+
+        body.notice-open .notice-overlay,
+        body.notice-open .notice-overlay * {
+          visibility: visible !important;
+          opacity: 1 !important;
+          pointer-events: auto !important;
+        }
+
+        /* ═══ OVERLAY — PHỦ TOÀN MÀN HÌNH, BAO CẢ SAFE AREA ═══ */
+        .notice-overlay {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          width: 100vw !important;
+          max-width: 100vw !important;
+          height: 100vh !important;
+          height: 100dvh !important;
+          min-height: 100vh !important;
+          min-height: 100dvh !important;
+          /* Safe area inset cho iOS (notch, home bar) */
+          padding-top: env(safe-area-inset-top, 0px) !important;
+          padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+          padding-left: env(safe-area-inset-left, 0px) !important;
+          padding-right: env(safe-area-inset-right, 0px) !important;
+          /* Nền tối đậm + blur */
+          background: rgba(0, 0, 0, 0.75) !important;
+          backdrop-filter: blur(16px) !important;
+          -webkit-backdrop-filter: blur(16px) !important;
+          /* Căn giữa popup */
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          z-index: 2147483647 !important;
+          animation: noticeFadeIn 0.3s ease;
+          cursor: pointer;
+          margin: 0 !important;
+          box-sizing: border-box !important;
+          /* Đảm bảo không bị lộ nền */
+          isolation: isolate !important;
+        }
+
+        /* Pseudo-element phủ toàn bộ background với màu đặc */
+        .notice-overlay::before {
+          content: "" !important;
+          position: fixed !important;
+          top: -100px !important;
+          left: -100px !important;
+          right: -100px !important;
+          bottom: -100px !important;
+          width: calc(100vw + 200px) !important;
+          height: calc(100vh + 200px) !important;
+          height: calc(100dvh + 200px) !important;
+          background: rgba(0, 0, 0, 0.75) !important;
+          z-index: -1 !important;
+          pointer-events: none !important;
+        }
+
+        @keyframes noticeFadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        /* ═══ POPUP ═══ */
+        .notice-modal-box {
+          cursor: default !important;
+          width: 440px !important;
+          max-width: calc(100vw - 40px) !important;
+          min-width: 0 !important;
+          height: auto !important;
+          max-height: 85vh !important;
+          max-height: 85dvh !important;
+          flex: 0 0 auto !important;
+          padding: 24px 22px 22px !important;
+          border-radius: 20px !important;
+          background: #ffffff !important;
+          border: 1px solid #e5e7eb !important;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+          filter: none !important;
+          text-align: center !important;
+          position: relative !important;
+          overflow-y: auto !important;
+          box-sizing: border-box !important;
+          isolation: isolate !important;
+          transform: translateZ(0) !important;
+          animation: noticePopIn 0.35s cubic-bezier(0.34, 1.4, 0.64, 1);
+          margin: auto !important;
+        }
+
+        @keyframes noticePopIn {
+          from { opacity: 0; transform: scale(0.92) translateY(12px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .notice-close-btn {
+          position: absolute !important;
+          top: 14px !important;
+          right: 14px !important;
+          background: transparent !important;
+          border: none !important;
+          border-radius: 50% !important;
+          width: 28px !important;
+          height: 28px !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          color: #9ca3af !important;
+          cursor: pointer !important;
+          padding: 0 !important;
+        }
+
+        .notice-title {
+          font-size: 22px !important;
+          font-weight: 800 !important;
+          margin: 0 0 18px 0 !important;
+          color: #0e7490 !important;
+          letter-spacing: -0.3px !important;
+          line-height: 1.2 !important;
+        }
+
+        .notice-card {
+          display: flex !important;
+          gap: 12px !important;
+          align-items: flex-start !important;
+          padding: 14px !important;
+          border-radius: 14px !important;
+          background: linear-gradient(135deg, #fce7f3 0%, #f3e8ff 100%) !important;
+          border: 1px solid #fbcfe8 !important;
+          text-align: left !important;
+          margin-bottom: 18px !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
+        }
+
+        .notice-card-icon {
+          width: 40px !important;
+          height: 40px !important;
+          min-width: 40px !important;
+          min-height: 40px !important;
+          max-width: 40px !important;
+          max-height: 40px !important;
+          flex: 0 0 40px !important;
+          aspect-ratio: 1 / 1 !important;
+          border-radius: 50% !important;
+          overflow: hidden !important;
+          background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%) !important;
+          color: #fff !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          font-size: 20px !important;
+          line-height: 1 !important;
+          text-align: center !important;
+          align-self: flex-start !important;
+          box-shadow: 0 4px 12px rgba(236, 72, 153, 0.35) !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          box-sizing: border-box !important;
+        }
+
+        .notice-card-text {
+          flex: 1 !important;
+          min-width: 0 !important;
+        }
+
+        .notice-card-heading {
+          font-size: 14.5px !important;
+          font-weight: 800 !important;
+          color: #111827 !important;
+          line-height: 1.4 !important;
+          margin-bottom: 6px !important;
+        }
+
+        .notice-card-desc {
+          font-size: 13.5px !important;
+          color: #4b5563 !important;
+          line-height: 1.55 !important;
+        }
+
+        .notice-footer-row {
+          display: flex !important;
+          gap: 10px !important;
+          width: 100% !important;
+        }
+
+        .notice-footer-btn {
+          flex: 1 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          padding: 13px 10px !important;
+          border-radius: 12px !important;
+          font-size: 14px !important;
+          font-weight: 700 !important;
+          cursor: pointer !important;
+          font-family: inherit !important;
+          border: none !important;
+          box-sizing: border-box !important;
+        }
+
+        .notice-footer-primary {
+          background: #22d3ee !important;
+          color: #0e1414 !important;
+          box-shadow: 0 4px 14px rgba(34, 211, 238, 0.35) !important;
+        }
+
+        .notice-footer-danger {
+          border: 1.5px solid #fbcfe8 !important;
+          background: #fff1f2 !important;
+          color: #ef4444 !important;
+        }
+
+        @media (max-width: 480px) {
+          .notice-overlay {
+            backdrop-filter: blur(10px) !important;
+            -webkit-backdrop-filter: blur(10px) !important;
+          }
+          .notice-modal-box {
+            width: 100% !important;
+            max-width: calc(100vw - 28px) !important;
+            padding: 20px 16px 18px !important;
+            border-radius: 18px !important;
+          }
+          .notice-title { font-size: 19px !important; margin-bottom: 14px !important; }
+          .notice-card { padding: 12px !important; gap: 10px !important; }
+          .notice-card-icon {
+            width: 36px !important;
+            height: 36px !important;
+            min-width: 36px !important;
+            min-height: 36px !important;
+            max-width: 36px !important;
+            max-height: 36px !important;
+            flex: 0 0 36px !important;
+            font-size: 18px !important;
+          }
+          .notice-card-heading { font-size: 13.5px !important; }
+          .notice-card-desc { font-size: 12.5px !important; }
+          .notice-footer-btn {
+            font-size: 13px !important;
+            padding: 12px 8px !important;
+            white-space: normal !important;
+            line-height: 1.2 !important;
+          }
+        }
+
+        @media (max-width: 400px) {
+          .notice-footer-btn { font-size: 12.5px !important; padding: 11px 6px !important; }
+        }
+
+        @media (max-width: 360px) {
+          .notice-footer-row { flex-direction: column !important; gap: 8px !important; }
+          .notice-footer-btn { font-size: 13px !important; }
+        }
+      `}</style>
     </div>
   );
 }

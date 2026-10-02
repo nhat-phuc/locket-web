@@ -1,3 +1,5 @@
+@import "./forms-theme.css";
+@import "./responsive.css";
 /* ═══════════════════════════════════════════════════════════
    VARIABLES + RESET
    ═══════════════════════════════════════════════════════════ */
@@ -4696,4 +4698,145 @@ body:has(.admin-layout) {
   .tk-card { padding: 16px; border-radius: 16px; }
   .tk-card-header h2 { font-size: 18px; }
   .tk-row { padding: 10px 0; font-size: 14px; }
+}
+
+/* ═══ FIX CỨNG: Card giao dịch trên mobile ═══ */
+@media (max-width: 640px) {
+  .tx-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    padding: 12px 10px !important;
+    gap: 10px !important;
+  }
+  .tx-body {
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+  .tx-bottom {
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+  }
+  .tx-amount {
+    font-size: 14px !important;
+  }
+  .tx-avatar-wrap {
+    width: 42px !important;
+    height: 42px !important;
+  }
+  .page-shell, .wrap, main, section {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    overflow-x: hidden !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🔒 FIX CỨNG: KHÔNG TRÀN NGANG TRÊN MOBILE (2026)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Chặn scroll ngang toàn cục */
+html, body {
+  overflow-x: hidden !important;
+  width: 100% !important;
+  max-width: 100vw !important;
+  position: relative;
+}
+
+/* Mọi element không được vượt quá màn hình */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+main, section, div, article, aside, header, footer, nav {
+  max-width: 100% !important;
+}
+
+/* Ảnh, video, iframe không tràn */
+img, video, iframe, svg, canvas {
+  max-width: 100% !important;
+  height: auto;
+}
+
+/* Marquee wrapper — thường gây tràn do width: 100vw */
+.marquee-wrapper {
+  width: 100% !important;
+  max-width: 100vw !important;
+  margin-left: 0 !important;
+  left: 0 !important;
+}
+
+/* Icon showcase canvas */
+.icon-map-outer-wrapper,
+.icon-map-canvas {
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+/* Grid không bị tràn */
+.tx-grid,
+.feature-gallery,
+.privileges-grid,
+.privileges-grid > *,
+.tx-card,
+.tx-card > * {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Card giao dịch — chặn số tiền bị đẩy ra ngoài */
+.tx-card {
+  overflow: hidden !important;
+}
+.tx-body {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  flex: 1 1 0 !important;
+}
+.tx-name {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+.tx-bottom {
+  flex-wrap: wrap !important;
+}
+
+/* Page shell — padding đều 2 bên */
+.page-shell {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding-left: 14px !important;
+  padding-right: 14px !important;
+  overflow: hidden !important;
+}
+
+/* Mobile nhỏ — thu gọn mọi thứ */
+@media (max-width: 480px) {
+  .tx-card {
+    padding: 12px 10px !important;
+    gap: 10px !important;
+  }
+  .tx-avatar-wrap {
+    width: 42px !important;
+    height: 42px !important;
+  }
+  .tx-amount {
+    font-size: 14px !important;
+  }
+  .tx-name {
+    font-size: 13px !important;
+  }
+  .page-shell {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}
+
+/* Bất kỳ element nào có style width cứng đều bị giới hạn */
+[style*="width: 100vw"],
+[style*="width:100vw"],
+[style*="min-width"] {
+  max-width: 100% !important;
 }

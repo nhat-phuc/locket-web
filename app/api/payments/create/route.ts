@@ -32,13 +32,17 @@ export async function POST(req: Request) {
 
     if (method === "bank_transfer") {
       const BANK_INFO = {
-        bank: process.env.NEXT_PUBLIC_BANK_NAME || "TPBANK",
+        bank: process.env.NEXT_PUBLIC_BANK_NAME || "TPBank",
         bankId: process.env.NEXT_PUBLIC_BANK_ID || "TPBANK",
         accountNumber: process.env.NEXT_PUBLIC_ACCOUNT_NO || "36886368888",
         accountName: process.env.NEXT_PUBLIC_ACCOUNT_NAME || "TRAN NHAT PHUC",
       };
 
-      const qrUrl = `https://qr.sepay.vn/img?acc=${BANK_INFO.accountNumber}&bank=${BANK_INFO.bankId}&amount=${order.finalAmount}&des=${encodeURIComponent(order.orderCode)}`;
+      // ═══ DÙNG VIETQR API (hiện số tiền rõ hơn) ═══
+      const amount = order.finalAmount || 0;
+      const description = order.orderCode;
+
+      const qrUrl = `https://img.vietqr.io/image/${BANK_INFO.bankId}-${BANK_INFO.accountNumber}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(description)}&accountName=${encodeURIComponent(BANK_INFO.accountName)}`;
 
       return NextResponse.json({
         success: true,

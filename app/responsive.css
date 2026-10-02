@@ -1,0 +1,2232 @@
+/* ═══════════════════════════════════════════════════════════════
+   📱 RESPONSIVE TOÀN DIỆN — LOCKET GOLD
+   Áp dụng cho mọi thiết bị: Desktop / Tablet / Mobile
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── 1. CHỐNG TRÀN NGANG ─── */
+html, body {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+  width: 100% !important;
+  position: relative !important;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box !important;
+}
+
+img, video, iframe, svg, canvas {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+/* ─── 2. CONTAINER CHUẨN ─── */
+.page-shell,
+.wrap {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+  margin: 0 auto !important;
+  overflow: hidden !important;
+}
+
+@media (min-width: 1200px) {
+  .page-shell,
+  .wrap {
+    max-width: 1140px !important;
+    padding-left: 32px !important;
+    padding-right: 32px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-shell,
+  .wrap {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+}
+
+/* ─── 3. TYPOGRAPHY CHUẨN ─── */
+h1 { font-size: 40px; line-height: 1.15; font-weight: 900; }
+h2 { font-size: 28px; line-height: 1.25; font-weight: 800; }
+h3 { font-size: 20px; line-height: 1.3;  font-weight: 700; }
+h4 { font-size: 17px; line-height: 1.35; font-weight: 700; }
+p  { font-size: 15px; line-height: 1.6; }
+
+@media (max-width: 768px) {
+  h1 { font-size: 28px !important; }
+  h2 { font-size: 22px !important; }
+  h3 { font-size: 18px !important; }
+  h4 { font-size: 16px !important; }
+  p  { font-size: 14.5px !important; }
+}
+
+@media (max-width: 480px) {
+  h1 { font-size: 24px !important; }
+  h2 { font-size: 20px !important; }
+  h3 { font-size: 17px !important; }
+  p  { font-size: 14px !important; }
+}
+
+/* ─── 4. SPACING SECTION ─── */
+section, .section {
+  margin-top: 64px;
+}
+
+@media (max-width: 768px) {
+  section, .section {
+    margin-top: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  section, .section {
+    margin-top: 40px;
+  }
+}
+
+/* Tiêu đề section */
+.section-title,
+h2 + p {
+  margin-top: 8px;
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+/* ─── 5. GRID TỰ ĐỘNG ─── */
+/* Mặc định: auto-fit responsive */
+.tx-grid,
+.feature-gallery,
+.privileges-grid,
+.stats-grid {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Recent transactions */
+.tx-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+@media (max-width: 900px) { .tx-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .tx-grid { grid-template-columns: 1fr; gap: 12px; } }
+
+/* Gallery ảnh */
+.feature-gallery {
+  grid-template-columns: repeat(6, 1fr);
+}
+@media (max-width: 1100px) { .feature-gallery { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 768px)  { .feature-gallery { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 480px)  { .feature-gallery { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
+
+/* Privileges */
+.privileges-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+@media (max-width: 900px) { .privileges-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .privileges-grid { grid-template-columns: 1fr; } }
+
+/* ─── 6. CARD CHUẨN ─── */
+.tx-card,
+.privilege-card,
+.step-card,
+.gallery-img-wrap {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+/* Card giao dịch — không cắt số tiền */
+.tx-card {
+  padding: 14px 16px;
+}
+.tx-body {
+  min-width: 0 !important;
+  flex: 1 1 0 !important;
+  overflow: hidden !important;
+}
+.tx-name {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+.tx-bottom {
+  flex-wrap: wrap !important;
+}
+
+@media (max-width: 480px) {
+  .tx-card {
+    padding: 12px 12px !important;
+    gap: 10px !important;
+  }
+  .tx-avatar-wrap {
+    width: 42px !important;
+    height: 42px !important;
+  }
+  .tx-amount { font-size: 14px !important; }
+  .tx-name   { font-size: 13px !important; }
+}
+
+/* ─── 7. NÚT CHUẨN ─── */
+button,
+.btn,
+a[class*="btn"] {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  button,
+  .btn,
+  a[class*="btn"] {
+    font-size: 14px !important;
+    padding: 12px 20px !important;
+  }
+}
+
+/* ─── 8. ICON SHOWCASE ─── */
+.icon-map-outer-wrapper,
+.icon-map-canvas {
+  max-width: 100% !important;
+  width: 100% !important;
+  overflow: hidden !important;
+}
+
+.icon-showcase-section {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+
+/* ─── 9. MARQUEE ─── */
+.marquee-wrapper {
+  width: 100% !important;
+  max-width: 100vw !important;
+  margin-left: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+}
+
+/* ─── 10. NÚT NỔI (SPIN, LIÊN HỆ) ─── */
+.sales-popup,
+[class*="float-btn"],
+[class*="contact-float"] {
+  max-width: calc(100vw - 24px) !important;
+}
+
+@media (max-width: 480px) {
+  .sales-popup {
+    left: 12px !important;
+    right: 12px !important;
+    bottom: 12px !important;
+    max-width: none !important;
+  }
+}
+
+/* ─── 11. PADDING BOTTOM (tránh nav che) ─── */
+body {
+  padding-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  body {
+    padding-bottom: 80px;
+  }
+  .page-shell,
+  .wrap {
+    padding-bottom: 40px !important;
+  }
+}
+
+/* ─── 12. FORMS ─── */
+input, textarea, select {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  font-size: 15px !important;
+}
+
+@media (max-width: 480px) {
+  input, textarea, select {
+    font-size: 14.5px !important;
+    padding: 12px 14px !important;
+  }
+}
+
+/* ─── 13. MODAL / POPUP ─── */
+[class*="modal"],
+[class*="popup"] {
+  max-width: calc(100vw - 24px) !important;
+}
+
+/* ─── 14. KHÔNG CHO ELEMENT NÀO VƯỢT MÀN HÌNH ─── */
+main, section, article, aside, header, footer, nav, div {
+  max-width: 100% !important;
+}
+
+/* ─── 15. FOOTER ─── */
+footer {
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+
+@media (max-width: 640px) {
+  footer {
+    padding-bottom: 100px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   📢 NOTICE MODAL — RESPONSIVE
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Container popup — giới hạn chiều rộng */
+[class*="notice"],
+[class*="Notice"],
+[class*="modal"] > div {
+  max-width: calc(100vw - 24px) !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+}
+
+/* Nút trong popup */
+@media (max-width: 640px) {
+  /* Bất kỳ flex row nào trong popup -> chuyển thành column */
+  [class*="notice"] [style*="display: flex"],
+  [class*="Notice"] [style*="display: flex"],
+  [class*="modal"] [style*="display: flex"] {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  /* Nút full width */
+  [class*="notice"] button,
+  [class*="Notice"] button,
+  [class*="modal"] button,
+  [class*="notice"] a[class*="btn"],
+  [class*="Notice"] a[class*="btn"] {
+    width: 100% !important;
+    padding: 14px 16px !important;
+    font-size: 14.5px !important;
+    white-space: normal !important;
+  }
+
+  /* Padding container giảm */
+  [class*="notice"] > div,
+  [class*="Notice"] > div {
+    padding: 16px !important;
+  }
+}
+
+/* Mobile nhỏ */
+@media (max-width: 400px) {
+  [class*="notice"] h2,
+  [class*="Notice"] h2,
+  [class*="notice"] h1,
+  [class*="Notice"] h1 {
+    font-size: 18px !important;
+    line-height: 1.35 !important;
+  }
+
+  [class*="notice"] p,
+  [class*="Notice"] p {
+    font-size: 13.5px !important;
+    line-height: 1.6 !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BẢNG GIÁ — FIX TRÀN VIỀN
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Container trang bảng giá */
+.bang-gia-page,
+.pricing-page,
+.page-shell:has(.price-card),
+.page-shell:has(.pricing-card) {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  overflow-x: hidden !important;
+}
+
+/* Grid card giá */
+.pricing-grid,
+.price-grid,
+.bang-gia-grid,
+.pricing-cards {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+  gap: 20px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Card giá */
+.price-card,
+.pricing-card,
+.bang-gia-card {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  padding: 24px 20px !important;
+  border-radius: 18px !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Card bên trong */
+.price-card *,
+.pricing-card * {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Giá tiền */
+.price-card .price,
+.pricing-card .price {
+  font-size: 28px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Nút trong card */
+.price-card button,
+.pricing-card button {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+}
+
+/* List features */
+.price-card ul,
+.pricing-card ul {
+  padding: 0 !important;
+  margin: 0 !important;
+  list-style: none !important;
+}
+
+.price-card li,
+.pricing-card li {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .pricing-grid,
+  .price-grid,
+  .bang-gia-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .price-card,
+  .pricing-card {
+    padding: 20px 16px !important;
+    border-radius: 16px !important;
+  }
+  .price-card .price {
+    font-size: 24px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .bang-gia-page,
+  .pricing-page {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  .price-card {
+    padding: 18px 14px !important;
+  }
+}
+
+/* Chống tràn ngang toàn trang bảng giá */
+body:has(.bang-gia-page) {
+  overflow-x: hidden !important;
+}
+
+html, body {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TRANG THANH TOÁN — FIX TRÀN VIỀN
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Container trang thanh toán */
+.thanh-toan-page,
+.pay-page,
+.page-shell:has(.pay-card),
+.page-shell:has(.checkout-card),
+main:has(.thanh-toan-wrap) {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* Wrapper thanh toán — giới hạn 640px, căn giữa */
+.thanh-toan-wrap,
+.checkout-wrap,
+.pay-wrap,
+.page-shell > div:has(.pay-card) {
+  width: 100% !important;
+  max-width: 640px !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Card thanh toán */
+.pay-card,
+.checkout-card,
+.thanh-toan-card {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 24px !important;
+  border-radius: 18px !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+/* Input trong trang thanh toán */
+.pay-card input,
+.pay-card textarea,
+.pay-card select,
+.pay-input,
+.pay-input-wrap input,
+.thanh-toan-page input {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 13px 16px !important;
+  border-radius: 12px !important;
+  font-size: 15px !important;
+  box-sizing: border-box !important;
+}
+
+/* Label */
+.pay-card label {
+  display: block !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: var(--text-0) !important;
+  margin-bottom: 8px !important;
+}
+
+/* Helper text */
+.pay-card small,
+.pay-card .helper {
+  display: block !important;
+  font-size: 12.5px !important;
+  color: var(--text-2) !important;
+  margin-top: 6px !important;
+  line-height: 1.5 !important;
+}
+
+/* Button */
+.pay-card button,
+.pay-btn,
+.thanh-toan-page button {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 14px 20px !important;
+  border-radius: 12px !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  white-space: normal !important;
+}
+
+/* Steps (Thông tin / Thanh toán) */
+.pay-steps,
+.checkout-steps,
+.thanh-toan-steps {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 16px !important;
+  flex-wrap: wrap !important;
+  margin-bottom: 24px !important;
+  max-width: 100% !important;
+}
+
+/* Divider giữa các step */
+.pay-steps hr,
+.checkout-steps hr,
+.step-line {
+  flex: 1 !important;
+  max-width: 80px !important;
+  height: 1px !important;
+  background: var(--border) !important;
+  border: none !important;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .thanh-toan-page,
+  .pay-page {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+  .pay-card,
+  .checkout-card {
+    padding: 18px 16px !important;
+    border-radius: 16px !important;
+  }
+  .pay-card input {
+    padding: 12px 14px !important;
+    font-size: 14.5px !important;
+  }
+  .pay-card button {
+    font-size: 14.5px !important;
+    padding: 13px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TRANG NẠP TIỀN — FIX TRÀN VIỀN
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Container trang nạp tiền */
+.nap-tien-page,
+.recharge-page,
+.deposit-page,
+.page-shell:has(.recharge-card),
+.page-shell:has(.deposit-card) {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* Wrapper — giới hạn 600px, căn giữa */
+.nap-tien-wrap,
+.recharge-wrap,
+.deposit-wrap,
+.page-shell > div:has(.recharge-card) {
+  width: 100% !important;
+  max-width: 600px !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Card nạp tiền */
+.recharge-card,
+.deposit-card,
+.nap-tien-card,
+.pay-card {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 24px !important;
+  border-radius: 18px !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  margin-bottom: 20px !important;
+}
+
+/* Input nạp tiền */
+.recharge-card input,
+.deposit-card input,
+.nap-tien-card input {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 13px 16px !important;
+  border-radius: 12px !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  box-sizing: border-box !important;
+  text-align: right !important;
+}
+
+/* Grid nút chọn nhanh (20k, 50k, 100k...) */
+.amount-grid,
+.quick-amounts,
+.recharge-amounts,
+.recharge-card > div[style*="grid"] {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 10px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Nút chọn nhanh */
+.amount-btn,
+.quick-amount-btn,
+.recharge-card > div[style*="grid"] button {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 12px 8px !important;
+  border-radius: 10px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+}
+
+/* Button "Tạo Mã QR" */
+.recharge-card button[type="submit"],
+.recharge-submit,
+.nap-tien-card > button {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 15px 20px !important;
+  border-radius: 12px !important;
+  font-size: 15.5px !important;
+  font-weight: 800 !important;
+  box-sizing: border-box !important;
+  margin-top: 16px !important;
+}
+
+/* Số dư card (Số dư hiện tại) */
+.balance-card,
+.balance-display {
+  width: 100% !important;
+  max-width: 260px !important;
+  margin: 0 auto 24px !important;
+  padding: 20px !important;
+  border-radius: 16px !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .nap-tien-page,
+  .recharge-page {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+  .recharge-card,
+  .deposit-card {
+    padding: 18px 16px !important;
+    border-radius: 16px !important;
+  }
+  .amount-grid,
+  .quick-amounts {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+  .amount-btn {
+    font-size: 13px !important;
+    padding: 11px 6px !important;
+  }
+  .recharge-card input {
+    font-size: 15px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .amount-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TRANG THANH TOÁN ĐƠN HÀNG — FIX TRÀN VIỀN
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Container trang thanh toán */
+.order-pay-page,
+.checkout-page,
+.thanh-toan-page,
+.payment-page,
+.page-shell:has(.order-pay-card),
+.page-shell:has(.payment-card) {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* Wrapper — giới hạn 640px, căn giữa */
+.order-pay-wrap,
+.checkout-wrap,
+.payment-wrap,
+.thanh-toan-wrap,
+.page-shell > div:has(.payment-card),
+.page-shell > div:has(.order-pay-card) {
+  width: 100% !important;
+  max-width: 640px !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Card thanh toán */
+.payment-card,
+.order-pay-card,
+.checkout-card,
+.thanh-toan-card {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 24px !important;
+  border-radius: 18px !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  margin-bottom: 20px !important;
+}
+
+/* Header card (icon + tiêu đề + mã đơn) */
+.payment-card > div:first-child,
+.order-pay-card > div:first-child {
+  width: 100% !important;
+  max-width: 100% !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+}
+
+/* Countdown timer (Thời gian còn lại) */
+.countdown-bar,
+.timer-bar,
+.payment-card > div:has(.countdown),
+.order-pay-card > div:has(.countdown) {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 12px 16px !important;
+  border-radius: 12px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+/* Số tiền cần thanh toán */
+.amount-display,
+.payment-amount,
+.payment-card > div:has(.amount),
+.order-pay-card > div:has(.amount) {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 14px 16px !important;
+  border-radius: 12px !important;
+  box-sizing: border-box !important;
+  text-align: center !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Số tiền hiển thị */
+.amount-display .amount,
+.payment-amount .amount {
+  font-size: 28px !important;
+  font-weight: 900 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Tabs (Quét QR / Chuyển khoản) */
+.payment-tabs,
+.pay-tabs,
+.tab-switch,
+.payment-card > div:has(> button):has(> button + button) {
+  width: 100% !important;
+  max-width: 100% !important;
+  display: flex !important;
+  gap: 0 !important;
+  padding: 4px !important;
+  border-radius: 12px !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+/* Tab button */
+.payment-tabs button,
+.pay-tabs button,
+.tab-switch button {
+  flex: 1 !important;
+  width: auto !important;
+  padding: 12px 16px !important;
+  border-radius: 10px !important;
+  font-size: 14.5px !important;
+  font-weight: 700 !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* QR Code container */
+.qr-container,
+.qr-wrap,
+.qr-box,
+.payment-card > div:has(.qr-code) {
+  width: 100% !important;
+  max-width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+/* QR image/canvas */
+.qr-container img,
+.qr-container canvas,
+.qr-wrap img,
+.qr-wrap canvas,
+.qr-box img,
+.qr-box canvas {
+  width: 100% !important;
+  max-width: 320px !important;
+  height: auto !important;
+  aspect-ratio: 1 / 1 !important;
+  object-fit: contain !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  padding: 12px !important;
+  box-sizing: border-box !important;
+  margin: 0 auto !important;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .order-pay-page,
+  .checkout-page {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+  .payment-card,
+  .order-pay-card {
+    padding: 18px 16px !important;
+    border-radius: 16px !important;
+  }
+  .amount-display .amount,
+  .payment-amount .amount {
+    font-size: 22px !important;
+  }
+  .payment-tabs button,
+  .pay-tabs button {
+    font-size: 13px !important;
+    padding: 10px 12px !important;
+  }
+  .qr-container img,
+  .qr-container canvas {
+    max-width: 260px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .amount-display .amount {
+    font-size: 20px !important;
+  }
+  .payment-tabs button {
+    font-size: 12px !important;
+    padding: 9px 8px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL THANH TOÁN — FIX TOÀN DIỆN (A + B + C + D)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ═══ A: BỎ BORDER TÍM BAO QUANH ═══ */
+.payment-modal,
+.order-pay-modal,
+.thanh-toan-modal,
+.modal-payment,
+[class*="payment-modal"],
+[class*="PaymentModal"],
+[class*="payment-modal"] > div,
+[class*="checkout-modal"] {
+  border: none !important;
+  outline: none !important;
+}
+
+/* Chỉ giữ shadow mềm */
+.payment-modal,
+[class*="payment-modal"] {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* ═══ B: THU NHỎ QR CODE ═══ */
+.payment-modal img[alt*="QR"],
+.payment-modal img[src*="qr"],
+.payment-modal canvas,
+.qr-code img,
+.qr-code canvas,
+.qr-container img,
+.qr-container canvas,
+.qr-wrap img,
+.qr-wrap canvas {
+  width: 100% !important;
+  max-width: 240px !important;
+  height: auto !important;
+  aspect-ratio: 1 / 1 !important;
+  object-fit: contain !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  padding: 10px !important;
+  box-sizing: border-box !important;
+  margin: 0 auto !important;
+  display: block !important;
+}
+
+/* Wrapper QR */
+.qr-container,
+.qr-wrap,
+.qr-box {
+  padding: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* ═══ C: ĐỔI MÀU MODAL THEO THEME ═══ */
+.payment-modal,
+[class*="payment-modal"] {
+  background: var(--bg-1, #ffffff) !important;
+  color: var(--text-0) !important;
+  border-radius: 20px !important;
+  padding: 24px !important;
+  box-sizing: border-box !important;
+  max-width: calc(100vw - 32px) !important;
+  width: 100% !important;
+}
+
+/* Tiêu đề trong modal */
+.payment-modal h1,
+.payment-modal h2,
+.payment-modal h3 {
+  color: var(--text-0) !important;
+}
+
+/* Chữ trong modal */
+.payment-modal p,
+.payment-modal span,
+.payment-modal div {
+  color: var(--text-1) !important;
+}
+
+/* Timer (thời gian còn lại) — giữ nổi bật */
+.payment-modal [class*="timer"],
+.payment-modal [class*="countdown"] {
+  color: #f59e0b !important;
+  font-weight: 800 !important;
+}
+
+/* ═══ D: FIX TAB QUÉT QR / CHUYỂN KHOẢN ═══ */
+.payment-modal [class*="tab"],
+.payment-modal [role="tablist"],
+.payment-tabs,
+.pay-tabs {
+  display: flex !important;
+  gap: 6px !important;
+  padding: 4px !important;
+  background: rgba(167, 139, 250, 0.08) !important;
+  border-radius: 12px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  margin-bottom: 16px !important;
+}
+
+/* Tab button */
+.payment-modal [class*="tab"] button,
+.payment-tabs button,
+.pay-tabs button,
+.payment-modal [role="tab"] {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  padding: 11px 14px !important;
+  border-radius: 10px !important;
+  border: none !important;
+  background: transparent !important;
+  color: var(--text-2) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  font-family: inherit !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+}
+
+/* Tab active */
+.payment-modal [class*="tab"] button.active,
+.payment-modal [class*="tab"] button[aria-selected="true"],
+.payment-tabs button.active,
+.payment-modal [role="tab"][aria-selected="true"] {
+  background: linear-gradient(135deg, #a78bfa, #7c3aed) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3) !important;
+}
+
+/* Số tiền */
+.payment-modal [class*="amount"] {
+  font-size: 26px !important;
+  font-weight: 900 !important;
+  color: var(--text-0) !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Nút "Xác nhận đã thanh toán" */
+.payment-modal button[type="submit"],
+.payment-modal button:has(svg) {
+  width: 100% !important;
+  padding: 14px !important;
+  border-radius: 12px !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  box-sizing: border-box !important;
+}
+
+/* ═══ MOBILE ═══ */
+@media (max-width: 480px) {
+  .payment-modal,
+  [class*="payment-modal"] {
+    padding: 18px 16px !important;
+    border-radius: 16px !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+
+  /* QR nhỏ hơn nữa trên mobile */
+  .payment-modal img[alt*="QR"],
+  .payment-modal img[src*="qr"],
+  .payment-modal canvas,
+  .qr-container img,
+  .qr-container canvas {
+    max-width: 200px !important;
+  }
+
+  /* Số tiền nhỏ hơn */
+  .payment-modal [class*="amount"] {
+    font-size: 22px !important;
+  }
+
+  /* Tab nhỏ hơn */
+  .payment-modal [class*="tab"] button,
+  .payment-tabs button {
+    font-size: 12.5px !important;
+    padding: 10px 8px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .payment-modal img[alt*="QR"],
+  .payment-modal canvas {
+    max-width: 180px !important;
+  }
+  .payment-modal [class*="amount"] {
+    font-size: 20px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL THANH TOÁN — THU NHỎ, GỌN NHƯ HÌNH MẪU
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Modal wrapper — giới hạn 500px */
+.payment-modal,
+.order-pay-modal,
+.thanh-toan-modal,
+[class*="payment-modal"],
+[class*="PaymentModal"] {
+  width: 100% !important;
+  max-width: 500px !important;
+  margin: 0 auto !important;
+  padding: 24px !important;
+  border-radius: 20px !important;
+  background: var(--bg-1, #ffffff) !important;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.08)) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+/* Bỏ border tím nếu có */
+.payment-modal > *,
+.order-pay-modal > * {
+  border-color: var(--border, rgba(0, 0, 0, 0.08)) !important;
+}
+
+/* Card "Đơn hàng" — nền xám nhạt */
+.payment-modal > div:first-of-type,
+.order-pay-modal > div:first-of-type,
+.order-info-card {
+  background: var(--bg-2, #f0f0f5) !important;
+  border-radius: 14px !important;
+  padding: 16px 18px !important;
+  margin-bottom: 18px !important;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.06)) !important;
+}
+
+/* Dòng trong card đơn hàng */
+.order-info-card > div,
+.payment-modal > div:first-of-type > div {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 8px 0 !important;
+  font-size: 14px !important;
+  gap: 12px !important;
+}
+
+/* Tổng tiền */
+.order-info-card .total,
+.payment-modal [class*="total"],
+.payment-modal > div:first-of-type > div:last-child {
+  border-top: 1px dashed var(--border) !important;
+  padding-top: 12px !important;
+  margin-top: 4px !important;
+  font-weight: 800 !important;
+}
+
+/* Số tiền màu tím */
+.payment-modal [class*="total"] span:last-child,
+.order-info-card .total span:last-child {
+  color: #ec4899 !important;
+  font-size: 20px !important;
+  font-weight: 900 !important;
+}
+
+/* Radio option (Số dư / Chuyển khoản) */
+.payment-modal label,
+.payment-method-option {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 10px !important;
+  padding: 14px 16px !important;
+  border-radius: 14px !important;
+  border: 1.5px solid var(--border, rgba(0, 0, 0, 0.08)) !important;
+  background: var(--bg-1, #ffffff) !important;
+  margin-bottom: 10px !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  box-sizing: border-box !important;
+}
+
+.payment-modal label:hover,
+.payment-method-option:hover {
+  border-color: rgba(167, 139, 250, 0.4) !important;
+  background: rgba(167, 139, 250, 0.04) !important;
+}
+
+/* Radio button */
+.payment-modal input[type="radio"] {
+  width: 20px !important;
+  height: 20px !important;
+  margin-top: 2px !important;
+  accent-color: #7c3aed !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+}
+
+/* Nút "Xác nhận thanh toán" */
+.payment-modal button[type="submit"],
+.payment-modal > button {
+  width: 100% !important;
+  padding: 14px !important;
+  border-radius: 12px !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  background: linear-gradient(135deg, #a78bfa, #7c3aed) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.3) !important;
+  cursor: pointer !important;
+  margin-top: 8px !important;
+  box-sizing: border-box !important;
+}
+
+.payment-modal button[type="submit"]:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 10px 28px rgba(124, 58, 237, 0.4) !important;
+}
+
+/* Link "Quay lại" */
+.payment-modal a[href*="quay-lai"],
+.payment-modal .back-link {
+  display: block !important;
+  text-align: center !important;
+  margin-top: 16px !important;
+  color: var(--text-2) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+}
+
+.payment-modal a[href*="quay-lai"]:hover {
+  color: var(--text-0) !important;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .payment-modal,
+  .order-pay-modal {
+    max-width: calc(100vw - 24px) !important;
+    padding: 18px 16px !important;
+    border-radius: 16px !important;
+  }
+
+  .order-info-card {
+    padding: 14px !important;
+  }
+
+  .payment-modal label,
+  .payment-method-option {
+    padding: 12px 14px !important;
+  }
+
+  .payment-modal [class*="total"] span:last-child {
+    font-size: 18px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL XÁC NHẬN THANH TOÁN — CÙNG WIDTH VỚI FORM
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Modal xác nhận thanh toán — kế thừa width 640px */
+.payment-modal,
+.order-modal,
+.checkout-modal,
+.confirm-modal,
+.thanh-toan-modal,
+[class*="payment-modal"],
+[class*="checkout-modal"],
+[class*="confirm-modal"] {
+  width: 100% !important;
+  max-width: 640px !important;
+  margin: 0 auto !important;
+  padding: 24px !important;
+  border-radius: 18px !important;
+  background: var(--bg-1, #ffffff) !important;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.08)) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+/* Overlay — căn giữa modal, không để modal full screen */
+.payment-modal-overlay,
+.order-modal-overlay,
+[class*="modal-overlay"] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(6px) !important;
+  box-sizing: border-box !important;
+}
+
+/* Card "Đơn hàng" bên trong modal */
+.payment-modal > div:first-of-type,
+.order-info-card,
+[class*="order-info"] {
+  background: var(--bg-2, #f8f8fc) !important;
+  border-radius: 14px !important;
+  padding: 16px 18px !important;
+  margin-bottom: 18px !important;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.06)) !important;
+}
+
+/* Radio option */
+.payment-modal label {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 10px !important;
+  padding: 14px 16px !important;
+  border-radius: 14px !important;
+  border: 1.5px solid var(--border, rgba(0, 0, 0, 0.08)) !important;
+  background: var(--bg-1, #ffffff) !important;
+  margin-bottom: 10px !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  box-sizing: border-box !important;
+}
+
+.payment-modal label:hover {
+  border-color: rgba(167, 139, 250, 0.4) !important;
+  background: rgba(167, 139, 250, 0.04) !important;
+}
+
+.payment-modal input[type="radio"] {
+  width: 20px !important;
+  height: 20px !important;
+  accent-color: #7c3aed !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+  margin-top: 2px !important;
+}
+
+/* Nút xác nhận */
+.payment-modal button[type="submit"],
+.payment-modal > button {
+  width: 100% !important;
+  padding: 14px !important;
+  border-radius: 12px !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  background: linear-gradient(135deg, #a78bfa, #7c3aed) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.3) !important;
+  margin-top: 8px !important;
+  box-sizing: border-box !important;
+  cursor: pointer !important;
+}
+
+.payment-modal button[type="submit"]:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 10px 28px rgba(124, 58, 237, 0.4) !important;
+}
+
+/* Link quay lại */
+.payment-modal a[href*="quay-lai"],
+.payment-modal .back-link {
+  display: block !important;
+  text-align: center !important;
+  margin-top: 16px !important;
+  color: var(--text-2) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .payment-modal,
+  .order-modal,
+  .checkout-modal {
+    max-width: calc(100vw - 24px) !important;
+    padding: 18px 16px !important;
+    border-radius: 16px !important;
+  }
+
+  .payment-modal > div:first-of-type,
+  .order-info-card {
+    padding: 14px !important;
+  }
+
+  .payment-modal label {
+    padding: 12px 14px !important;
+  }
+
+  .payment-modal button[type="submit"] {
+    font-size: 14.5px !important;
+    padding: 13px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .payment-modal {
+    padding: 16px 14px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PAYMENT MODAL — THU NHỎ GỌN GÀNG
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Modal nhỏ hơn */
+.pm2-modal {
+  max-width: 480px !important;
+  border-radius: 20px !important;
+  max-height: 92vh !important;
+}
+
+/* Overlay padding nhỏ hơn */
+.pm2-overlay {
+  padding: 14px !important;
+}
+
+/* Head gọn hơn */
+.pm2-head {
+  padding: 16px 18px !important;
+}
+.pm2-head-icon {
+  width: 40px !important;
+  height: 40px !important;
+  font-size: 18px !important;
+  border-radius: 12px !important;
+  animation: none !important;
+}
+.pm2-title {
+  font-size: 15px !important;
+}
+.pm2-sub {
+  font-size: 11px !important;
+}
+.pm2-close {
+  width: 32px !important;
+  height: 32px !important;
+  font-size: 16px !important;
+}
+
+/* Body gọn */
+.pm2-body {
+  padding: 16px !important;
+  gap: 12px !important;
+}
+
+/* Timer gọn */
+.pm2-timer {
+  padding: 12px 16px !important;
+  gap: 12px !important;
+  border-radius: 14px !important;
+}
+.pm2-timer-circle {
+  width: 48px !important;
+  height: 48px !important;
+}
+.pm2-timer-circle-text {
+  font-size: 11px !important;
+}
+.pm2-timer-value {
+  font-size: 20px !important;
+}
+.pm2-timer-label {
+  font-size: 10px !important;
+}
+
+/* Amount gọn */
+.pm2-amount {
+  padding: 16px !important;
+  border-radius: 14px !important;
+}
+.pm2-amount-value {
+  font-size: 28px !important;
+}
+.pm2-amount-label {
+  font-size: 10.5px !important;
+  margin-bottom: 6px !important;
+}
+.pm2-amount-service {
+  font-size: 12px !important;
+  margin-top: 6px !important;
+}
+
+/* Tabs gọn */
+.pm2-tabs {
+  padding: 4px !important;
+  gap: 4px !important;
+}
+.pm2-tab {
+  padding: 9px 12px !important;
+  font-size: 12.5px !important;
+}
+
+/* QR gọn */
+.pm2-qr-wrap {
+  padding: 14px !important;
+  border-radius: 16px !important;
+}
+.pm2-qr {
+  width: 200px !important;
+  height: 200px !important;
+}
+.pm2-qr-loading {
+  width: 200px !important;
+  height: 200px !important;
+}
+.pm2-qr-brand {
+  font-size: 15px !important;
+  margin-bottom: 10px !important;
+}
+.pm2-qr-hint {
+  font-size: 12px !important;
+}
+
+/* Bank info gọn */
+.pm2-bank-row {
+  padding: 11px 14px !important;
+}
+.pm2-bank-label {
+  font-size: 11.5px !important;
+}
+.pm2-bank-value {
+  font-size: 13px !important;
+}
+.pm2-copy {
+  width: 26px !important;
+  height: 26px !important;
+  font-size: 11px !important;
+}
+
+/* Status gọn */
+.pm2-status {
+  padding: 12px 16px !important;
+  font-size: 12.5px !important;
+  border-radius: 12px !important;
+}
+
+/* Bỏ particle canvas cho nhẹ */
+.pm2-canvas {
+  display: none !important;
+}
+
+/* Bỏ animation ring xoay QR */
+.pm2-qr-wrap::before {
+  animation: none !important;
+  filter: blur(12px) !important;
+  opacity: 0.6 !important;
+}
+
+/* Bỏ animation pulse icon */
+.pm2-head-icon {
+  animation: none !important;
+}
+
+/* Bỏ animation shine button */
+.pm2-btn-primary::after {
+  animation: none !important;
+}
+
+/* Mobile — gọn hơn nữa */
+@media (max-width: 480px) {
+  .pm2-overlay {
+    padding: 8px !important;
+    align-items: flex-start !important;
+    padding-top: 16px !important;
+  }
+  .pm2-modal {
+    max-width: 100% !important;
+    border-radius: 18px !important;
+    max-height: 96vh !important;
+  }
+  .pm2-head {
+    padding: 14px 16px !important;
+  }
+  .pm2-title {
+    font-size: 14px !important;
+  }
+  .pm2-body {
+    padding: 14px !important;
+    gap: 10px !important;
+  }
+  .pm2-qr {
+    width: 180px !important;
+    height: 180px !important;
+  }
+  .pm2-qr-loading {
+    width: 180px !important;
+    height: 180px !important;
+  }
+  .pm2-amount-value {
+    font-size: 24px !important;
+  }
+  .pm2-timer-value {
+    font-size: 18px !important;
+  }
+  .pm2-timer-circle {
+    width: 42px !important;
+    height: 42px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .pm2-qr {
+    width: 160px !important;
+    height: 160px !important;
+  }
+  .pm2-amount-value {
+    font-size: 22px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PAYMENT MODAL — GIAO DIỆN SÁNG (LIGHT THEME)
+   Khớp với form bước 1 (ThanhToanContent)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ═══ MODAL — NỀN TRẮNG ═══ */
+.pm2-modal {
+  background: #ffffff !important;
+  border: 1px solid rgba(167, 139, 250, 0.2) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
+  max-width: 500px !important;
+  max-height: 92vh !important;
+  animation: pm2In 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) !important;
+}
+
+/* Bỏ viền gradient phía trên */
+.pm2-modal::before {
+  display: none !important;
+}
+
+/* Overlay — nền tối nhẹ */
+.pm2-overlay {
+  background: rgba(15, 15, 30, 0.6) !important;
+  backdrop-filter: blur(8px) !important;
+  padding: 16px !important;
+}
+
+/* ═══ HEAD — NỀN TRẮNG, VIỀN NHẸ ═══ */
+.pm2-head {
+  background: #ffffff !important;
+  border-bottom: 1px solid rgba(167, 139, 250, 0.12) !important;
+  padding: 18px 20px !important;
+}
+
+.pm2-head-icon {
+  background: linear-gradient(135deg, #a78bfa, #7c3aed) !important;
+  box-shadow: 0 6px 18px rgba(124, 58, 237, 0.3) !important;
+  animation: none !important;
+  width: 42px !important;
+  height: 42px !important;
+  font-size: 20px !important;
+  border-radius: 12px !important;
+}
+
+.pm2-title {
+  color: #111827 !important;
+  font-size: 16px !important;
+  font-weight: 900 !important;
+}
+
+.pm2-sub {
+  color: #6b7280 !important;
+  font-size: 12px !important;
+  font-family: ui-monospace, monospace !important;
+}
+
+.pm2-close {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: #6b7280 !important;
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 10px !important;
+}
+.pm2-close:hover {
+  background: rgba(239, 68, 68, 0.1) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  color: #ef4444 !important;
+  transform: rotate(90deg) scale(1.05) !important;
+}
+
+/* ═══ BODY — NỀN TRẮNG ═══ */
+.pm2-body {
+  background: #ffffff !important;
+  padding: 18px 20px !important;
+  gap: 14px !important;
+}
+
+/* ═══ TIMER — VÀNG NHẠT ═══ */
+.pm2-timer {
+  background: linear-gradient(135deg, #fffbeb, #fef3c7) !important;
+  border: 1px solid #fcd34d !important;
+  padding: 14px 16px !important;
+  border-radius: 14px !important;
+}
+.pm2-timer::before {
+  display: none !important;
+}
+.pm2-timer-circle {
+  width: 50px !important;
+  height: 50px !important;
+}
+.pm2-timer-circle svg circle:first-child {
+  stroke: rgba(251, 191, 36, 0.25) !important;
+}
+.pm2-timer-circle svg circle:last-child {
+  stroke: #f59e0b !important;
+}
+.pm2-timer-circle-text {
+  color: #d97706 !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+}
+.pm2-timer-label {
+  color: #92400e !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+}
+.pm2-timer-value {
+  color: #d97706 !important;
+  font-size: 22px !important;
+  font-weight: 900 !important;
+}
+
+/* ═══ AMOUNT — TÍM NHẠT ═══ */
+.pm2-amount {
+  background: linear-gradient(135deg, #f5f3ff, #ede9fe) !important;
+  border: 1px solid #c4b5fd !important;
+  padding: 18px !important;
+  border-radius: 14px !important;
+}
+.pm2-amount::before {
+  display: none !important;
+}
+.pm2-amount-label {
+  color: #7c3aed !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+}
+.pm2-amount-value {
+  background: linear-gradient(135deg, #7c3aed, #ec4899) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  font-size: 32px !important;
+  font-weight: 900 !important;
+  animation: none !important;
+}
+.pm2-amount-service {
+  color: #6b7280 !important;
+  font-size: 13px !important;
+}
+
+/* ═══ TABS — NỀN XÁM NHẠT ═══ */
+.pm2-tabs {
+  background: rgba(167, 139, 250, 0.08) !important;
+  border: 1px solid rgba(167, 139, 250, 0.15) !important;
+  padding: 4px !important;
+  border-radius: 12px !important;
+}
+.pm2-tab {
+  color: #6b7280 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  padding: 10px 14px !important;
+  border-radius: 9px !important;
+}
+.pm2-tab:hover {
+  color: #7c3aed !important;
+}
+.pm2-tab.active {
+  background: linear-gradient(135deg, #a78bfa, #7c3aed) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3) !important;
+}
+
+/* ═══ QR — NỀN TRẮNG, KHÔNG RING XOAY ═══ */
+.pm2-qr-section {
+  gap: 12px !important;
+}
+.pm2-qr-wrap {
+  background: #ffffff !important;
+  padding: 16px !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid rgba(167, 139, 250, 0.15) !important;
+}
+.pm2-qr-wrap::before {
+  display: none !important;
+}
+.pm2-qr-brand {
+  font-size: 16px !important;
+  margin-bottom: 10px !important;
+}
+.pm2-qr {
+  width: 220px !important;
+  height: 220px !important;
+}
+.pm2-qr-loading {
+  width: 220px !important;
+  height: 220px !important;
+}
+.pm2-qr-hint {
+  color: #6b7280 !important;
+  font-size: 13px !important;
+}
+
+/* ═══ BANK INFO — NỀN XÁM NHẠT ═══ */
+.pm2-bank {
+  background: #f9fafb !important;
+  border: 1px solid rgba(167, 139, 250, 0.15) !important;
+  border-radius: 14px !important;
+}
+.pm2-bank-row {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+  padding: 12px 16px !important;
+}
+.pm2-bank-row:last-child {
+  border-bottom: none !important;
+}
+.pm2-bank-row:hover {
+  background: rgba(167, 139, 250, 0.05) !important;
+}
+.pm2-bank-label {
+  color: #6b7280 !important;
+  font-size: 12px !important;
+}
+.pm2-bank-value {
+  color: #111827 !important;
+  font-size: 13.5px !important;
+}
+.pm2-copy {
+  background: rgba(167, 139, 250, 0.12) !important;
+  border: 1px solid rgba(167, 139, 250, 0.25) !important;
+  color: #7c3aed !important;
+}
+.pm2-copy:hover {
+  background: rgba(167, 139, 250, 0.25) !important;
+  transform: scale(1.1) !important;
+}
+.pm2-copy.copied {
+  background: rgba(16, 185, 129, 0.15) !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+  color: #10b981 !important;
+}
+
+/* ═══ STATUS — XANH NHẠT ═══ */
+.pm2-status-pending {
+  background: rgba(59, 130, 246, 0.08) !important;
+  border: 1px solid rgba(59, 130, 246, 0.25) !important;
+  color: #2563eb !important;
+  padding: 12px 16px !important;
+  border-radius: 12px !important;
+}
+.pm2-status-pending::before {
+  display: none !important;
+}
+.pm2-status-dot {
+  background: #3b82f6 !important;
+  box-shadow: 0 0 10px #3b82f6 !important;
+  animation: pm2DotPulse 1.5s infinite !important;
+}
+
+/* ═══ SUCCESS ═══ */
+.pm2-success {
+  padding: 30px 20px !important;
+}
+.pm2-success-icon {
+  width: 90px !important;
+  height: 90px !important;
+  font-size: 44px !important;
+}
+.pm2-success-title {
+  color: #10b981 !important;
+  font-size: 22px !important;
+}
+.pm2-success-desc {
+  color: #6b7280 !important;
+  font-size: 14px !important;
+}
+
+/* ═══ EXPIRED ═══ */
+.pm2-expired {
+  padding: 30px 20px !important;
+}
+.pm2-expired-title {
+  color: #f59e0b !important;
+  font-size: 20px !important;
+}
+.pm2-expired-desc {
+  color: #6b7280 !important;
+}
+
+/* ═══ BUTTON ═══ */
+.pm2-btn-primary {
+  background: linear-gradient(135deg, #a78bfa, #7c3aed) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.3) !important;
+  padding: 13px 26px !important;
+  border-radius: 12px !important;
+  font-size: 14.5px !important;
+  font-weight: 800 !important;
+}
+.pm2-btn-primary::after {
+  display: none !important;
+}
+.pm2-btn-primary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 32px rgba(124, 58, 237, 0.4) !important;
+}
+
+/* ═══ TẮT ANIMATION NẶNG ═══ */
+.pm2-canvas { display: none !important; }
+.pm2-head-icon { animation: none !important; }
+.pm2-qr-wrap::before { display: none !important; }
+.pm2-status-pending::before { display: none !important; }
+.pm2-btn-primary::after { display: none !important; }
+.pm2-amount::before { display: none !important; }
+.pm2-timer::before { display: none !important; }
+.pm2-success-icon::before { display: none !important; }
+
+/* ═══ TOAST ═══ */
+.pm2-toast {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* ═══ MOBILE ═══ */
+@media (max-width: 480px) {
+  .pm2-overlay {
+    padding: 12px !important;
+    align-items: center !important;
+  }
+  .pm2-modal {
+    max-width: 100% !important;
+    border-radius: 16px !important;
+    max-height: 94vh !important;
+  }
+  .pm2-head {
+    padding: 14px 16px !important;
+  }
+  .pm2-title { font-size: 15px !important; }
+  .pm2-body { padding: 14px !important; gap: 12px !important; }
+  .pm2-qr { width: 180px !important; height: 180px !important; }
+  .pm2-qr-loading { width: 180px !important; height: 180px !important; }
+  .pm2-amount-value { font-size: 26px !important; }
+  .pm2-timer-value { font-size: 20px !important; }
+  .pm2-timer-circle { width: 44px !important; height: 44px !important; }
+  .pm2-tab { font-size: 12.5px !important; padding: 9px 10px !important; }
+  .pm2-bank-row { padding: 11px 14px !important; }
+}
+
+@media (max-width: 360px) {
+  .pm2-qr { width: 160px !important; height: 160px !important; }
+  .pm2-amount-value { font-size: 22px !important; }
+  .pm2-timer-value { font-size: 18px !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   REVIEWS — ẢNH ĐÁNH GIÁ HIỂN THỊ ĐẸP
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Container ảnh review */
+.review-img-wrap,
+.review-image,
+[class*="review"] img,
+[class*="review"] [class*="img"] {
+  width: 100% !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  background: var(--bg-2, #f0f0f5) !important;
+  position: relative !important;
+}
+
+/* Ảnh bên trong — fit đẹp, không cắt */
+.review-img-wrap img,
+.review-image img,
+[class*="review"] img {
+  width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  object-fit: contain !important;
+  border-radius: 12px !important;
+}
+
+/* Nếu dùng aspect-ratio, đổi sang tỉ lệ điện thoại */
+.review-img-wrap[style*="aspect-ratio"],
+.review-image[style*="aspect-ratio"] {
+  aspect-ratio: 9 / 16 !important;
+}
+
+/* Fix cho ảnh review trên mobile */
+@media (max-width: 640px) {
+  [class*="review"] img,
+  [class*="review"] [class*="img"] {
+    border-radius: 10px !important;
+  }
+}
+
+/* Nếu reviews dùng grid lưới */
+.reviews-grid,
+[class*="reviews"] {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+  gap: 12px !important;
+  width: 100% !important;
+  overflow-x: auto !important;
+}
+
+@media (max-width: 640px) {
+  .reviews-grid,
+  [class*="reviews"] {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+    gap: 10px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TRANG QUÊN MẬT KHẨU — ÉP KÍCH THƯỚC
+   ═══════════════════════════════════════════════════════════════ */
+
+.qmk-wrap {
+  min-height: 100vh !important;
+  padding: 80px 16px 60px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: var(--bg-0) !important;
+  box-sizing: border-box !important;
+}
+
+.qmk-card {
+  width: 100% !important;
+  max-width: 440px !important;
+  min-width: 0 !important;
+  margin: 0 auto !important;
+  background: var(--bg-1) !important;
+  border: 1.5px solid rgba(167, 139, 250, 0.2) !important;
+  border-radius: 20px !important;
+  padding: 28px 24px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.06) !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.qmk-card * {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.qmk-input,
+.qmk-btn,
+.qmk-tabs {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.qmk-input {
+  width: 100% !important;
+}
+
+.qmk-btn {
+  width: 100% !important;
+}
+
+@media (max-width: 480px) {
+  .qmk-wrap {
+    padding: 60px 12px 40px !important;
+  }
+  .qmk-card {
+    padding: 22px 18px !important;
+    border-radius: 16px !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Ép tất cả form auth trong trang này */
+.auth-form,
+.auth-field input,
+.auth-btn {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Chống tràn ngang */
+body {
+  overflow-x: hidden !important;
+}
+
+main {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LOCKET PREVIEW AVATAR — THU NHỎ
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Container avatar — luôn nhỏ gọn */
+.locket-avatar-preview,
+.avatar-preview,
+.lp-avatar-wrap,
+.profile-preview,
+[id*="avatar-preview"],
+[class*="avatar-preview"],
+img[src*="firebasestorage"][class*="avatar"],
+img[alt*="avatar"] {
+  width: 72px !important;
+  height: 72px !important;
+  max-width: 72px !important;
+  max-height: 72px !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  margin: 0 auto !important;
+  flex-shrink: 0 !important;
+}
+
+/* Ảnh bên trong */
+.locket-avatar-preview img,
+.avatar-preview img,
+.lp-avatar-wrap img,
+.profile-preview img,
+img[src*="firebasestorage"] {
+  width: 72px !important;
+  height: 72px !important;
+  max-width: 72px !important;
+  max-height: 72px !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+  display: block !important;
+}
+
+/* Nếu avatar nằm trong card rộng */
+.locket-preview-result,
+.preview-card,
+.result-card {
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+}
+
+/* Mobile — nhỏ hơn nữa */
+@media (max-width: 480px) {
+  .locket-avatar-preview,
+  .avatar-preview,
+  .lp-avatar-wrap,
+  .profile-preview,
+  img[src*="firebasestorage"] {
+    width: 60px !important;
+    height: 60px !important;
+    max-width: 60px !important;
+    max-height: 60px !important;
+  }
+
+  .locket-avatar-preview img,
+  .avatar-preview img,
+  .lp-avatar-wrap img,
+  .profile-preview img,
+  img[src*="firebasestorage"] {
+    width: 60px !important;
+    height: 60px !important;
+    max-width: 60px !important;
+    max-height: 60px !important;
+  }
+}
+
+/* Chống avatar phóng to khi chỉ có 1 ảnh */
+.locket-preview img:only-child,
+.preview-card img:only-child {
+  width: 72px !important;
+  height: 72px !important;
+}

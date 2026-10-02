@@ -4,54 +4,77 @@ import { getSession } from "@/lib/session";
 
 export async function POST(req: Request) {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ success: false, message: "Chưa đăng nhập" }, { status: 401 });
+    const body = await req.json();
+    const { email, username, amount, content, orderCode } = body;
+
+    if (!amount || amount < 10000) {
+      return NextResponse.json(
+        { success: false, message: "Số tiền tối thiểu 10.000đ" },
+        { status: 400 }
+      );
     }
 
-    const { email, username, amount, content, orderCode } = await req.json();
-
-    if (!amount || !content || !orderCode) {
-      return NextResponse.json({ success: false, message: "Thiếu thông tin" }, { status: 400 });
+    // Tìm user
+    let user = null;
+    if (email) {
+      user = await prisma.user.findUnique({ where: { email } });
+    }
+    if (!user && username) {
+      user = await prisma.user.findUnique({ where: { username } });
+    }
+    if (!user) {
+      const session = await getSession();
+      if (session) {
+        user = await prisma.user.findUnique({ where: { id: session.userId } });
+      }
     }
 
-    // Kiểm tra đơn đã tồn tại
-    const existing = await prisma.order.findFirst({ where: { orderCode } });
-    if (existing) {
-      return NextResponse.json({
-        success: true,
-        message: "Đơn đã tồn tại",
-        orderId: existing.id,
-        order: existing,
-      });
+    if (!user) {
+      return NextResponse.json(
+        { success: false, message: "Không tìm thấy user" },
+        { status: 404 }
+      );
     }
 
-    // Tạo đơn mới
+    // Tạo Order (dùng serviceId rỗng hoặc lấy service đầu tiên)
+    const firstService = await prisma.service.findFirst({
+      where: { isActive: true },
+    });
+
+    if (!firstService) {
+      return NextResponse.json(
+        { success: false, message: "Chưa có dịch vụ nào trong hệ thống" },
+        { status: 400 }
+      );
+    }
+
+    const code = orderCode || `NPT${Date.now().toString(36).toUpperCase()}`;
+
     const order = await prisma.order.create({
       data: {
-        orderCode,
-        userId: session.userId,
-        serviceId: "recharge",
-        serviceName: `Nạp tiền ${Number(amount).toLocaleString("vi-VN")}đ`,
+        orderCode: code,
+        userId: user.id,
+        serviceId: firstService.id,
+        serviceName: "Nạp tiền vào ví",
         amount: Number(amount),
-        discount: 0,
         finalAmount: Number(amount),
         status: "pending",
         paymentMethod: "bank_transfer",
-        paymentRef: content,
-        locketUsername: username || "recharge",
+        note: content || "Nạp tiền tự động",
         expiresAt: new Date(Date.now() + 15 * 60 * 1000),
       },
     });
 
     return NextResponse.json({
       success: true,
-      message: "Đã tạo đơn nạp tiền",
       orderId: order.id,
-      order,
+      order: order,
     });
   } catch (error) {
     console.error("[recharge/create]", error);
-    return NextResponse.json({ success: false, message: "Lỗi hệ thống" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "Lỗi hệ thống" },
+      { status: 500 }
+    );
   }
 }

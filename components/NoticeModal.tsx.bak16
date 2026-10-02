@@ -1,0 +1,335 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+export default function NoticeModal() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const hideUntil = localStorage.getItem("notice_hidden_until");
+    if (!hideUntil || Date.now() > parseInt(hideUntil)) {
+      const t = setTimeout(() => setVisible(true), 600);
+      return () => clearTimeout(t);
+    }
+  }, []);
+
+  // Ẩn scroll + ẩn các element khác khi popup mở
+  useEffect(() => {
+    if (visible) {
+      document.body.classList.add("notice-open");
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.classList.remove("notice-open");
+      document.documentElement.style.overflow = "";
+    }
+    return () => {
+      document.body.classList.remove("notice-open");
+      document.documentElement.style.overflow = "";
+    };
+  }, [visible]);
+
+  const close = () => setVisible(false);
+  const close24h = () => {
+    close();
+    localStorage.setItem(
+      "notice_hidden_until",
+      String(Date.now() + 24 * 60 * 60 * 1000)
+    );
+  };
+
+  if (!visible) return null;
+
+  return (
+    <div className="notice-overlay" onClick={close}>
+      <div className="notice-modal-box" onClick={(e) => e.stopPropagation()}>
+        <button onClick={close} className="notice-close-btn" aria-label="Đóng">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+
+        <h2 className="notice-title">Thông Báo</h2>
+
+        <div className="notice-card">
+          <div className="notice-card-icon">⭐</div>
+          <div className="notice-card-text">
+            <div className="notice-card-heading">
+              🎉 Chính thức ra mắt gói Siêu VIP (SVIP) Độc Quyền!
+            </div>
+            <div className="notice-card-desc">
+              Trải nghiệm quyền lực tối thượng với gói SVIP: Chỉ cần Username,
+              Không cần Nhập DNS. Nâng cấp mượt mà, an toàn tuyệt đối và tự
+              động lên Gold trong 1 nốt nhạc!
+            </div>
+          </div>
+        </div>
+
+        <div className="notice-footer-row">
+          <button onClick={close} className="notice-footer-btn notice-footer-primary">
+            Đã hiểu
+          </button>
+          <button onClick={close24h} className="notice-footer-btn notice-footer-danger">
+            Đóng trong 24h tới
+          </button>
+        </div>
+      </div>
+
+      <style jsx global>{`
+        /* ═══ ẨN TẤT CẢ ELEMENT KHÁC KHI POPUP MỞ ═══ */
+        body.notice-open {
+          overflow: hidden !important;
+          position: fixed !important;
+          width: 100% !important;
+        }
+
+        /* Ẩn mọi thứ ngoài popup */
+        body.notice-open > *:not(script):not(style),
+        body.notice-open nav,
+        body.notice-open footer,
+        body.notice-open .nav,
+        body.notice-open [class*="nav"],
+        body.notice-open [class*="popup"]:not(.notice-overlay):not(.notice-modal-box),
+        body.notice-open [class*="sales"],
+        body.notice-open [class*="float"],
+        body.notice-open [class*="spin"],
+        body.notice-open [class*="contact"],
+        body.notice-open [class*="bottom"],
+        body.notice-open [class*="mobile"] {
+          visibility: hidden !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+        }
+
+        /* Nhưng popup notice thì vẫn hiện */
+        body.notice-open .notice-overlay,
+        body.notice-open .notice-overlay * {
+          visibility: visible !important;
+          opacity: 1 !important;
+          pointer-events: auto !important;
+        }
+
+        /* ═══ OVERLAY — PHỦ TOÀN MÀN HÌNH ═══ */
+        .notice-overlay {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          height: 100dvh !important;
+          background: rgba(0, 0, 0, 0.75) !important;
+          backdrop-filter: blur(16px) !important;
+          -webkit-backdrop-filter: blur(16px) !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          padding: 20px !important;
+          z-index: 2147483647 !important;
+          animation: noticeFadeIn 0.3s ease;
+          cursor: pointer;
+          margin: 0 !important;
+        }
+
+        @keyframes noticeFadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        /* Popup */
+        .notice-modal-box {
+          cursor: default !important;
+          width: 440px !important;
+          max-width: calc(100vw - 40px) !important;
+          min-width: 0 !important;
+          height: auto !important;
+          max-height: 85vh !important;
+          flex: 0 0 auto !important;
+          padding: 24px 22px 22px !important;
+          border-radius: 20px !important;
+          background: #ffffff !important;
+          border: 1px solid #e5e7eb !important;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+          filter: none !important;
+          text-align: center !important;
+          position: relative !important;
+          overflow-y: auto !important;
+          box-sizing: border-box !important;
+          isolation: isolate !important;
+          transform: translateZ(0) !important;
+          animation: noticePopIn 0.35s cubic-bezier(0.34, 1.4, 0.64, 1);
+        }
+
+        @keyframes noticePopIn {
+          from { opacity: 0; transform: scale(0.92) translateY(12px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .notice-close-btn {
+          position: absolute !important;
+          top: 14px !important;
+          right: 14px !important;
+          background: transparent !important;
+          border: none !important;
+          border-radius: 50% !important;
+          width: 28px !important;
+          height: 28px !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          color: #9ca3af !important;
+          cursor: pointer !important;
+          padding: 0 !important;
+        }
+
+        .notice-title {
+          font-size: 22px !important;
+          font-weight: 800 !important;
+          margin: 0 0 18px 0 !important;
+          color: #0e7490 !important;
+          letter-spacing: -0.3px !important;
+          line-height: 1.2 !important;
+        }
+
+        .notice-card {
+          display: flex !important;
+          gap: 12px !important;
+          align-items: flex-start !important;
+          padding: 14px !important;
+          border-radius: 14px !important;
+          background: linear-gradient(135deg, #fce7f3 0%, #f3e8ff 100%) !important;
+          border: 1px solid #fbcfe8 !important;
+          text-align: left !important;
+          margin-bottom: 18px !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
+        }
+
+        .notice-card-icon {
+          width: 40px !important;
+          height: 40px !important;
+          min-width: 40px !important;
+          min-height: 40px !important;
+          max-width: 40px !important;
+          max-height: 40px !important;
+          flex: 0 0 40px !important;
+          aspect-ratio: 1 / 1 !important;
+          border-radius: 50% !important;
+          overflow: hidden !important;
+          background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%) !important;
+          color: #fff !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          font-size: 20px !important;
+          line-height: 1 !important;
+          text-align: center !important;
+          align-self: flex-start !important;
+          box-shadow: 0 4px 12px rgba(236, 72, 153, 0.35) !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          box-sizing: border-box !important;
+        }
+
+        .notice-card-text {
+          flex: 1 !important;
+          min-width: 0 !important;
+        }
+
+        .notice-card-heading {
+          font-size: 14.5px !important;
+          font-weight: 800 !important;
+          color: #111827 !important;
+          line-height: 1.4 !important;
+          margin-bottom: 6px !important;
+        }
+
+        .notice-card-desc {
+          font-size: 13.5px !important;
+          color: #4b5563 !important;
+          line-height: 1.55 !important;
+        }
+
+        .notice-footer-row {
+          display: flex !important;
+          gap: 10px !important;
+          width: 100% !important;
+        }
+
+        .notice-footer-btn {
+          flex: 1 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          padding: 13px 10px !important;
+          border-radius: 12px !important;
+          font-size: 14px !important;
+          font-weight: 700 !important;
+          cursor: pointer !important;
+          font-family: inherit !important;
+          border: none !important;
+          white-space: nowrap !important;
+          box-sizing: border-box !important;
+        }
+
+        .notice-footer-primary {
+          background: #22d3ee !important;
+          color: #0e1414 !important;
+          box-shadow: 0 4px 14px rgba(34, 211, 238, 0.35) !important;
+        }
+
+        .notice-footer-danger {
+          border: 1.5px solid #fbcfe8 !important;
+          background: #fff1f2 !important;
+          color: #ef4444 !important;
+        }
+
+        @media (max-width: 480px) {
+          .notice-overlay {
+            padding: 14px !important;
+            backdrop-filter: blur(10px) !important;
+            -webkit-backdrop-filter: blur(10px) !important;
+          }
+          .notice-modal-box {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 20px 16px 18px !important;
+            border-radius: 18px !important;
+          }
+          .notice-title { font-size: 19px !important; margin-bottom: 14px !important; }
+          .notice-card { padding: 12px !important; gap: 10px !important; }
+          .notice-card-icon {
+            width: 36px !important;
+            height: 36px !important;
+            min-width: 36px !important;
+            min-height: 36px !important;
+            max-width: 36px !important;
+            max-height: 36px !important;
+            flex: 0 0 36px !important;
+            font-size: 18px !important;
+          }
+          .notice-card-heading { font-size: 13.5px !important; }
+          .notice-card-desc { font-size: 12.5px !important; }
+          .notice-footer-btn {
+            font-size: 13px !important;
+            padding: 12px 8px !important;
+            white-space: normal !important;
+            line-height: 1.2 !important;
+          }
+        }
+
+        @media (max-width: 400px) {
+          .notice-footer-btn { font-size: 12.5px !important; padding: 11px 6px !important; }
+        }
+
+        @media (max-width: 360px) {
+          .notice-footer-row { flex-direction: column !important; gap: 8px !important; }
+          .notice-footer-btn { font-size: 13px !important; }
+        }
+      `}</style>
+    </div>
+  );
+}

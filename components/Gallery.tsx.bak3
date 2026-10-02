@@ -1,0 +1,148 @@
+"use client";
+
+import { useState } from "react";
+
+const images = [
+  { src: "/img/logo/anh5.JPG", alt: "Locket Gold" },
+  { src: "/img/logo/anh6.JPG", alt: "Các Tính Năng Gold" },
+  { src: "/img/logo/anh1.JPG", alt: "Không giới hạn bạn bè" },
+  { src: "/img/logo/anh3.jpg", alt: "Quay Video trên Locket" },
+  { src: "/img/logo/anh2.PNG", alt: "Đổi Icon Ứng Dụng" },
+  { src: "/img/logo/anh4.jpeg", alt: "Đổi Theme Giao Diện" },
+];
+
+export default function Gallery() {
+  const [lightbox, setLightbox] = useState<string | null>(null);
+
+  return (
+    <>
+      <div style={{ textAlign: "center", marginTop: 40, marginBottom: 24 }}>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: "var(--text-0)" }}>
+          Trải Nghiệm Ưu Việt
+        </h2>
+        <p style={{ color: "var(--text-2)", fontSize: 14, marginTop: 8, padding: "0 16px" }}>
+          Hình ảnh thực tế về các tính năng độc quyền trên ứng dụng
+        </p>
+      </div>
+
+      <div className="feature-gallery">
+        {images.map((img, i) => (
+          <div
+            className="gallery-img-wrap"
+            key={i}
+            onClick={() => setLightbox(img.src)}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={img.src} alt={img.alt} loading="lazy" />
+          </div>
+        ))}
+      </div>
+
+      <div
+        style={{
+          background: "transparent",
+          border: "1px dashed var(--accent)",
+          borderRadius: 12,
+          padding: 18,
+          marginBottom: 40,
+          marginTop: 24,
+          textAlign: "center",
+        }}
+      >
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            marginBottom: 8,
+          }}
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--accent)"
+            strokeWidth="2"
+          >
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+          <h4
+            style={{
+              color: "var(--accent)",
+              fontSize: 15,
+              fontWeight: 700,
+              margin: 0,
+              letterSpacing: 0.5,
+              textTransform: "uppercase",
+            }}
+          >
+            Cam kết quyền riêng tư
+          </h4>
+        </div>
+        <p
+          style={{
+            color: "var(--text-2)",
+            fontSize: 14.5,
+            margin: 0,
+            lineHeight: 1.6,
+          }}
+        >
+          Tài khoản của bạn sẽ được mở khóa toàn bộ các đặc quyền Premium. Xin lưu ý: Để đảm bảo quyền riêng tư tuyệt đối, hệ thống sẽ hoàn toàn không hiển thị Huy hiệu Vàng trên trang cá nhân của bạn cũng như với người dùng khác.
+        </p>
+      </div>
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          onClick={() => setLightbox(null)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.85)",
+            zIndex: 999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+            cursor: "zoom-out",
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={lightbox}
+            alt="Preview"
+            style={{
+              maxWidth: "95vw",
+              maxHeight: "90vh",
+              borderRadius: 12,
+              boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
+            }}
+          />
+          <button
+            onClick={() => setLightbox(null)}
+            style={{
+              position: "absolute",
+              top: 20,
+              right: 20,
+              width: 44,
+              height: 44,
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.15)",
+              color: "#fff",
+              border: "none",
+              fontSize: 24,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+    </>
+  );
+}

@@ -11,6 +11,14 @@ interface GooglePayload {
   picture?: string;
 }
 
+function decodeBase64Url(str: string): string {
+  let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
+  while (base64.length % 4) {
+    base64 += "=";
+  }
+  return Buffer.from(base64, "base64").toString("utf-8");
+}
+
 export async function POST(req: Request) {
   try {
     const { credential } = await req.json();
@@ -24,28 +32,42 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "Token không hợp lệ" }, { status: 400 });
     }
 
-    const payload: GooglePayload = JSON.parse(
-      Buffer.from(parts[1], "base64").toString("utf-8")
-    );
+    let payload: GooglePayload;
+    try {
+      payload = JSON.parse(decodeBase64Url(parts[1]));
+    } catch (e) {
+      console.error("[GOOGLE] Decode error:", e);
+      return NextResponse.json({ success: false, message: "Token không giải mã được" }, { status: 400 });
+    }
 
-    if (!payload.email || !payload.email_verified) {
+    console.log("[GOOGLE PAYLOAD]", JSON.stringify(payload));
+
+    if (!payload.email || typeof payload.email !== "string") {
+      console.error("[GOOGLE] Missing email:", payload);
+      return NextResponse.json({ success: false, message: "Không lấy được email" }, { status: 400 });
+    }
+
+    if (!payload.email_verified) {
       return NextResponse.json({ success: false, message: "Email chưa xác thực" }, { status: 400 });
     }
 
-    let user = await prisma.user.findUnique({ where: { email: payload.email } });
+    const email = String(payload.email).trim().toLowerCase();
+
+    let user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
-      const baseUsername = payload.email.split("@")[0].replace(/[^a-zA-Z0-9_]/g, "");
+      const baseUsername = email.split("@")[0].replace(/[^a-zA-Z0-9_]/g, "") || "user";
       let username = baseUsername;
       let suffix = 1;
       while (await prisma.user.findUnique({ where: { username } })) {
         username = `${baseUsername}${suffix}`;
         suffix++;
+        if (suffix > 9999) break;
       }
 
       user = await prisma.user.create({
         data: {
-          email: payload.email,
+          email,
           username,
           password: "",
           name: payload.name || username,
@@ -84,7 +106,7 @@ export async function POST(req: Request) {
       },
     });
   } catch (error) {
-    console.error("Google auth error:", error);
+    console.error("[GOOGLE] Auth error:", error);
     return NextResponse.json({ success: false, message: "Lỗi hệ thống" }, { status: 500 });
   }
 }

@@ -28,6 +28,7 @@ export default function ThanhToanContent() {
   const searchParams = useSearchParams();
   const serviceId = searchParams.get("serviceId");
   const packageId = searchParams.get("packageId");
+  const variant = searchParams.get("variant");
 
   const [user, setUser] = useState<{ username: string; email?: string } | null>(null);
   const [balance, setBalance] = useState<number | null>(null);
@@ -120,6 +121,31 @@ export default function ThanhToanContent() {
     return () => clearTimeout(timer);
   }, [locketUsername]);
 
+  // ═══ POLLING: Tự động check đơn mỗi 3s ═══
+  useEffect(() => {
+    if (!showBankModal || !order) return;
+    if (order.status === "paid" || order.status === "completed") return;
+    const checkStatus = async () => {
+      try {
+        const res = await fetch("/api/payments/check?orderId=" + order.id);
+        const data = await res.json();
+        if (data.success && (data.status === "paid" || data.status === "completed")) {
+          window.location.href = "/thanh-toan/thanh-cong?orderId=" + order.id;
+          return;
+        }
+        if (data.success && data.status === "expired") {
+          setError("Đơn hàng đã hết hạn. Vui lòng tạo đơn mới.");
+          setShowBankModal(false);
+        }
+      } catch (err) {
+        console.error("Polling error:", err);
+      }
+    };
+    checkStatus();
+    const interval = setInterval(checkStatus, 3000);
+    return () => clearInterval(interval);
+  }, [showBankModal, order]);
+
   const handleCreateOrder = async () => {
     if (!serviceId) {
       setError("Thiếu thông tin dịch vụ");
@@ -144,7 +170,7 @@ export default function ThanhToanContent() {
         body: JSON.stringify({
           serviceId,
           packageId: packageId || undefined,
-          locketUsername: profile?.username || locketUsername.trim(),
+          variant: variant ? parseInt(variant) : undefined,
           couponCode: coupon.trim() || undefined,
         }),
       });
@@ -389,7 +415,7 @@ export default function ThanhToanContent() {
                   <span className="pay-method-icon">🏦</span>
                   Chuyển khoản ngân hàng
                 </div>
-                <div className="pay-method-desc">Quét mã QR — Hệ thống tự động xác nhận trong 1-2 phút</div>
+                <div className="pay-method-desc">Quét mã QR — Hệ thống tự động xác nhận trong vài giây</div>
               </div>
             </button>
           </div>

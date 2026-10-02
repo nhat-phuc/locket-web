@@ -1,0 +1,321 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String    @unique
+  password      String
+  name          String?
+  picture       String?
+  phone         String?
+  role          String    @default("user")
+  balance       Int       @default(0)
+  isActive      Boolean   @default(true)
+  isBanned      Boolean   @default(false)
+  referralCode  String?   @unique
+  referredBy    String?
+  resetToken        String?
+  resetTokenExpiry  DateTime?
+  otpCode           String?
+  otpExpiry         DateTime?
+
+  // ═══ TELEGRAM ═══
+  telegramId        String?   @unique
+  telegramLinkCode  String?   @unique
+  telegramLinkedAt  DateTime?
+
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  orders        Order[]
+  transactions  Transaction[]
+  reviews       Review[]
+  withdrawalRequests  WithdrawalRequest[]
+
+  @@index([email])
+  @@index([username])
+}
+
+model Service {
+  id            String    @id @default(cuid())
+  name          String
+  slug          String    @unique
+  description   String
+  type          String
+  platform      String
+  price         Int
+  originalPrice Int?
+  discount      Int?
+  duration      String?
+  features      String
+  badge         String?
+  badgeColor    String?
+  sortOrder     Int       @default(0)
+  image         String?
+  isActive      Boolean   @default(true)
+  isFeatured    Boolean   @default(false)
+  stock         Int?
+  sold          Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  orders        Order[]
+  packages      ServicePackage[]
+
+  @@index([slug])
+  @@index([type])
+}
+
+model ServicePackage {
+  id            String    @id @default(cuid())
+  serviceId     String
+  name          String
+  duration      String
+  price         Int
+  originalPrice Int?
+  discount      Int?
+  isPopular     Boolean   @default(false)
+  order         Int       @default(0)
+
+  service       Service   @relation(fields: [serviceId], references: [id])
+
+  @@index([serviceId])
+}
+
+model Order {
+  id            String    @id @default(cuid())
+  orderCode     String    @unique
+  userId        String
+  serviceId     String
+  packageId     String?
+  serviceName   String
+  amount        Int
+  discount      Int       @default(0)
+  finalAmount   Int
+  couponCode    String?
+  status        String    @default("pending")
+  paymentMethod String    @default("bank_transfer")
+  paymentRef    String?
+  note          String?
+  locketUsername String?
+  locketLink    String?
+  createdAt     DateTime  @default(now())
+  paidAt        DateTime?
+  completedAt   DateTime?
+  expiresAt     DateTime?
+
+  user          User      @relation(fields: [userId], references: [id])
+  service       Service   @relation(fields: [serviceId], references: [id])
+
+  @@index([userId])
+  @@index([orderCode])
+  @@index([status])
+}
+
+model Transaction {
+  id            String    @id @default(cuid())
+  userId        String
+  type          String
+  amount        Int
+  balanceBefore Int
+  balanceAfter  Int
+  status        String    @default("pending")
+  method        String?
+  reference     String?
+  description   String
+  orderId       String?
+  createdAt     DateTime  @default(now())
+  completedAt   DateTime?
+
+  user          User      @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+}
+
+model Post {
+  id            String    @id @default(cuid())
+  title         String
+  slug          String    @unique
+  excerpt       String
+  content       String
+  category      String
+  categoryColor String?
+  author        String
+  authorAvatar  String?
+  image         String?
+  tags          String
+  readTime      String
+  views         Int       @default(0)
+  isPublished   Boolean   @default(true)
+  isFeatured    Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([slug])
+  @@index([category])
+}
+
+model Review {
+  id            String    @id @default(cuid())
+  userId        String?
+  orderId       String?
+  name          String
+  initial       String
+  text          String
+  rating        Int       @default(5)
+  image         String?
+  images        String?
+  time          String
+  status        String    @default("pending")
+  isApproved    Boolean   @default(false)
+  isFeatured    Boolean   @default(false)
+  approvedBy    String?
+  approvedAt    DateTime?
+  rejectReason  String?
+  createdAt     DateTime  @default(now())
+
+  user          User?     @relation(fields: [userId], references: [id])
+
+  @@index([status])
+  @@index([isApproved])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Coupon {
+  id            String    @id @default(cuid())
+  code          String    @unique
+  discountType  String
+  discountValue Int
+  minOrder      Int       @default(0)
+  maxDiscount   Int?
+  usageLimit    Int?
+  usedCount     Int       @default(0)
+  expiresAt     DateTime?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+
+  @@index([code])
+}
+
+model Notification {
+  id            String    @id @default(cuid())
+  userId        String?
+  title         String
+  content       String
+  type          String    @default("info")
+  isRead        Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model Setting {
+  key           String    @id
+  value         String
+  updatedAt     DateTime  @updatedAt
+}
+
+model Log {
+  id            String    @id @default(cuid())
+  userId        String?
+  action        String
+  detail        String?
+  ip            String?
+  userAgent     String?
+  createdAt     DateTime  @default(now())
+
+  @@index([userId])
+  @@index([action])
+}
+model PendingTransaction {
+  id              String    @id @default(cuid())
+  sepayId         String?   @unique
+  orderCode       String?
+  orderId         String?
+  amount          Int
+  content         String?
+  referenceCode   String?
+  bankAccount     String?
+  gateway         String?
+  transactionDate DateTime?
+  reason          String
+  status          String    @default("pending")
+  note            String?
+  resolvedBy      String?
+  resolvedAt      DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@index([status])
+  @@index([orderCode])
+}
+
+model LocketProfile {
+  id            String    @id @default(cuid())
+  username      String    @unique
+  displayName   String?
+  avatar        String?
+  coverImage    String?
+  badge         String?
+  bio           String?
+  age           Int?
+  gender        String?
+  interests     String?
+  profileUrl    String?
+  savedBy       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([username])
+  @@index([createdAt])
+}
+
+model WithdrawalRequest {
+  id            String    @id @default(cuid())
+  userId        String
+  amount        Int
+  bankName      String
+  bankAccount   String
+  accountName   String
+  status        String    @default("pending")
+  adminNote     String?
+  processedBy   String?
+  processedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user          User      @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+}
+
+model WithdrawalRequest {
+  id            String    @id @default(cuid())
+  userId        String
+  amount        Int
+  bankName      String
+  bankAccount   String
+  accountName   String
+  status        String    @default("pending")
+  adminNote     String?
+  processedBy   String?
+  processedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user          User      @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+}

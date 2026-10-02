@@ -18,7 +18,7 @@
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "resend": "^6.30.0",
+    "resend": "^6.31.0",
     "swr": "^2.5.1"
   },
   "devDependencies": {
@@ -27,7 +27,7 @@
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "dotenv": "^18.0.4",
+    "dotenv": "^18.0.5",
     "prisma": "^5.22.0",
     "tailwindcss": "latest",
     "tsx": "^4.23.15",

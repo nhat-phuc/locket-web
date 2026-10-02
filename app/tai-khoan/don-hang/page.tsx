@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import DanhGiaDichVu from "@/components/DanhGiaDichVu";
 
 interface Order {
   id: string;
@@ -68,6 +69,9 @@ export default function DonHangPage() {
           ))}
         </div>
       )}
+
+      {/* ===== FORM ĐÁNH GIÁ DỊCH VỤ ===== */}
+      <DanhGiaDichVu />
     </>
   );
 }

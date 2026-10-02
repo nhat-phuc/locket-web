@@ -1,72 +1,99 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getSession } from "@/lib/session";
+import { requireAdmin } from "@/lib/admin";
 
-// POST /api/admin/users/{id}/recharge
-// Body: { amount: number, note?: string }
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const session = await getSession();
-    if (!session || session.role !== "admin") {
-      return NextResponse.json({ success: false, message: "Không có quyền" }, { status: 401 });
+    const auth = await requireAdmin();
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, message: auth.message },
+        { status: auth.status }
+      );
     }
 
     const { id } = await params;
-    const { amount, note } = await req.json();
+    const body = await req.json();
+    const amount = Number(body.amount);
+    const note = String(body.note || "").trim() || "Admin cộng tiền";
+    const type = body.type === "subtract" ? "subtract" : "add";
 
-    const amt = Number(amount);
-    if (!amt || amt === 0) {
-      return NextResponse.json({ success: false, message: "Số tiền không hợp lệ" }, { status: 400 });
+    // Validate
+    if (!amount || amount <= 0 || isNaN(amount)) {
+      return NextResponse.json(
+        { success: false, message: "Số tiền không hợp lệ" },
+        { status: 400 }
+      );
     }
 
+    // Tìm user
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) {
-      return NextResponse.json({ success: false, message: "User không tồn tại" }, { status: 404 });
+      return NextResponse.json(
+        { success: false, message: "Không tìm thấy user" },
+        { status: 404 }
+      );
     }
 
-    const result = await prisma.$transaction(async (tx) => {
-      const before = user.balance;
-      const after = before + amt;
+    const finalAmount = type === "subtract" ? -amount : amount;
+    const newBalance = user.balance + finalAmount;
 
-      await tx.user.update({
+    if (newBalance < 0) {
+      return NextResponse.json(
+        { success: false, message: "Số dư không đủ để trừ" },
+        { status: 400 }
+      );
+    }
+
+    // Transaction: cập nhật balance + tạo Transaction + Log
+    const result = await prisma.$transaction(async (tx) => {
+      const updatedUser = await tx.user.update({
         where: { id },
-        data: { balance: after },
+        data: { balance: newBalance },
       });
 
-      await tx.transaction.create({
+      const transaction = await tx.transaction.create({
         data: {
           userId: id,
-          type: amt > 0 ? "admin_credit" : "admin_debit",
-          amount: amt,
-          balanceBefore: before,
-          balanceAfter: after,
-          status: "success",
+          type: type === "add" ? "admin_recharge" : "admin_deduct",
+          amount: Math.abs(amount),
+          balanceBefore: user.balance,
+          balanceAfter: newBalance,
+          status: "completed",
           method: "admin",
-          reference: session.userId,
-          description: note || `Admin ${amt > 0 ? "cộng" : "trừ"} ${Math.abs(amt).toLocaleString("vi-VN")}đ`,
+          description: note,
+          completedAt: new Date(),
         },
       });
 
-      return { before, after };
-    });
+      const log = await tx.log.create({
+        data: {
+          userId: auth.session!.userId,
+          action: type === "add" ? "ADMIN_RECHARGE" : "ADMIN_DEDUCT",
+          detail: `${type === "add" ? "Cộng" : "Trừ"} ${Math.abs(amount).toLocaleString("vi-VN")}đ cho user ${user.username} (${user.email}). Lý do: ${note}`,
+        },
+      });
 
-    // Thông báo cho user
-    await prisma.notification.create({
-      data: {
-        userId: id,
-        title: amt > 0 ? "💰 Tài khoản được cộng tiền" : "⚠️ Tài khoản bị trừ tiền",
-        content: `${amt > 0 ? "+" : ""}${amt.toLocaleString("vi-VN")}đ. ${note || ""}`,
-        type: amt > 0 ? "success" : "warning",
-      },
+      return { updatedUser, transaction, log };
     });
 
     return NextResponse.json({
       success: true,
-      message: `Đã ${amt > 0 ? "cộng" : "trừ"} ${Math.abs(amt).toLocaleString("vi-VN")}đ`,
-      balance: result.after,
+      message: `${type === "add" ? "Cộng" : "Trừ"} ${Math.abs(amount).toLocaleString("vi-VN")}đ thành công. Số dư mới: ${newBalance.toLocaleString("vi-VN")}đ`,
+      user: {
+        id: result.updatedUser.id,
+        balance: result.updatedUser.balance,
+      },
+      transaction: result.transaction,
     });
   } catch (error) {
-    console.error("[admin/recharge]", error);
-    return NextResponse.json({ success: false, message: "Lỗi hệ thống" }, { status: 500 });
+    console.error("Admin recharge error:", error);
+    return NextResponse.json(
+      { success: false, message: "Lỗi hệ thống" },
+      { status: 500 }
+    );
   }
 }

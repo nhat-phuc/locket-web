@@ -20,7 +20,6 @@ export default function RegisterForm() {
     e.preventDefault();
     setError("");
 
-    // Validate phone
     if (!/^0\d{9}$/.test(phone)) {
       setError("Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0)");
       return;
@@ -64,9 +63,18 @@ export default function RegisterForm() {
 
       {error && <div className="auth-error">{error}</div>}
 
-      <GoogleLoginButton />
+      {/* Google Button */}
+      <div className="auth-google-wrap">
+        <GoogleLoginButton />
+      </div>
 
-      <div className="auth-field" style={{ marginTop: 20 }}>
+      {/* Divider */}
+      <div className="auth-divider">
+        <span>HOẶC</span>
+      </div>
+
+      {/* Fields */}
+      <div className="auth-field">
         <label>
           Email <span style={{ color: "var(--red)" }}>*</span>
         </label>
@@ -95,9 +103,7 @@ export default function RegisterForm() {
           pattern="[a-zA-Z0-9_]+"
           autoComplete="username"
         />
-        <small style={{ color: "var(--text-2)", fontSize: 12 }}>
-          Chỉ chứa chữ, số, gạch dưới (3-20 ký tự)
-        </small>
+        <small>Chỉ chứa chữ, số, gạch dưới (3-20 ký tự)</small>
       </div>
 
       <div className="auth-field">
@@ -125,9 +131,7 @@ export default function RegisterForm() {
           autoComplete="tel"
           inputMode="numeric"
         />
-        <small style={{ color: "var(--text-2)", fontSize: 12 }}>
-          10 số, bắt đầu bằng 0
-        </small>
+        <small>10 số, bắt đầu bằng 0</small>
       </div>
 
       <div className="auth-field">
@@ -165,13 +169,81 @@ export default function RegisterForm() {
 
       <p className="auth-footer">
         Đã có tài khoản?{" "}
-        <Link
-          href="/dang-nhap"
-          style={{ color: "var(--accent-bright)", fontWeight: 700 }}
-        >
-          Đăng nhập
-        </Link>
+        <Link href="/dang-nhap">Đăng nhập</Link>
       </p>
+
+      <style jsx>{`
+        .auth-form {
+          width: 100%;
+          max-width: 440px;
+          margin: 0 auto;
+        }
+        .auth-google-wrap {
+          margin-bottom: 20px !important;
+        }
+        .auth-google-wrap :global(*),
+        .auth-google-wrap :global(button) {
+          margin: 0 !important;
+        }
+        .auth-google-wrap :global(div) {
+          min-height: 0 !important;
+          height: auto !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+        .auth-divider {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin: 20px 0 !important;
+          color: var(--text-2, #6a6a7a);
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 1px;
+        }
+        .auth-divider::before,
+        .auth-divider::after {
+          content: "";
+          flex: 1;
+          height: 1px;
+          background: var(--border, rgba(0, 0, 0, 0.08));
+        }
+        .auth-divider span {
+          flex-shrink: 0;
+        }
+        .auth-field {
+          margin-bottom: 14px !important;
+        }
+        .auth-field:last-of-type {
+          margin-bottom: 8px !important;
+        }
+        .auth-field small {
+          display: block;
+          margin-top: 6px;
+          font-size: 12px;
+          color: var(--text-2, #6a6a7a);
+          line-height: 1.5;
+        }
+        .auth-btn {
+          width: 100%;
+          margin-top: 8px;
+        }
+        .auth-footer {
+          text-align: center;
+          margin-top: 18px;
+          font-size: 14px;
+          color: var(--text-2, #6a6a7a);
+        }
+        .auth-footer :global(a) {
+          color: #a78bfa;
+          font-weight: 700;
+          text-decoration: none;
+        }
+        .auth-footer :global(a:hover) {
+          color: #7c3aed;
+          text-decoration: underline;
+        }
+      `}</style>
     </form>
   );
 }
