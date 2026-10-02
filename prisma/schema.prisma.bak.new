@@ -23,12 +23,13 @@ model User {
   referredBy    String?
   resetToken        String?
   resetTokenExpiry  DateTime?
-  telegramId        String?   @unique
-  telegramLinkCode  String?
-  telegramLinkedAt  DateTime?
   otpCode           String?
   otpExpiry         DateTime?
 
+  // ═══ TELEGRAM ═══
+  telegramId        String?   @unique
+  telegramLinkCode  String?
+  telegramLinkedAt  DateTime?
 
 
   createdAt     DateTime  @default(now())
