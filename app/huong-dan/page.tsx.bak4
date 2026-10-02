@@ -77,12 +77,13 @@ export default function HuongDanPage() {
 
   return (
     <div className="hd-page">
+      {/* Background glows */}
       <div className="bg-3d-glow bg-3d-glow-1" />
       <div className="bg-3d-glow bg-3d-glow-2" />
       <div className="bg-3d-glow bg-3d-glow-3" />
 
       <div className="hd-container">
-        {/* HERO */}
+        {/* ═══ HERO ═══ */}
         <div className="hd-hero">
           <div className="hd-badge">
             <span className="hd-badge-dot" />
@@ -96,6 +97,7 @@ export default function HuongDanPage() {
             Chỉ mất <b>2 phút</b> để nhận profile VIP
           </p>
 
+          {/* Stats */}
           <div className="hd-hero-stats">
             <div className="hd-hero-stat">
               <div className="hd-hero-stat-num">10K+</div>
@@ -114,10 +116,12 @@ export default function HuongDanPage() {
           </div>
         </div>
 
-        {/* STEPS */}
+        {/* ═══ STEPS — TIMELINE ═══ */}
         <div className="hd-section">
           <div className="hd-section-header">
-            <h2 className="hd-section-title">🚀 5 Bước Đơn Giản</h2>
+            <h2 className="hd-section-title">
+              🚀 5 Bước Đơn Giản
+            </h2>
             <p className="hd-section-desc">Làm theo từng bước để nhận VIP</p>
           </div>
 
@@ -135,12 +139,15 @@ export default function HuongDanPage() {
                     animationDelay: `${i * 0.08}s`,
                   } as React.CSSProperties}
                 >
+                  {/* Đường nối */}
                   {i < STEPS.length - 1 && <div className="hd-tl-line" />}
 
+                  {/* Dot */}
                   <div className="hd-tl-dot">
                     <span className="hd-tl-num">{s.n}</span>
                   </div>
 
+                  {/* Content */}
                   <div className="hd-tl-content">
                     <div className="hd-tl-head">
                       <div className="hd-tl-icon-wrap" style={{ background: s.bg }}>
@@ -153,6 +160,7 @@ export default function HuongDanPage() {
                     </div>
                     <p className="hd-tl-desc">{s.desc}</p>
 
+                    {/* Tips */}
                     <div className="hd-tl-tip">
                       <span className="hd-tl-tip-icon">💡</span>
                       <span>{s.tips}</span>
@@ -164,10 +172,12 @@ export default function HuongDanPage() {
           </div>
         </div>
 
-        {/* TIPS */}
+        {/* ═══ TIPS SECTION ═══ */}
         <div className="hd-section">
           <div className="hd-section-header">
-            <h2 className="hd-section-title">💡 Mẹo Hay Cho Bạn</h2>
+            <h2 className="hd-section-title">
+              💡 Mẹo Hay Cho Bạn
+            </h2>
             <p className="hd-section-desc">Tận dụng tối đa dịch vụ</p>
           </div>
 
@@ -186,7 +196,7 @@ export default function HuongDanPage() {
           </div>
         </div>
 
-        {/* CTA */}
+        {/* ═══ CTA ═══ */}
         <div className="hd-cta">
           <div className="hd-cta-glow" />
           <div className="hd-cta-content">
@@ -208,10 +218,12 @@ export default function HuongDanPage() {
           </div>
         </div>
 
-        {/* FAQ */}
+        {/* ═══ FAQ ═══ */}
         <div className="hd-section">
           <div className="hd-section-header">
-            <h2 className="hd-section-title">❓ Câu Hỏi Thường Gặp</h2>
+            <h2 className="hd-section-title">
+              ❓ Câu Hỏi Thường Gặp
+            </h2>
             <p className="hd-section-desc">Giải đáp mọi thắc mắc</p>
           </div>
 
@@ -237,7 +249,7 @@ export default function HuongDanPage() {
           </div>
         </div>
 
-        {/* SUPPORT */}
+        {/* ═══ SUPPORT ═══ */}
         <div className="hd-support">
           <div className="hd-support-content">
             <h3>💬 Cần hỗ trợ thêm?</h3>
@@ -249,6 +261,9 @@ export default function HuongDanPage() {
                 rel="noopener noreferrer"
                 className="hd-support-btn zalo"
               >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
+                </svg>
                 Zalo
               </a>
               <a
@@ -257,6 +272,9 @@ export default function HuongDanPage() {
                 rel="noopener noreferrer"
                 className="hd-support-btn tele"
               >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z" />
+                </svg>
                 Telegram
               </a>
             </div>
@@ -265,29 +283,17 @@ export default function HuongDanPage() {
       </div>
 
       <style jsx>{`
-        /* ═══ FIX TRÀN + KÉO ═══ */
-        .hd-page * {
-          box-sizing: border-box;
-          word-wrap: break-word;
-          overflow-wrap: break-word;
-          word-break: break-word;
-        }
-
         .hd-page {
           position: relative;
-          width: 100%;
-          max-width: 100vw;
           min-height: 100vh;
           padding: 40px 16px 80px;
           background: var(--bg-0);
-          overflow-x: hidden;
-          overflow-y: auto;
+          overflow: hidden;
         }
 
         .hd-container {
           position: relative;
           z-index: 1;
-          width: 100%;
           max-width: 800px;
           margin: 0 auto;
         }
@@ -312,8 +318,6 @@ export default function HuongDanPage() {
           font-weight: 800;
           letter-spacing: 1.5px;
           margin-bottom: 20px;
-          max-width: 100%;
-          white-space: nowrap;
         }
         .hd-badge-dot {
           width: 6px;
@@ -321,7 +325,6 @@ export default function HuongDanPage() {
           border-radius: 50%;
           background: #a78bfa;
           animation: pulse 1.5s ease-in-out infinite;
-          flex-shrink: 0;
         }
         @keyframes pulse {
           0%, 100% { opacity: 1; transform: scale(1); }
@@ -329,13 +332,12 @@ export default function HuongDanPage() {
         }
 
         .hd-title {
-          font-size: clamp(28px, 6vw, 46px);
+          font-size: 46px;
           font-weight: 900;
-          line-height: 1.15;
+          line-height: 1.1;
           color: var(--text-0);
           margin-bottom: 16px;
-          letter-spacing: -0.02em;
-          max-width: 100%;
+          letter-spacing: -0.03em;
         }
         .hd-gradient {
           background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 40%, #f472b6 70%, #34d399 100%);
@@ -351,12 +353,11 @@ export default function HuongDanPage() {
         }
 
         .hd-subtitle {
-          font-size: clamp(14px, 4vw, 17px);
+          font-size: 17px;
           color: var(--text-2);
           max-width: 480px;
           margin: 0 auto 32px;
           line-height: 1.6;
-          padding: 0 8px;
         }
         .hd-subtitle b {
           color: var(--text-0);
@@ -374,12 +375,9 @@ export default function HuongDanPage() {
           border: 1.5px solid rgba(167, 139, 250, 0.2);
           border-radius: 20px;
           box-shadow: 0 8px 32px rgba(167, 139, 250, 0.1);
-          max-width: 100%;
-          flex-wrap: nowrap;
         }
         .hd-hero-stat {
           text-align: center;
-          flex-shrink: 0;
         }
         .hd-hero-stat-num {
           font-size: 20px;
@@ -389,33 +387,28 @@ export default function HuongDanPage() {
           -webkit-text-fill-color: transparent;
           background-clip: text;
           margin-bottom: 2px;
-          white-space: nowrap;
         }
         .hd-hero-stat-label {
           font-size: 11px;
           color: var(--text-2);
           font-weight: 600;
-          white-space: nowrap;
         }
         .hd-hero-stat-divider {
           width: 1px;
           height: 32px;
           background: rgba(167, 139, 250, 0.2);
-          flex-shrink: 0;
         }
 
         /* ═══ SECTION ═══ */
         .hd-section {
           margin-bottom: 56px;
-          width: 100%;
         }
         .hd-section-header {
           text-align: center;
           margin-bottom: 32px;
-          padding: 0 8px;
         }
         .hd-section-title {
-          font-size: clamp(20px, 5vw, 28px);
+          font-size: 28px;
           font-weight: 900;
           color: var(--text-0);
           margin-bottom: 8px;
@@ -432,14 +425,13 @@ export default function HuongDanPage() {
           flex-direction: column;
           gap: 20px;
           position: relative;
-          width: 100%;
         }
 
         .hd-tl-item {
           position: relative;
           display: flex;
-          gap: 16px;
-          padding: 20px;
+          gap: 20px;
+          padding: 20px 24px 20px 20px;
           background: rgba(255, 255, 255, 0.04);
           backdrop-filter: blur(20px);
           border: 1.5px solid rgba(167, 139, 250, 0.15);
@@ -447,9 +439,6 @@ export default function HuongDanPage() {
           cursor: pointer;
           transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
           animation: fadeInUp 0.6s ease both;
-          width: 100%;
-          max-width: 100%;
-          overflow: hidden;
         }
         .hd-tl-item:hover {
           transform: translateX(4px);
@@ -480,7 +469,7 @@ export default function HuongDanPage() {
         /* Line nối */
         .hd-tl-line {
           position: absolute;
-          left: 35px;
+          left: 36px;
           top: 56px;
           bottom: -20px;
           width: 2px;
@@ -495,7 +484,7 @@ export default function HuongDanPage() {
           width: 32px;
           height: 32px;
           border-radius: 50%;
-          background: var(--c);
+          background: linear-gradient(135deg, var(--c), var(--c));
           display: grid;
           place-items: center;
           flex-shrink: 0;
@@ -512,14 +501,12 @@ export default function HuongDanPage() {
         .hd-tl-content {
           flex: 1;
           min-width: 0;
-          overflow: hidden;
         }
         .hd-tl-head {
           display: flex;
           align-items: center;
           gap: 12px;
           margin-bottom: 10px;
-          min-width: 0;
         }
         .hd-tl-icon-wrap {
           width: 44px;
@@ -536,14 +523,11 @@ export default function HuongDanPage() {
           display: flex;
           flex-direction: column;
           gap: 4px;
-          min-width: 0;
         }
         .hd-tl-title {
           font-size: 16px;
           font-weight: 800;
           color: var(--text-0);
-          overflow: hidden;
-          text-overflow: ellipsis;
         }
         .hd-tl-time {
           font-size: 11.5px;
@@ -555,7 +539,6 @@ export default function HuongDanPage() {
           color: var(--text-2);
           line-height: 1.6;
           margin-bottom: 10px;
-          overflow-wrap: break-word;
         }
         .hd-tl-tip {
           display: flex;
@@ -568,7 +551,6 @@ export default function HuongDanPage() {
           font-size: 13px;
           color: var(--text-1);
           line-height: 1.5;
-          overflow-wrap: break-word;
         }
         .hd-tl-tip-icon {
           flex-shrink: 0;
@@ -578,9 +560,8 @@ export default function HuongDanPage() {
         /* ═══ TIPS GRID ═══ */
         .hd-tips-grid {
           display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-columns: repeat(2, 1fr);
           gap: 16px;
-          width: 100%;
         }
         .hd-tip-card {
           padding: 24px 20px;
@@ -592,7 +573,6 @@ export default function HuongDanPage() {
           animation: fadeInUp 0.6s ease both;
           position: relative;
           overflow: hidden;
-          min-width: 0;
         }
         .hd-tip-card::before {
           content: "";
@@ -604,7 +584,6 @@ export default function HuongDanPage() {
           background: radial-gradient(circle, rgba(167, 139, 250, 0.15), transparent 70%);
           opacity: 0;
           transition: opacity 0.4s;
-          pointer-events: none;
         }
         .hd-tip-card:hover {
           transform: translateY(-4px);
@@ -629,13 +608,11 @@ export default function HuongDanPage() {
           font-weight: 800;
           color: var(--text-0);
           margin-bottom: 6px;
-          overflow-wrap: break-word;
         }
         .hd-tip-desc {
           font-size: 13px;
           color: var(--text-2);
           line-height: 1.5;
-          overflow-wrap: break-word;
         }
 
         /* ═══ CTA ═══ */
@@ -648,7 +625,6 @@ export default function HuongDanPage() {
           text-align: center;
           overflow: hidden;
           box-shadow: 0 24px 64px rgba(124, 58, 237, 0.35);
-          width: 100%;
         }
         .hd-cta-glow {
           position: absolute;
@@ -675,7 +651,7 @@ export default function HuongDanPage() {
           backdrop-filter: blur(10px);
         }
         .hd-cta h2 {
-          font-size: clamp(22px, 5vw, 32px);
+          font-size: 32px;
           font-weight: 900;
           color: #fff;
           margin-bottom: 8px;
@@ -695,7 +671,6 @@ export default function HuongDanPage() {
         .hd-cta-btn {
           display: inline-flex;
           align-items: center;
-          justify-content: center;
           gap: 8px;
           padding: 16px 32px;
           border-radius: 14px;
@@ -703,7 +678,6 @@ export default function HuongDanPage() {
           font-weight: 800;
           text-decoration: none;
           transition: all 0.3s;
-          white-space: nowrap;
         }
         .hd-cta-primary {
           background: #fff;
@@ -730,7 +704,6 @@ export default function HuongDanPage() {
           display: flex;
           flex-direction: column;
           gap: 12px;
-          width: 100%;
         }
 
         .hd-faq-item {
@@ -741,7 +714,6 @@ export default function HuongDanPage() {
           overflow: hidden;
           cursor: pointer;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          width: 100%;
         }
         .hd-faq-item:hover {
           border-color: rgba(167, 139, 250, 0.4);
@@ -758,7 +730,6 @@ export default function HuongDanPage() {
           gap: 14px;
           padding: 18px 20px;
           user-select: none;
-          min-width: 0;
         }
         .hd-faq-icon {
           width: 28px;
@@ -783,8 +754,6 @@ export default function HuongDanPage() {
           font-size: 15px;
           font-weight: 700;
           color: var(--text-0);
-          overflow-wrap: break-word;
-          min-width: 0;
         }
 
         .hd-faq-a {
@@ -800,7 +769,6 @@ export default function HuongDanPage() {
           font-size: 14px;
           color: var(--text-2);
           line-height: 1.7;
-          overflow-wrap: break-word;
         }
 
         /* ═══ SUPPORT ═══ */
@@ -813,7 +781,6 @@ export default function HuongDanPage() {
           text-align: center;
           position: relative;
           overflow: hidden;
-          width: 100%;
         }
         .hd-support::before {
           content: "";
@@ -850,7 +817,6 @@ export default function HuongDanPage() {
         .hd-support-btn {
           display: inline-flex;
           align-items: center;
-          justify-content: center;
           gap: 8px;
           padding: 14px 28px;
           border-radius: 14px;
@@ -858,7 +824,6 @@ export default function HuongDanPage() {
           font-weight: 800;
           text-decoration: none;
           transition: all 0.3s;
-          white-space: nowrap;
         }
         .hd-support-btn.zalo {
           background: linear-gradient(135deg, #0068ff, #3b82f6);
@@ -882,15 +847,17 @@ export default function HuongDanPage() {
         /* ═══ RESPONSIVE ═══ */
         @media (max-width: 640px) {
           .hd-page { padding: 24px 12px 60px; }
-          .hd-container { max-width: 100%; }
-
+          .hd-title { font-size: 30px; }
+          .hd-subtitle { font-size: 14px; }
           .hd-hero { margin-bottom: 32px; }
+
           .hd-hero-stats { padding: 12px 20px; gap: 14px; }
           .hd-hero-stat-num { font-size: 16px; }
 
+          .hd-section-title { font-size: 22px; }
           .hd-section { margin-bottom: 40px; }
 
-          .hd-tl-item { padding: 16px; gap: 12px; }
+          .hd-tl-item { padding: 16px; gap: 14px; }
           .hd-tl-line { left: 30px; top: 48px; }
           .hd-tl-dot { width: 28px; height: 28px; }
           .hd-tl-num { font-size: 12px; }
@@ -899,30 +866,23 @@ export default function HuongDanPage() {
           .hd-tl-desc { font-size: 13px; }
           .hd-tl-tip { font-size: 12px; padding: 8px 12px; }
 
-          .hd-tips-grid { grid-template-columns: 1fr; gap: 12px; }
+          .hd-tips-grid { grid-template-columns: 1fr; }
           .hd-tip-card { padding: 20px 16px; }
 
           .hd-cta { padding: 32px 20px; border-radius: 20px; }
+          .hd-cta h2 { font-size: 22px; }
           .hd-cta p { font-size: 14px; }
           .hd-cta-buttons { flex-direction: column; }
-          .hd-cta-btn { width: 100%; }
+          .hd-cta-btn { width: 100%; justify-content: center; }
 
-          .hd-faq-q { padding: 16px; gap: 10px; }
+          .hd-faq-q { padding: 16px; }
           .hd-faq-text { font-size: 14px; }
-          .hd-faq-a-inner { padding: 0 16px 16px 54px; font-size: 13px; }
+          .hd-faq-a-inner { padding: 0 16px 16px 58px; font-size: 13px; }
 
           .hd-support { padding: 32px 20px; border-radius: 20px; }
           .hd-support h3 { font-size: 18px; }
           .hd-support-links { flex-direction: column; }
-          .hd-support-btn { width: 100%; }
-        }
-
-        /* Fix overflow toàn trang */
-        @media (max-width: 360px) {
-          .hd-title { font-size: 26px; }
-          .hd-hero-stats { padding: 10px 14px; gap: 10px; }
-          .hd-hero-stat-num { font-size: 14px; }
-          .hd-hero-stat-label { font-size: 10px; }
+          .hd-support-btn { width: 100%; justify-content: center; }
         }
       `}</style>
     </div>

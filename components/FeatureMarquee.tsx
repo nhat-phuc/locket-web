@@ -22,7 +22,7 @@ export default function FeatureMarquee() {
       </div>
 
       <div className="marquee-wrapper compact">
-        <div className="marquee-track left" style={{ animationDuration: "35s" }}>
+        <div className="marquee-track left" style={{ animationDuration: "15s" }}>
           {doubled.map((f, i) => (
             <div className="feature-card" key={`l-${i}`}>
               <div style={{ color: f.color, marginBottom: 10 }}>
@@ -33,7 +33,7 @@ export default function FeatureMarquee() {
             </div>
           ))}
         </div>
-        <div className="marquee-track right" style={{ animationDuration: "35s" }}>
+        <div className="marquee-track right" style={{ animationDuration: "15s" }}>
           {doubled.map((f, i) => (
             <div className="feature-card" key={`r-${i}`}>
               <div style={{ color: f.color, marginBottom: 10 }}>
