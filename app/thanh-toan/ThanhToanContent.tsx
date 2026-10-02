@@ -14,6 +14,13 @@ interface Order {
   expiresAt: string | null;
 }
 
+interface LocketProfile {
+  valid: boolean;
+  username?: string;
+  avatar?: string | null;
+  message?: string;
+}
+
 type Step = "info" | "method" | "qr" | "success";
 
 export default function ThanhToanContent() {
@@ -32,6 +39,12 @@ export default function ThanhToanContent() {
   const [step, setStep] = useState<Step>("info");
   const [method, setMethod] = useState<"balance" | "bank" | null>(null);
   const [timeLeft, setTimeLeft] = useState(15 * 60);
+
+  // ═══ VALIDATE USERNAME ═══
+  const [usernameChecking, setUsernameChecking] = useState(false);
+  const [usernameValid, setUsernameValid] = useState<boolean | null>(null);
+  const [usernameError, setUsernameError] = useState("");
+  const [profile, setProfile] = useState<LocketProfile | null>(null);
 
   // Redirect nếu thiếu serviceId
   useEffect(() => {
@@ -53,6 +66,45 @@ export default function ThanhToanContent() {
       }
     } catch {}
   }, [router]);
+
+  // ═══ VALIDATE USERNAME (debounce 600ms) ═══
+  useEffect(() => {
+    const trimmed = locketUsername.trim();
+
+    if (!trimmed || trimmed.length < 2) {
+      setUsernameValid(null);
+      setUsernameError("");
+      setUsernameChecking(false);
+      setProfile(null);
+      return;
+    }
+
+    setUsernameChecking(true);
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/locket/check?username=${encodeURIComponent(trimmed)}`);
+        const data: LocketProfile = await res.json();
+
+        if (data.valid) {
+          setUsernameValid(true);
+          setUsernameError("");
+          setProfile(data);
+        } else {
+          setUsernameValid(false);
+          setUsernameError(data.message || "Username hoặc link Locket không đúng");
+          setProfile(null);
+        }
+      } catch {
+        setUsernameValid(false);
+        setUsernameError("Không thể kiểm tra, vui lòng thử lại");
+        setProfile(null);
+      } finally {
+        setUsernameChecking(false);
+      }
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [locketUsername]);
 
   // Countdown khi hiện QR
   useEffect(() => {
@@ -82,6 +134,10 @@ export default function ThanhToanContent() {
   const handleCreateOrder = async () => {
     if (!serviceId) { setError("Thiếu thông tin dịch vụ"); return; }
     if (!locketUsername.trim()) { setError("Vui lòng nhập username Locket"); return; }
+    if (usernameValid !== true) {
+      setError(usernameError || "Username hoặc link Locket không đúng");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
@@ -91,7 +147,7 @@ export default function ThanhToanContent() {
         body: JSON.stringify({
           serviceId,
           variant: variant ? parseInt(variant) : undefined,
-          locketUsername: locketUsername.trim(),
+          locketUsername: profile?.username || locketUsername.trim(),
           couponCode: coupon.trim() || undefined,
         }),
       });
@@ -143,7 +199,6 @@ export default function ThanhToanContent() {
 
   return (
     <div className="pay-page">
-      {/* Header */}
       <div className="pay-header">
         <h1>Thanh toán</h1>
         <p>Hoàn tất thông tin để tạo đơn hàng</p>
@@ -174,13 +229,54 @@ export default function ThanhToanContent() {
         <div className="pay-card">
           <div className="pay-field">
             <label>Username Locket <span className="req">*</span></label>
-            <input
-              type="text"
-              value={locketUsername}
-              onChange={(e) => setLocketUsername(e.target.value)}
-              placeholder="Nhập username Locket"
-            />
+            <div className="pay-input-wrap">
+              <input
+                type="text"
+                value={locketUsername}
+                onChange={(e) => setLocketUsername(e.target.value)}
+                placeholder="Username hoặc link Locket (VD: phuc hoặc locket.cam/phuc)"
+                className={
+                  usernameValid === true ? "is-valid" :
+                  usernameValid === false ? "is-invalid" : ""
+                }
+              />
+              {/* Icon trạng thái */}
+              <div className="pay-input-icon">
+                {usernameChecking && <div className="pay-mini-spinner" />}
+                {!usernameChecking && usernameValid === true && <span className="pay-icon-ok">✓</span>}
+                {!usernameChecking && usernameValid === false && <span className="pay-icon-err">✕</span>}
+              </div>
+            </div>
+
+            {/* Preview profile khi hợp lệ */}
+            {usernameValid === true && profile && (
+              <div className="pay-profile-preview">
+                {profile.avatar ? (
+                  <img src={profile.avatar} alt={profile.username} className="pay-profile-avatar" />
+                ) : (
+                  <div className="pay-profile-avatar pay-profile-avatar-fallback">
+                    {(profile.username || "U").charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="pay-profile-info">
+                  <b>@{profile.username}</b>
+                  <span className="pay-profile-status">✓ Đã tìm thấy trên Locket</span>
+                </div>
+              </div>
+            )}
+
+            {/* Báo lỗi khi sai */}
+            {usernameValid === false && usernameError && (
+              <div className="pay-field-error">
+                ✕ {usernameError}
+              </div>
+            )}
+
+            <small className="pay-hint">
+              Nhập username công khai hoặc link Locket. Chúng tôi không cần mật khẩu.
+            </small>
           </div>
+
           <div className="pay-field">
             <label>Mã giảm giá (nếu có)</label>
             <input
@@ -190,7 +286,12 @@ export default function ThanhToanContent() {
               placeholder="Nhập mã giảm giá"
             />
           </div>
-          <button onClick={handleCreateOrder} disabled={loading || !locketUsername.trim()} className="pay-btn">
+
+          <button
+            onClick={handleCreateOrder}
+            disabled={loading || usernameValid !== true}
+            className="pay-btn"
+          >
             {loading ? "Đang xử lý..." : "Tạo đơn và thanh toán"}
           </button>
         </div>
@@ -206,7 +307,6 @@ export default function ThanhToanContent() {
             <div className="pay-summary-total"><span>Tổng:</span><b>{formatPrice(order.finalAmount)}</b></div>
           </div>
 
-          {/* Nút thanh toán số dư */}
           <button onClick={handlePayWithBalance} disabled={loading || notEnough} className={`pay-method-btn balance ${notEnough ? "disabled" : ""}`}>
             <div className="pay-method-icon">💰</div>
             <div className="pay-method-info">
@@ -221,7 +321,6 @@ export default function ThanhToanContent() {
             </p>
           )}
 
-          {/* Nút chuyển khoản */}
           <button onClick={handleBankTransfer} disabled={loading} className="pay-method-btn bank">
             <div className="pay-method-icon">🏦</div>
             <div className="pay-method-info">
@@ -280,7 +379,6 @@ export default function ThanhToanContent() {
         .pay-header h1 { font-size: 32px; font-weight: 900; margin-bottom: 8px; }
         .pay-header p { color: var(--text-2); font-size: 15px; }
 
-        /* Steps indicator */
         .pay-steps { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 24px; }
         .pay-step { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); font-weight: 600; }
         .pay-step-num { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: #f3f4f6; color: var(--text-2); font-size: 12px; font-weight: 800; border: 1.5px solid var(--border); }
@@ -288,34 +386,48 @@ export default function ThanhToanContent() {
         .pay-step.is-done .pay-step-num { background: #10b981; color: #fff; border-color: transparent; }
         .pay-step-line { width: 40px; height: 2px; background: #e5e7eb; border-radius: 2px; }
 
-        /* Error */
         .pay-error { padding: 12px 16px; background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; border-radius: 12px; font-size: 13.5px; margin-bottom: 16px; }
 
-        /* Card */
         .pay-card { background: var(--bg-1); border: 1px solid var(--border); border-radius: 20px; padding: 28px 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
 
-        /* Field */
         .pay-field { margin-bottom: 18px; }
         .pay-field label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 14px; }
         .req { color: #dc2626; }
-        .pay-field input { width: 100%; padding: 13px 16px; background: var(--bg-2); border: 1.5px solid var(--border); border-radius: 12px; font-size: 14.5px; font-family: inherit; color: var(--text-0); outline: none; transition: all 0.2s; }
+        .pay-field input { width: 100%; padding: 13px 42px 13px 16px; background: var(--bg-2); border: 1.5px solid var(--border); border-radius: 12px; font-size: 14.5px; font-family: inherit; color: var(--text-0); outline: none; transition: all 0.2s; }
         .pay-field input:focus { border-color: #7c3aed; background: var(--bg-1); box-shadow: 0 0 0 4px rgba(124,58,237,0.1); }
+        .pay-field input.is-valid { border-color: #10b981; background: #f0fdf4; }
+        .pay-field input.is-invalid { border-color: #ef4444; background: #fef2f2; }
 
-        /* Button */
+        .pay-input-wrap { position: relative; }
+        .pay-input-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; }
+        .pay-icon-ok { color: #10b981; font-size: 20px; font-weight: 900; }
+        .pay-icon-err { color: #ef4444; font-size: 20px; font-weight: 900; }
+        .pay-mini-spinner { width: 16px; height: 16px; border: 2px solid #e5e7eb; border-top-color: #7c3aed; border-radius: 50%; animation: paySpin 0.6s linear infinite; }
+
+        .pay-profile-preview { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 12px 14px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; animation: payFadeIn 0.3s ease; overflow: hidden; }
+        .pay-profile-avatar { width: 48px !important; height: 48px !important; max-width: 48px !important; max-height: 48px !important; min-width: 48px; min-height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid #10b981; flex-shrink: 0; display: block; }
+        .pay-profile-avatar-fallback { width: 48px !important; height: 48px !important; max-width: 48px !important; max-height: 48px !important; min-width: 48px; min-height: 48px; display: grid; place-items: center; background: linear-gradient(135deg, #7c3aed, #a78bfa); color: #fff; font-size: 20px; font-weight: 900; border-radius: 50%; flex-shrink: 0; }
+        .pay-profile-info { display: flex; flex-direction: column; gap: 2px; }
+        .pay-profile-info b { font-size: 15px; color: var(--text-0); }
+        .pay-profile-status { font-size: 12.5px; color: #16a34a; font-weight: 600; }
+
+        .pay-field-error { margin-top: 8px; padding: 8px 12px; background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; border-radius: 10px; font-size: 13px; animation: payFadeIn 0.3s ease; }
+        .pay-hint { display: block; margin-top: 8px; color: var(--text-2); font-size: 12px; }
+
+        @keyframes payFadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
         .pay-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #7c3aed, #a78bfa); color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; font-family: inherit; cursor: pointer; transition: all 0.25s; box-shadow: 0 8px 24px rgba(124,58,237,0.3); margin-top: 8px; }
         .pay-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(124,58,237,0.4); }
-        .pay-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .pay-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .pay-btn-back { width: 100%; padding: 12px; background: transparent; border: none; color: var(--text-2); font-size: 13.5px; font-weight: 600; font-family: inherit; cursor: pointer; margin-top: 8px; border-radius: 10px; }
         .pay-btn-back:hover { background: var(--bg-2); color: var(--text-0); }
 
-        /* Summary */
         .pay-summary { padding: 16px 18px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 20px; }
         .pay-summary-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
         .pay-summary-row span { color: var(--text-2); }
         .pay-summary-total { display: flex; justify-content: space-between; padding-top: 12px; margin-top: 6px; border-top: 1px dashed #d1d5db; font-size: 15px; }
         .pay-summary-total b { color: #7c3aed; font-size: 18px; }
 
-        /* Method buttons */
         .pay-method-btn { display: flex; align-items: center; gap: 14px; padding: 16px; background: var(--bg-1); border: 2px solid #e5e7eb; border-radius: 14px; cursor: pointer; transition: all 0.25s; text-align: left; font-family: inherit; width: 100%; margin-bottom: 12px; }
         .pay-method-btn:hover:not(.disabled) { border-color: #7c3aed; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,58,237,0.15); }
         .pay-method-btn.disabled { opacity: 0.5; cursor: not-allowed; }
@@ -328,7 +440,6 @@ export default function ThanhToanContent() {
         .pay-warn { padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; border-radius: 10px; font-size: 13px; text-align: center; margin-bottom: 12px; }
         .pay-warn a { color: #7c3aed; font-weight: 700; text-decoration: underline; }
 
-        /* QR */
         .pay-card-qr { text-align: center; }
         .pay-qr-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .pay-qr-header h2 { font-size: 20px; font-weight: 900; }
@@ -344,7 +455,6 @@ export default function ThanhToanContent() {
         .pay-spinner { width: 16px; height: 16px; border: 2px solid #86efac; border-top-color: #16a34a; border-radius: 50%; animation: paySpin 0.6s linear infinite; }
         @keyframes paySpin { to { transform: rotate(360deg); } }
 
-        /* Success */
         .pay-card-success { text-align: center; padding: 48px 24px; }
         .pay-success-icon { font-size: 64px; margin-bottom: 16px; animation: pop 0.5s ease; }
         @keyframes pop { 0% { transform: scale(0); } 80% { transform: scale(1.2); } 100% { transform: scale(1); } }
