@@ -72,8 +72,6 @@ export async function POST(req: Request) {
         isActive: true,
       },
     });
-    
-    console.log('[API ORDERS] serviceId:', serviceId, '| found:', service?.name || 'NOT FOUND');
     if (!service) {
       return NextResponse.json({ success: false, message: "Dịch vụ không tồn tại" }, { status: 404 });
     }

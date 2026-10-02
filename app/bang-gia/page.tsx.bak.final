@@ -172,7 +172,7 @@ export default function BangGiaPage() {
             </div>
           )}
 
-          {!loading && services.length > 0 && (
+          {!loading && (
             <div className="pr-cards">
               {/* GOLD */}
               <PriceCard
@@ -374,9 +374,10 @@ function PriceCard({
 
       {/* Packages / prices */}
       <div className="pc-packs">
-        {packages.map((p, i) => (
+        {services.length > 0 && packages.map((p, i) => (
           <a
-            href={`/thanh-toan?serviceId=${service?.slug || service?.id || type || "gold"}&variant=${i}`}
+            key={i}
+            href={`/thanh-toan?serviceId=${service?.slug || service?.id || type}href={`/thanh-toan?serviceId=${service?.slug || type}&variant=${i}`}variant=${i}`}
             className="pc-pack"
           >
             <div className="pc-pack-name">{p.label}</div>

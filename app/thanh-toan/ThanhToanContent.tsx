@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import PaymentModal from "@/components/PaymentModal";
+import Link from "next/link";
 
 interface Order {
   id: string;
@@ -14,24 +14,16 @@ interface Order {
   expiresAt: string | null;
 }
 
-interface LocketProfile {
-  valid: boolean;
-  username?: string;
-  avatar?: string | null;
-  message?: string;
-}
-
-type Step = "info" | "method";
+type Step = "info" | "method" | "qr" | "success";
 
 export default function ThanhToanContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const serviceId = searchParams.get("serviceId");
-  const packageId = searchParams.get("packageId");
   const variant = searchParams.get("variant");
 
-  const [user, setUser] = useState<{ username: string; email?: string } | null>(null);
-  const [balance, setBalance] = useState<number | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [balance, setBalance] = useState<number>(0);
   const [locketUsername, setLocketUsername] = useState("");
   const [coupon, setCoupon] = useState("");
   const [order, setOrder] = useState<Order | null>(null);
@@ -39,158 +31,85 @@ export default function ThanhToanContent() {
   const [error, setError] = useState("");
   const [step, setStep] = useState<Step>("info");
   const [method, setMethod] = useState<"balance" | "bank" | null>(null);
-  const [showBankModal, setShowBankModal] = useState(false);
-  const [paying, setPaying] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(15 * 60);
 
-  // Username validation
-  const [usernameChecking, setUsernameChecking] = useState(false);
-  const [usernameValid, setUsernameValid] = useState<boolean | null>(null);
-  const [usernameError, setUsernameError] = useState("");
-  const [profile, setProfile] = useState<LocketProfile | null>(null);
+  // Redirect nếu thiếu serviceId
+  useEffect(() => {
+    if (!serviceId) router.push("/bang-gia");
+  }, [serviceId, router]);
 
   // Load user + balance
   useEffect(() => {
     const stored = sessionStorage.getItem("locket_user");
-    if (!stored) {
-      router.push("/dang-nhap");
-      return;
-    }
+    if (!stored) { router.push("/dang-nhap"); return; }
     try {
       const u = JSON.parse(stored);
       setUser(u);
       if (u.email) {
         fetch(`/api/balance?email=${encodeURIComponent(u.email)}`)
           .then((r) => r.json())
-          .then((d) => {
-            if (typeof d.balance === "number") setBalance(d.balance);
-          })
+          .then((d) => { if (typeof d.balance === "number") setBalance(d.balance); })
           .catch(() => {});
       }
     } catch {}
   }, [router]);
 
+  // Countdown khi hiện QR
   useEffect(() => {
-    if (step === "method" && user?.email) {
-      fetch(`/api/balance?email=${encodeURIComponent(user.email)}`)
-        .then((r) => r.json())
-        .then((d) => {
-          if (typeof d.balance === "number") setBalance(d.balance);
-        })
-        .catch(() => {});
-    }
-  }, [step, user?.email]);
+    if (step !== "qr" || timeLeft <= 0) return;
+    const t = setInterval(() => setTimeLeft((v) => Math.max(0, v - 1)), 1000);
+    return () => clearInterval(t);
+  }, [step, timeLeft]);
 
-  // ===== VALIDATE USERNAME (debounce 500ms) =====
+  // ═══ POLLING CHECK THANH TOÁN ═══
   useEffect(() => {
-    const trimmed = locketUsername.trim();
-
-    if (!trimmed || trimmed.length < 2) {
-      setUsernameValid(null);
-      setUsernameError("");
-      setUsernameChecking(false);
-      setProfile(null);
-      return;
-    }
-
-    setUsernameChecking(true);
-    const timer = setTimeout(async () => {
+    if (step !== "qr" || !order) return;
+    const check = async () => {
       try {
-        const res = await fetch(
-          `/api/locket/check?username=${encodeURIComponent(trimmed)}`
-        );
-        const data: LocketProfile = await res.json();
-
-        if (data.valid) {
-          setUsernameValid(true);
-          setUsernameError("");
-          setProfile(data);
-        } else {
-          setUsernameValid(false);
-          setUsernameError(data.message || "Username hoặc link bị sai");
-          setProfile(null);
+        const res = await fetch(`/api/payments/check?orderId=${order.id}`);
+        const d = await res.json();
+        if (d.success && (d.status === "paid" || d.status === "completed")) {
+          setStep("success");
+          setTimeout(() => router.push(`/thanh-toan/thanh-cong?orderId=${order.id}`), 2500);
         }
-      } catch {
-        setUsernameValid(false);
-        setUsernameError("Không thể kiểm tra, vui lòng thử lại");
-        setProfile(null);
-      } finally {
-        setUsernameChecking(false);
-      }
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [locketUsername]);
-
-  // ═══ POLLING: Tự động check đơn mỗi 3s ═══
-  useEffect(() => {
-    if (!showBankModal || !order) return;
-    if (order.status === "paid" || order.status === "completed") return;
-    const checkStatus = async () => {
-      try {
-        const res = await fetch("/api/payments/check?orderId=" + order.id);
-        const data = await res.json();
-        if (data.success && (data.status === "paid" || data.status === "completed")) {
-          window.location.href = "/thanh-toan/thanh-cong?orderId=" + order.id;
-          return;
-        }
-        if (data.success && data.status === "expired") {
-          setError("Đơn hàng đã hết hạn. Vui lòng tạo đơn mới.");
-          setShowBankModal(false);
-        }
-      } catch (err) {
-        console.error("Polling error:", err);
-      }
+      } catch {}
     };
-    checkStatus();
-    const interval = setInterval(checkStatus, 3000);
-    return () => clearInterval(interval);
-  }, [showBankModal, order]);
+    check();
+    const i = setInterval(check, 3000);
+    return () => clearInterval(i);
+  }, [step, order, router]);
 
   const handleCreateOrder = async () => {
-    if (!serviceId) {
-      setError("Thiếu thông tin dịch vụ");
-      return;
-    }
-    if (!locketUsername.trim()) {
-      setError("Vui lòng nhập username Locket");
-      return;
-    }
-    if (usernameValid !== true) {
-      setError(usernameError || "Username hoặc link bị sai");
-      return;
-    }
-
+    if (!serviceId) { setError("Thiếu thông tin dịch vụ"); return; }
+    if (!locketUsername.trim()) { setError("Vui lòng nhập username Locket"); return; }
     setLoading(true);
     setError("");
-
     try {
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           serviceId,
-          packageId: packageId || undefined,
           variant: variant ? parseInt(variant) : undefined,
+          locketUsername: locketUsername.trim(),
           couponCode: coupon.trim() || undefined,
         }),
       });
       const data = await res.json();
-      if (data.success) {
-        setOrder(data.order);
-        setStep("method");
-      } else {
-        setError(data.message || "Không thể tạo đơn");
-      }
-    } catch {
-      setError("Lỗi kết nối");
-    } finally {
-      setLoading(false);
-    }
+      if (data.success) { setOrder(data.order); setStep("method"); }
+      else { setError(data.message || "Không thể tạo đơn"); }
+    } catch { setError("Lỗi kết nối"); }
+    finally { setLoading(false); }
   };
 
+  // ═══ THANH TOÁN BẰNG SỐ DƯ ═══
   const handlePayWithBalance = async () => {
     if (!order) return;
-    setPaying(true);
+    if (balance < order.finalAmount) {
+      setError(`Số dư không đủ. Cần ${order.finalAmount.toLocaleString("vi-VN")}đ, hiện có ${balance.toLocaleString("vi-VN")}đ`);
+      return;
+    }
+    setLoading(true);
     setError("");
     try {
       const res = await fetch("/api/payments/pay-with-balance", {
@@ -200,127 +119,68 @@ export default function ThanhToanContent() {
       });
       const data = await res.json();
       if (data.success) {
-        router.push(`/thanh-toan/thanh-cong?orderId=${order.id}`);
+        setStep("success");
+        setTimeout(() => router.push(`/thanh-toan/thanh-cong?orderId=${order.id}`), 2500);
       } else {
-        if (data.code === "INSUFFICIENT_BALANCE") {
-          setError(
-            `Số dư không đủ. Cần ${order.finalAmount.toLocaleString("vi-VN")}đ, hiện có ${(balance || 0).toLocaleString("vi-VN")}đ`
-          );
-        } else {
-          setError(data.message || "Thanh toán thất bại");
-        }
+        setError(data.message || "Thanh toán thất bại");
       }
-    } catch {
-      setError("Lỗi kết nối");
-    } finally {
-      setPaying(false);
-    }
+    } catch { setError("Lỗi kết nối"); }
+    finally { setLoading(false); }
   };
 
-  const handleConfirm = async () => {
-    if (!method) {
-      setError("Vui lòng chọn phương thức thanh toán");
-      return;
-    }
-    if (method === "balance") await handlePayWithBalance();
-    else setShowBankModal(true);
+  const handleBankTransfer = () => {
+    setMethod("bank");
+    setStep("qr");
+    setTimeLeft(15 * 60);
   };
 
-  const handleSuccess = () => router.push("/thanh-toan/thanh-cong");
+  const formatPrice = (n: number) => n.toLocaleString("vi-VN") + "đ";
+  const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`;
 
-  if (!user) return null;
+  if (!serviceId) return <div style={{ textAlign: "center", padding: 80 }}>Đang chuyển hướng...</div>;
 
-  const notEnough = balance !== null && order !== null && balance < order.finalAmount;
-  const remaining = balance !== null && order !== null ? balance - order.finalAmount : 0;
+  const notEnough = balance < (order?.finalAmount || 0);
 
   return (
-    <div className="pay-wrap">
-      <div className="pay-head">
-        <h1 className="pay-h1">Thanh toán</h1>
-        <p className="pay-sub">
-          {step === "info" ? "Hoàn tất thông tin để tạo đơn hàng" : "Chọn phương thức thanh toán"}
-        </p>
-        <div className="pay-steps">
-          <div className={`pay-step ${step === "info" ? "is-active" : "is-done"}`}>
-            <span className="pay-step-num">1</span>
-            <span className="pay-step-lbl">Thông tin</span>
-          </div>
-          <div className={`pay-step-line ${step === "method" ? "is-done" : ""}`} />
-          <div className={`pay-step ${step === "method" ? "is-active" : ""}`}>
-            <span className="pay-step-num">2</span>
-            <span className="pay-step-lbl">Thanh toán</span>
-          </div>
+    <div className="pay-page">
+      {/* Header */}
+      <div className="pay-header">
+        <h1>Thanh toán</h1>
+        <p>Hoàn tất thông tin để tạo đơn hàng</p>
+      </div>
+
+      {/* Steps indicator */}
+      <div className="pay-steps">
+        <div className={`pay-step ${step === "info" ? "is-active" : "is-done"}`}>
+          <div className="pay-step-num">1</div>
+          <span>Thông tin</span>
+        </div>
+        <div className="pay-step-line" />
+        <div className={`pay-step ${step === "method" ? "is-active" : step === "qr" || step === "success" ? "is-done" : ""}`}>
+          <div className="pay-step-num">2</div>
+          <span>Thanh toán</span>
+        </div>
+        <div className="pay-step-line" />
+        <div className={`pay-step ${step === "success" ? "is-done" : ""}`}>
+          <div className="pay-step-num">3</div>
+          <span>Hoàn tất</span>
         </div>
       </div>
 
-      {error && <div className="pay-error">{error}</div>}
+      {error && <div className="pay-error">⚠️ {error}</div>}
 
-      {/* ============ STEP 1 ============ */}
+      {/* ═══ STEP 1: INFO ═══ */}
       {step === "info" && (
         <div className="pay-card">
           <div className="pay-field">
-            <label>
-              Username Locket <span className="pay-req">*</span>
-            </label>
-            <div className="pay-input-wrap">
-              <input
-                type="text"
-                value={locketUsername}
-                onChange={(e) => setLocketUsername(e.target.value)}
-                placeholder="username hoặc link Locket"
-                autoFocus
-                className={
-                  usernameValid === true
-                    ? "is-valid"
-                    : usernameValid === false
-                    ? "is-invalid"
-                    : ""
-                }
-              />
-              {usernameChecking && (
-                <div className="pay-input-status">
-                  <div className="pay-mini-spinner" />
-                </div>
-              )}
-              {!usernameChecking && usernameValid === true && (
-                <div className="pay-input-status pay-status-ok">✓</div>
-              )}
-              {!usernameChecking && usernameValid === false && (
-                <div className="pay-input-status pay-status-err">✕</div>
-              )}
-            </div>
-
-            {/* Profile preview khi đúng */}
-            {!usernameChecking && usernameValid === true && profile && (
-              <div className="pay-profile-preview">
-                {profile.avatar ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={profile.avatar}
-                    alt={profile.username || "avatar"}
-                    className="pay-profile-avatar"
-                  />
-                ) : (
-                  <div className="pay-profile-avatar pay-profile-avatar-fallback">
-                    {(profile.username || "?").charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div className="pay-profile-info">
-                  <div className="pay-profile-name">@{profile.username}</div>
-                  <div className="pay-profile-status">✓ Đã tìm thấy trên Locket</div>
-                </div>
-              </div>
-            )}
-
-            {usernameError ? (
-              <small className="pay-hint-error">{usernameError}</small>
-            ) : usernameValid === true ? null : (
-              <small className="pay-hint">
-                Chúng tôi không cần mật khẩu, chỉ cần username công khai
-              </small>
-            )}
+            <label>Username Locket <span className="req">*</span></label>
+            <input
+              type="text"
+              value={locketUsername}
+              onChange={(e) => setLocketUsername(e.target.value)}
+              placeholder="Nhập username Locket"
+            />
           </div>
-
           <div className="pay-field">
             <label>Mã giảm giá (nếu có)</label>
             <input
@@ -328,189 +188,176 @@ export default function ThanhToanContent() {
               value={coupon}
               onChange={(e) => setCoupon(e.target.value.toUpperCase())}
               placeholder="Nhập mã giảm giá"
-              className="pay-input"
             />
           </div>
-
-          <button
-            onClick={handleCreateOrder}
-            disabled={loading || usernameValid !== true}
-            className="pay-btn"
-          >
+          <button onClick={handleCreateOrder} disabled={loading || !locketUsername.trim()} className="pay-btn">
             {loading ? "Đang xử lý..." : "Tạo đơn và thanh toán"}
           </button>
         </div>
       )}
 
-      {/* ============ STEP 2 ============ */}
+      {/* ═══ STEP 2: METHOD ═══ */}
       {step === "method" && order && (
         <div className="pay-card">
           <div className="pay-summary">
-            <div className="pay-summary-row">
-              <span>Đơn hàng</span>
-              <b>{order.orderCode}</b>
-            </div>
-            <div className="pay-summary-row">
-              <span>Dịch vụ</span>
-              <b>{order.serviceName}</b>
-            </div>
-            <div className="pay-summary-row">
-              <span>Username</span>
-              <b>@{order.locketUsername}</b>
-            </div>
-            <div className="pay-summary-row pay-summary-total">
-              <span>Tổng tiền</span>
-              <b>{order.finalAmount.toLocaleString("vi-VN")}đ</b>
-            </div>
+            <div className="pay-summary-row"><span>Mã đơn:</span><b>{order.orderCode}</b></div>
+            <div className="pay-summary-row"><span>Gói:</span><b>{order.serviceName}</b></div>
+            <div className="pay-summary-row"><span>Username:</span><b>@{order.locketUsername}</b></div>
+            <div className="pay-summary-total"><span>Tổng:</span><b>{formatPrice(order.finalAmount)}</b></div>
           </div>
 
-          <div className="pay-methods">
-            <button
-              type="button"
-              onClick={() => !notEnough && setMethod("balance")}
-              disabled={notEnough}
-              className={`pay-method ${method === "balance" ? "is-on" : ""} ${notEnough ? "is-disabled" : ""}`}
-            >
-              <div className="pay-method-radio">
-                {method === "balance" && <div className="pay-method-dot" />}
-              </div>
-              <div className="pay-method-body">
-                <div className="pay-method-title">
-                  <span className="pay-method-icon">💰</span>
-                  Số dư tài khoản
-                </div>
-                <div className="pay-method-desc">
-                  {balance === null ? (
-                    "Đang tải số dư..."
-                  ) : notEnough ? (
-                    <>
-                      Số dư: <b className="pay-warn">{balance.toLocaleString("vi-VN")}đ</b> — Không đủ (cần thêm {(order.finalAmount - balance).toLocaleString("vi-VN")}đ)
-                    </>
-                  ) : (
-                    <>
-                      Số dư: <b>{balance.toLocaleString("vi-VN")}đ</b> — Còn lại: <b className="pay-ok">{remaining.toLocaleString("vi-VN")}đ</b>
-                    </>
-                  )}
-                </div>
-                {notEnough && (
-                  <div className="pay-method-action">
-                    <a href="/nap-tien" className="pay-topup" onClick={(e) => e.stopPropagation()}>
-                      + Nạp thêm tiền
-                    </a>
-                  </div>
-                )}
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setMethod("bank")}
-              className={`pay-method ${method === "bank" ? "is-on" : ""}`}
-            >
-              <div className="pay-method-radio">
-                {method === "bank" && <div className="pay-method-dot" />}
-              </div>
-              <div className="pay-method-body">
-                <div className="pay-method-title">
-                  <span className="pay-method-icon">🏦</span>
-                  Chuyển khoản ngân hàng
-                </div>
-                <div className="pay-method-desc">Quét mã QR — Hệ thống tự động xác nhận trong vài giây</div>
-              </div>
-            </button>
-          </div>
-
-          <button onClick={handleConfirm} disabled={!method || paying} className="pay-btn">
-            {paying ? "Đang xử lý..." : method === "bank" ? "Hiện mã QR thanh toán" : "Xác nhận thanh toán"}
+          {/* Nút thanh toán số dư */}
+          <button onClick={handlePayWithBalance} disabled={loading || notEnough} className={`pay-method-btn balance ${notEnough ? "disabled" : ""}`}>
+            <div className="pay-method-icon">💰</div>
+            <div className="pay-method-info">
+              <b>Thanh toán bằng số dư</b>
+              <span>Số dư: {formatPrice(balance)}</span>
+            </div>
           </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              setStep("info");
-              setOrder(null);
-              setMethod(null);
-              setError("");
-            }}
-            className="pay-btn-back"
-          >
-            ← Quay lại
+          {notEnough && (
+            <p className="pay-warn">
+              Số dư không đủ. Cần thêm {formatPrice(order.finalAmount - balance)} — <Link href="/nap-tien">Nạp tiền</Link>
+            </p>
+          )}
+
+          {/* Nút chuyển khoản */}
+          <button onClick={handleBankTransfer} disabled={loading} className="pay-method-btn bank">
+            <div className="pay-method-icon">🏦</div>
+            <div className="pay-method-info">
+              <b>Chuyển khoản ngân hàng</b>
+              <span>Quét QR — Tự động xác nhận trong vài giây</span>
+            </div>
           </button>
+
+          <button onClick={() => setStep("info")} className="pay-btn-back">← Quay lại</button>
         </div>
       )}
 
-      {showBankModal && order && (
-        <PaymentModal order={order} onClose={() => setShowBankModal(false)} onSuccess={handleSuccess} />
+      {/* ═══ STEP 3: QR ═══ */}
+      {step === "qr" && order && (
+        <div className="pay-card pay-card-qr">
+          <div className="pay-qr-header">
+            <h2>Quét mã QR để thanh toán</h2>
+            <div className="pay-timer">⏱️ {formatTime(timeLeft)}</div>
+          </div>
+
+          <div className="pay-qr-info">
+            <div className="pay-qr-row"><span>Số tiền:</span><b>{formatPrice(order.finalAmount)}</b></div>
+            <div className="pay-qr-row"><span>Nội dung CK:</span><b className="pay-code">{order.orderCode}</b></div>
+          </div>
+
+          <div className="pay-qr-wrap">
+            <img
+              src={`https://qr.sepay.vn/img?acc=36886368888&bank=TPBANK&amount=${order.finalAmount}&des=${order.orderCode}`}
+              alt="QR thanh toán"
+              className="pay-qr-img"
+            />
+          </div>
+
+          <div className="pay-qr-status">
+            <div className="pay-spinner" />
+            <span>Đang chờ thanh toán... Hệ thống tự động xác nhận</span>
+          </div>
+
+          <button onClick={() => setStep("method")} className="pay-btn-back">← Chọn phương thức khác</button>
+        </div>
+      )}
+
+      {/* ═══ STEP 4: SUCCESS ═══ */}
+      {step === "success" && (
+        <div className="pay-card pay-card-success">
+          <div className="pay-success-icon">✅</div>
+          <h2>Thanh toán thành công!</h2>
+          <p>Đơn hàng <b>{order?.orderCode}</b> đã được xác nhận.</p>
+          <p className="pay-success-sub">Đang chuyển đến trang hoàn tất...</p>
+        </div>
       )}
 
       <style jsx>{`
-        .pay-wrap { width: 100%; max-width: 560px; margin: 40px auto 60px; padding: 0 16px; }
-        .pay-head { text-align: center; margin-bottom: 28px; }
-        .pay-h1 { font-size: 30px; font-weight: 900; color: var(--text-0); margin-bottom: 6px; letter-spacing: -0.02em; }
-        .pay-sub { font-size: 14px; color: var(--text-2); }
-        .pay-steps { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 24px; }
-        .pay-step { display: flex; align-items: center; gap: 8px; color: var(--text-2); font-size: 12px; font-weight: 700; }
-        .pay-step.is-active { color: #7c3aed; }
-        .pay-step.is-done { color: #10b981; }
-        .pay-step-num { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: #f3f4f6; color: var(--text-2); font-size: 12px; font-weight: 800; border: 1.5px solid var(--border); }
-        .pay-step.is-active .pay-step-num { background: linear-gradient(135deg, #7c3aed, #a78bfa); color: var(--text-0); border-color: transparent; box-shadow: 0 4px 12px rgba(124,58,237,0.35); }
-        .pay-step.is-done .pay-step-num { background: #10b981; color: var(--text-0); border-color: transparent; }
+        .pay-page { max-width: 640px; margin: 0 auto; padding: 40px 16px 80px; }
+        .pay-header { text-align: center; margin-bottom: 24px; }
+        .pay-header h1 { font-size: 32px; font-weight: 900; margin-bottom: 8px; }
+        .pay-header p { color: var(--text-2); font-size: 15px; }
+
+        /* Steps indicator */
+        .pay-steps { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 24px; }
+        .pay-step { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); font-weight: 600; }
+        .pay-step-num { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: #f3f4f6; color: var(--text-2); font-size: 12px; font-weight: 800; border: 1.5px solid var(--border); }
+        .pay-step.is-active .pay-step-num { background: linear-gradient(135deg, #7c3aed, #a78bfa); color: #fff; border-color: transparent; box-shadow: 0 4px 12px rgba(124,58,237,0.35); }
+        .pay-step.is-done .pay-step-num { background: #10b981; color: #fff; border-color: transparent; }
         .pay-step-line { width: 40px; height: 2px; background: #e5e7eb; border-radius: 2px; }
-        .pay-step-line.is-done { background: #10b981; }
+
+        /* Error */
         .pay-error { padding: 12px 16px; background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; border-radius: 12px; font-size: 13.5px; margin-bottom: 16px; }
+
+        /* Card */
         .pay-card { background: var(--bg-1); border: 1px solid var(--border); border-radius: 20px; padding: 28px 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
-        @media (max-width: 500px) { .pay-card { padding: 20px 16px; } .pay-h1 { font-size: 24px; } }
-        .pay-field { margin-bottom: 20px; }
-        .pay-field label { display: block; font-size: 13.5px; font-weight: 700; color: #1f2937; margin-bottom: 8px; }
-        .pay-req { color: #ef4444; }
-        .pay-input-wrap { position: relative; }
-        .pay-input-wrap input { width: 100%; padding: 13px 42px 13px 16px; background: var(--bg-2); border: 1.5px solid var(--border); border-radius: 12px; font-size: 14.5px; font-family: inherit; color: var(--text-0); outline: none; transition: all 0.2s; }
-        .pay-input-wrap input:focus { border-color: #7c3aed; background: var(--bg-1); box-shadow: 0 0 0 4px rgba(124,58,237,0.1); }
-        .pay-input-wrap input.is-valid { border-color: #10b981; background: #f0fdf4; }
-        .pay-input-wrap input.is-invalid { border-color: #ef4444; background: #fef2f2; }
-        .pay-input-status { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; font-weight: 900; display: grid; place-items: center; }
-        .pay-status-ok { color: #10b981; }
-        .pay-status-err { color: #ef4444; }
-        .pay-mini-spinner { width: 16px; height: 16px; border: 2px solid #e5e7eb; border-top-color: #7c3aed; border-radius: 50%; animation: paySpin 0.6s linear infinite; }
-        @keyframes paySpin { to { transform: rotate(360deg); } }
-        .pay-hint { display: block; margin-top: 8px; font-size: 12px; color: var(--text-2); line-height: 1.5; }
-        .pay-hint-error { display: block; margin-top: 8px; font-size: 12px; color: #ef4444; font-weight: 600; line-height: 1.5; }
-        .pay-profile-preview { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 12px 14px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; animation: payFadeIn 0.3s ease; }
-        @keyframes payFadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
-        .pay-profile-avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid #10b981; flex-shrink: 0; }
-        .pay-profile-avatar-fallback { display: grid; place-items: center; background: linear-gradient(135deg, #7c3aed, #a78bfa); color: var(--text-0); font-weight: 900; font-size: 20px; }
-        .pay-profile-info { flex: 1; min-width: 0; }
-        .pay-profile-name { font-size: 14px; font-weight: 800; color: #065f46; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .pay-profile-status { font-size: 11.5px; color: #059669; margin-top: 2px; font-weight: 600; }
-        .pay-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #7c3aed, #a78bfa); color: var(--text-0); border: none; border-radius: 12px; font-size: 15px; font-weight: 800; font-family: inherit; cursor: pointer; transition: all 0.25s; box-shadow: 0 8px 24px rgba(124,58,237,0.3); margin-top: 8px; }
-        .pay-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(124,58,237,0.45); }
-        .pay-btn:active:not(:disabled) { transform: translateY(0); }
+
+        /* Field */
+        .pay-field { margin-bottom: 18px; }
+        .pay-field label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 14px; }
+        .req { color: #dc2626; }
+        .pay-field input { width: 100%; padding: 13px 16px; background: var(--bg-2); border: 1.5px solid var(--border); border-radius: 12px; font-size: 14.5px; font-family: inherit; color: var(--text-0); outline: none; transition: all 0.2s; }
+        .pay-field input:focus { border-color: #7c3aed; background: var(--bg-1); box-shadow: 0 0 0 4px rgba(124,58,237,0.1); }
+
+        /* Button */
+        .pay-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #7c3aed, #a78bfa); color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; font-family: inherit; cursor: pointer; transition: all 0.25s; box-shadow: 0 8px 24px rgba(124,58,237,0.3); margin-top: 8px; }
+        .pay-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(124,58,237,0.4); }
         .pay-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .pay-btn-back { width: 100%; padding: 12px; background: transparent; border: none; color: var(--text-2); font-size: 13.5px; font-weight: 600; font-family: inherit; cursor: pointer; margin-top: 8px; border-radius: 10px; }
         .pay-btn-back:hover { background: var(--bg-2); color: var(--text-0); }
-        .pay-summary { padding: 16px 18px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 24px; }
-        .pay-summary-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; font-size: 13.5px; color: var(--text-2); gap: 12px; }
-        .pay-summary-row b { color: var(--text-0); font-weight: 700; text-align: right; word-break: break-word; }
-        .pay-summary-total { padding-top: 12px; margin-top: 6px; border-top: 1px dashed #d1d5db; font-size: 14.5px; }
-        .pay-summary-total b { font-size: 20px; background: linear-gradient(135deg, #7c3aed, #ec4899); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-        .pay-methods { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
-        .pay-method { display: flex; align-items: flex-start; gap: 14px; padding: 16px; background: var(--bg-1); border: 2px solid #e5e7eb; border-radius: 14px; cursor: pointer; transition: all 0.25s; text-align: left; font-family: inherit; width: 100%; }
-        .pay-method:hover:not(:disabled) { border-color: #c4b5fd; background: #faf5ff; }
-        .pay-method.is-on { border-color: #7c3aed; background: #faf5ff; box-shadow: 0 0 0 4px rgba(124,58,237,0.1); }
-        .pay-method.is-disabled { opacity: 0.65; cursor: not-allowed; }
-        .pay-method-radio { width: 22px; height: 22px; border: 2px solid #d1d5db; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; margin-top: 2px; transition: all 0.2s; }
-        .pay-method.is-on .pay-method-radio { border-color: #7c3aed; }
-        .pay-method-dot { width: 10px; height: 10px; background: #7c3aed; border-radius: 50%; }
-        .pay-method-body { flex: 1; min-width: 0; }
-        .pay-method-title { display: flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 800; color: var(--text-0); margin-bottom: 4px; }
-        .pay-method-icon { font-size: 18px; }
-        .pay-method-desc { font-size: 12.5px; color: var(--text-2); line-height: 1.5; }
-        .pay-method-desc b { color: var(--text-0); font-weight: 700; }
-        .pay-warn { color: #ef4444 !important; }
-        .pay-ok { color: #10b981 !important; }
-        .pay-method-action { margin-top: 8px; }
-        .pay-topup { display: inline-block; padding: 5px 12px; background: #fef3c7; color: #b45309; font-size: 12px; font-weight: 700; border-radius: 8px; text-decoration: none; border: 1px solid #fde68a; }
-        .pay-topup:hover { background: #fde68a; }
+
+        /* Summary */
+        .pay-summary { padding: 16px 18px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 20px; }
+        .pay-summary-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
+        .pay-summary-row span { color: var(--text-2); }
+        .pay-summary-total { display: flex; justify-content: space-between; padding-top: 12px; margin-top: 6px; border-top: 1px dashed #d1d5db; font-size: 15px; }
+        .pay-summary-total b { color: #7c3aed; font-size: 18px; }
+
+        /* Method buttons */
+        .pay-method-btn { display: flex; align-items: center; gap: 14px; padding: 16px; background: var(--bg-1); border: 2px solid #e5e7eb; border-radius: 14px; cursor: pointer; transition: all 0.25s; text-align: left; font-family: inherit; width: 100%; margin-bottom: 12px; }
+        .pay-method-btn:hover:not(.disabled) { border-color: #7c3aed; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,58,237,0.15); }
+        .pay-method-btn.disabled { opacity: 0.5; cursor: not-allowed; }
+        .pay-method-btn.balance { border-color: #10b981; }
+        .pay-method-btn.bank { border-color: #7c3aed; }
+        .pay-method-icon { font-size: 28px; }
+        .pay-method-info { display: flex; flex-direction: column; gap: 2px; }
+        .pay-method-info b { font-size: 15px; font-weight: 800; color: var(--text-0); }
+        .pay-method-info span { font-size: 13px; color: var(--text-2); }
+        .pay-warn { padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; border-radius: 10px; font-size: 13px; text-align: center; margin-bottom: 12px; }
+        .pay-warn a { color: #7c3aed; font-weight: 700; text-decoration: underline; }
+
+        /* QR */
+        .pay-card-qr { text-align: center; }
+        .pay-qr-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .pay-qr-header h2 { font-size: 20px; font-weight: 900; }
+        .pay-timer { padding: 6px 12px; background: #fef3c7; color: #d97706; border-radius: 999px; font-size: 13px; font-weight: 800; }
+        .pay-qr-info { padding: 14px 18px; background: var(--bg-2); border-radius: 12px; margin-bottom: 20px; text-align: left; }
+        .pay-qr-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px; }
+        .pay-qr-row:last-child { margin-bottom: 0; }
+        .pay-qr-row span { color: var(--text-2); }
+        .pay-code { font-family: monospace; font-size: 15px; color: #7c3aed; }
+        .pay-qr-wrap { padding: 16px; background: #fff; border-radius: 16px; border: 2px dashed #7c3aed; display: inline-block; margin-bottom: 20px; }
+        .pay-qr-img { width: 260px; height: 260px; display: block; border-radius: 8px; }
+        .pay-qr-status { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; font-size: 14px; color: #16a34a; font-weight: 700; margin-bottom: 12px; }
+        .pay-spinner { width: 16px; height: 16px; border: 2px solid #86efac; border-top-color: #16a34a; border-radius: 50%; animation: paySpin 0.6s linear infinite; }
+        @keyframes paySpin { to { transform: rotate(360deg); } }
+
+        /* Success */
+        .pay-card-success { text-align: center; padding: 48px 24px; }
+        .pay-success-icon { font-size: 64px; margin-bottom: 16px; animation: pop 0.5s ease; }
+        @keyframes pop { 0% { transform: scale(0); } 80% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        .pay-card-success h2 { font-size: 24px; font-weight: 900; color: #16a34a; margin-bottom: 12px; }
+        .pay-card-success p { font-size: 15px; color: var(--text-1); margin-bottom: 6px; }
+        .pay-success-sub { color: var(--text-2) !important; font-size: 13.5px !important; }
+
+        @media (max-width: 480px) {
+          .pay-header h1 { font-size: 26px; }
+          .pay-card { padding: 20px 16px; border-radius: 16px; }
+          .pay-step span { display: none; }
+          .pay-qr-img { width: 220px; height: 220px; }
+        }
       `}</style>
     </div>
   );

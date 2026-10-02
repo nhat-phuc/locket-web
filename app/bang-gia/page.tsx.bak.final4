@@ -366,6 +366,7 @@ function PriceCard({
       <div className="pc-feats">
         {features.map((f, i) => (
           <div key={i} className="pc-feat">
+            href={`/thanh-toan?serviceId=${service?.slug || service?.id || type || "gold"}&variant=${i}`}
             <span className="pc-check">✓</span>
             <span className="pc-feat-text">{renderFeatureText(f, type)}</span>
           </div>
