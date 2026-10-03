@@ -2455,8 +2455,9 @@ body[data-mode="light"] .icon-map-canvas {
     background: var(--bg-0);
 }
 
+/* ───────── Sidebar: 3 chế độ responsive ───────── */
 .admin-sidebar {
-    width: 240px;
+    width: 260px;
     flex-shrink: 0;
     background: var(--bg-1);
     border-right: 1px solid var(--border);
@@ -2466,6 +2467,8 @@ body[data-mode="light"] .icon-map-canvas {
     top: 0;
     height: 100vh;
     overflow-y: auto;
+    transition: width 0.25s ease;
+    z-index: 100;
 }
 
 .admin-sidebar-header {
@@ -2499,6 +2502,7 @@ body[data-mode="light"] .icon-map-canvas {
     font-size: 14px;
     font-weight: 600;
     transition: all .2s;
+    white-space: nowrap;
 }
 
 .admin-nav-item:hover {
@@ -2516,12 +2520,44 @@ body[data-mode="light"] .icon-map-canvas {
     border-top: 1px solid var(--border);
 }
 
+/* Nút hamburger mobile — bên TRÁI, cùng phía sidebar */
+.admin-mobile-toggle {
+    display: none;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--bg-1);
+    border: 1px solid rgba(167, 139, 250, 0.3);
+    color: var(--text-0);
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    padding: 0;
+}
+
+.admin-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(4px);
+    z-index: 9998;
+}
+
 .admin-main {
     flex: 1;
     padding: 32px 40px;
     min-width: 0;
+    overflow-x: hidden;
 }
 
+/* ───────── Grid & Card ───────── */
 .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -2541,17 +2577,40 @@ body[data-mode="light"] .icon-map-canvas {
     transform: translateY(-4px);
 }
 
+/* ───────── Page wrapper tái sử dụng ───────── */
+.admin-page {
+    width: 100%;
+}
+.admin-page-head {
+    margin-bottom: 24px;
+}
+.admin-page-head h1 {
+    font-size: clamp(20px, 2.4vw, 28px);
+    font-weight: 900;
+    margin-bottom: 8px;
+    color: var(--text-0);
+    line-height: 1.25;
+}
+.admin-page-head p {
+    font-size: 14px;
+    color: var(--text-2);
+    margin: 0;
+}
+
+/* ───────── Bảng responsive ───────── */
 .admin-table-wrap {
     overflow-x: auto;
     background: var(--bg-1);
     border: 1px solid var(--border);
     border-radius: 16px;
+    -webkit-overflow-scrolling: touch;
 }
 
 .admin-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
+    min-width: 640px;
 }
 
 .admin-table th {
@@ -2563,12 +2622,14 @@ body[data-mode="light"] .icon-map-canvas {
     color: var(--text-2);
     border-bottom: 1px solid var(--border);
     letter-spacing: .5px;
+    white-space: nowrap;
 }
 
 .admin-table td {
     padding: 14px 16px;
     border-bottom: 1px solid var(--border);
     color: var(--text-1);
+    white-space: nowrap;
 }
 
 .admin-table tr:last-child td {
@@ -2579,6 +2640,71 @@ body[data-mode="light"] .icon-map-canvas {
     background: rgba(167, 139, 250, .03);
 }
 
+/* Bảng chuyển thành card dọc trên mobile */
+@media (max-width: 640px) {
+    .admin-table.responsive {
+        min-width: 0;
+    }
+    .admin-table.responsive thead {
+        display: none;
+    }
+    .admin-table.responsive tbody tr {
+        display: block;
+        margin-bottom: 12px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 8px 12px;
+        background: var(--bg-1);
+    }
+    .admin-table.responsive tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 8px 0;
+        white-space: normal;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        font-size: 14px;
+        text-align: right;
+    }
+    .admin-table.responsive tbody td:last-child {
+        border-bottom: none;
+    }
+    .admin-table.responsive tbody td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: var(--text-2);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        flex-shrink: 0;
+        text-align: left;
+    }
+}
+
+/* ───────── Filter bar ───────── */
+.admin-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.admin-filter input,
+.admin-filter select {
+    min-width: 0;
+    flex: 1 1 200px;
+    max-width: 100%;
+    padding: 11px 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-1);
+    color: var(--text-0);
+    font-size: 14px;
+    font-family: inherit;
+}
+
+/* ───────── Status badge ───────── */
 .status-badge {
     display: inline-block;
     padding: 4px 10px;
@@ -2588,36 +2714,14 @@ body[data-mode="light"] .icon-map-canvas {
     text-transform: uppercase;
 }
 
-.status-badge.pending {
-    background: rgba(251, 191, 36, .15);
-    color: #fbbf24;
-}
+.status-badge.pending { background: rgba(251, 191, 36, .15); color: #fbbf24; }
+.status-badge.paid { background: rgba(52, 211, 153, .15); color: #34d399; }
+.status-badge.processing { background: rgba(96, 165, 250, .15); color: #60a5fa; }
+.status-badge.completed { background: rgba(167, 139, 250, .15); color: #a78bfa; }
+.status-badge.cancelled { background: rgba(248, 113, 113, .15); color: #f87171; }
+.status-badge.expired { background: rgba(156, 163, 175, .15); color: #9ca3af; }
 
-.status-badge.paid {
-    background: rgba(52, 211, 153, .15);
-    color: #34d399;
-}
-
-.status-badge.processing {
-    background: rgba(96, 165, 250, .15);
-    color: #60a5fa;
-}
-
-.status-badge.completed {
-    background: rgba(167, 139, 250, .15);
-    color: #a78bfa;
-}
-
-.status-badge.cancelled {
-    background: rgba(248, 113, 113, .15);
-    color: #f87171;
-}
-
-.status-badge.expired {
-    background: rgba(156, 163, 175, .15);
-    color: #9ca3af;
-}
-
+/* ───────── Nút ───────── */
 .admin-btn {
     padding: 10px 18px;
     border-radius: 10px;
@@ -2628,6 +2732,8 @@ body[data-mode="light"] .icon-map-canvas {
     font-weight: 600;
     cursor: pointer;
     transition: all .2s;
+    min-height: 40px;
+    font-family: inherit;
 }
 
 .admin-btn:hover:not(:disabled) {
@@ -2641,36 +2747,110 @@ body[data-mode="light"] .icon-map-canvas {
     cursor: not-allowed;
 }
 
+/* ───────── Responsive ───────── */
+
+/* Tablet lớn / laptop nhỏ */
+@media (max-width: 1280px) {
+    .dashboard-grid {
+        gap: 16px;
+    }
+}
+
+/* Tablet — sidebar thu gọn icon */
 @media (max-width: 1024px) {
+    .admin-sidebar {
+        width: 72px;
+    }
+    .admin-sidebar .admin-nav-item span:not(:first-child),
+    .admin-sidebar .admin-sidebar-header span,
+    .admin-sidebar .admin-sidebar-footer span:not(:first-child),
+    .admin-sidebar .admin-user-card-info {
+        display: none;
+    }
+    .admin-sidebar .admin-nav-item {
+        justify-content: center;
+        padding: 12px 8px;
+    }
+    .admin-main {
+        padding: 24px 20px;
+    }
     .dashboard-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
+/* Mobile — sidebar thành drawer */
 @media (max-width: 768px) {
     .admin-layout {
-        flex-direction: column;
+        display: block;
     }
     .admin-sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 280px;
+        max-width: 82vw;
+        height: 100vh;
+        transform: translateX(-105%);
+        transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
+        border-right: 1px solid rgba(167, 139, 250, 0.2);
+        z-index: 9999;
+        box-shadow: 4px 0 40px rgba(0, 0, 0, 0.5);
     }
-    .admin-nav {
-        flex-direction: row;
-        overflow-x: auto;
-        padding: 8px;
+    .admin-sidebar.open {
+        transform: translateX(0);
     }
-    .admin-nav-item {
-        white-space: nowrap;
+    /* Hiện lại label khi mở drawer */
+    .admin-sidebar .admin-nav-item span:not(:first-child),
+    .admin-sidebar .admin-sidebar-header span,
+    .admin-sidebar .admin-sidebar-footer span:not(:first-child) {
+        display: inline;
     }
+    .admin-sidebar .admin-nav-item {
+        justify-content: flex-start;
+        padding: 11px 14px;
+    }
+
+    .admin-mobile-toggle {
+        display: flex;
+    }
+    .admin-overlay.show {
+        display: block;
+    }
+
     .admin-main {
-        padding: 20px 16px;
+        padding: 76px 16px 32px;
     }
+
     .dashboard-grid {
         grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    .dashboard-card {
+        padding: 16px;
+        border-radius: 14px;
     }
 }
+
+/* Mobile nhỏ */
+@media (max-width: 480px) {
+    .admin-main {
+        padding: 72px 12px 28px;
+    }
+    .admin-page-head {
+        margin-bottom: 18px;
+    }
+    .admin-filter input,
+    .admin-filter select {
+        flex-basis: 100%;
+    }
+    .admin-btn {
+        min-height: 44px;
+        padding: 12px 18px;
+    }
+}
+
 
 
 /* ═══════════════════════════════════════════════════════════

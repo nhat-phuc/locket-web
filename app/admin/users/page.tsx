@@ -76,7 +76,7 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <div style={{ padding: 24 }}>
+    <div className="admin-page">
       <h1 style={{ fontSize: 28, fontWeight: 900, marginBottom: 8 }}>Quản lý người dùng</h1>
       <p style={{ color: "#6b7280", marginBottom: 20 }}>Nạp tiền, xem số dư, quản lý tài khoản</p>
 
