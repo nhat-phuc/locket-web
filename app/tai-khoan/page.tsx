@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import TelegramLink from "@/components/TelegramLink";
 
 interface UserInfo {
   id: string;
@@ -126,55 +127,8 @@ export default function TaiKhoanPage() {
       </div>
 
       {/* Card 2: Liên Kết Telegram */}
-      <div className="tk-card">
-        <div className="tk-card-header">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2">
-            <path d="M22 2L11 13" />
-            <path d="M22 2l-7 20-4-9-9-4 20-7z" />
-          </svg>
-          <h2>Liên Kết Telegram</h2>
-        </div>
-        <p className="tk-desc">
-          Kết nối với Bot Telegram để nhận thông báo giao dịch, mua gói VIP và nhận ưu đãi tự động.
-        </p>
-        <div className="tk-telegram-box">
-          <p className="tk-telegram-status">Chưa liên kết tài khoản</p>
-            <button
-              className="tk-telegram-btn"
-              onClick={async () => {
-                try {
-                  console.log("[TG] Gọi API generate-code...");
-                  const res = await fetch("/api/telegram/generate-code", {
-                    method: "POST",
-                    credentials: "include",
-                  });
-                  console.log("[TG] Status:", res.status);
-                  const data = await res.json();
-                  console.log("[TG] Data:", data);
+      <TelegramLink />
 
-                  if (data.success && data.code) {
-                    const botUsername = "amirose_bot";
-                    const tgUrl = `https://t.me/${botUsername}?start=${data.code}`;
-                    console.log("[TG] Mở URL:", tgUrl);
-                    const win = window.open(tgUrl, "_blank");
-                    if (!win) window.location.href = tgUrl;
-                  } else {
-                    alert("Lỗi: " + (data.message || "Không tạo được mã"));
-                  }
-                } catch (err) {
-                  console.error("[TG] Lỗi:", err);
-                  alert("Lỗi kết nối");
-                }
-              }}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M22 2L11 13" />
-                <path d="M22 2l-7 20-4-9-9-4 20-7z" />
-              </svg>
-              Liên kết ngay qua Bot
-            </button>
-        </div>
-      </div>
 
       {/* Card 3: Bảo Mật Tài Khoản */}
       <div className="tk-card">

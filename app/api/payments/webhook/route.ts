@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { processReferralCommission } from "@/lib/commission";
 
 const SEPAY_API_KEY = process.env.SEPAY_API_KEY || "";
 
@@ -95,6 +96,10 @@ export async function POST(req: Request) {
     ]);
 
     console.log("✅ Đã cộng tiền:", transferAmount, "cho user", user.email);
+
+    // ✅ TRẢ HOA HỒNG CHO NGƯỜI GIỚI THIỆU
+    await processReferralCommission(order.id);
+
     return NextResponse.json({ success: true, message: "Đã xử lý thanh toán" });
   } catch (error) {
     console.error("❌ Webhook error:", error);

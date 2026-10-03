@@ -18,9 +18,11 @@ model User {
   phone         String?
   role          String    @default("user")
   balance       Int       @default(0)
+  bonusBalance  Int       @default(0)
   isActive      Boolean   @default(true)
   isBanned      Boolean   @default(false)
   referralCode  String?   @unique
+  codeChangedAt DateTime?
   commission    Int       @default(0)
   referrals     Referral[] @relation("Referrer")
   referredByRelation Referral? @relation("Referred")

@@ -18,6 +18,7 @@ export async function GET() {
         name: true,
         picture: true,
         balance: true,
+        bonusBalance: true,
         role: true,
         referralCode: true,
         commission: true,

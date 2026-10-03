@@ -1,60 +1,32 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getSession } from "@/lib/session";
 
-export async function POST(req: Request) {
+const BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "YourBotUsername";
+
+export async function GET() {
   try {
-    const body = await req.json();
-    const token = body.token || body.code;
-    const chatId = body.chatId;
+    const session = await getSession();
+    if (!session?.userId) return NextResponse.json({ success: false, message: "Chưa đăng nhập" }, { status: 401 });
 
-    if (!token || !chatId) {
-      return NextResponse.json({ success: false, message: "Thiếu thông tin" });
-    }
-
-    const user = await prisma.user.findFirst({
-      where: { telegramLinkCode: token },
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: { id: true, telegramId: true, telegramLinkedAt: true },
     });
+    if (!user) return NextResponse.json({ success: false, message: "User không tồn tại" }, { status: 404 });
 
-    if (!user) {
-      return NextResponse.json({ success: false, message: "Token không hợp lệ" });
+    if (user.telegramId) {
+      return NextResponse.json({ success: true, linked: true, telegramId: user.telegramId, linkedAt: user.telegramLinkedAt });
     }
-
-    const existing = await prisma.user.findFirst({
-      where: { telegramId: String(chatId), id: { not: user.id } },
-    });
-
-    if (existing) {
-      return NextResponse.json({ success: false, message: "Chat đã liên kết tài khoản khác" });
-    }
-
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        telegramId: String(chatId),
-        telegramLinkCode: null,
-        telegramLinkedAt: new Date(),
-      },
-    });
-
-    const [totalOrders, paidOrders] = await Promise.all([
-      prisma.order.count({ where: { userId: user.id } }),
-      prisma.order.count({ where: { userId: user.id, status: "paid" } }),
-    ]);
 
     return NextResponse.json({
       success: true,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        name: user.name,
-        balance: user.balance,
-        totalOrders,
-        paidOrders,
-      },
+      linked: false,
+      link: `https://t.me/${BOT_USERNAME}?start=${user.id}`,
+      botUsername: BOT_USERNAME,
     });
   } catch (error) {
-    console.error("[link]", error);
-    return NextResponse.json({ success: false, message: "Lỗi" }, { status: 500 });
+    console.error("[telegram/link]", error);
+    return NextResponse.json({ success: false, message: "Lỗi hệ thống" }, { status: 500 });
   }
 }

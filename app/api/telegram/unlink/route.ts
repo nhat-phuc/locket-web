@@ -1,11 +1,20 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getSession } from "@/lib/session";
 
-export async function POST(req: Request) {
-  const { chatId } = await req.json();
-  await prisma.user.updateMany({
-    where: { telegramId: String(chatId) },
-    data: { telegramId: null, telegramLinkedAt: null },
-  });
-  return NextResponse.json({ success: true });
+export async function POST() {
+  try {
+    const session = await getSession();
+    if (!session?.userId) return NextResponse.json({ success: false, message: "Chưa đăng nhập" }, { status: 401 });
+
+    await prisma.user.update({
+      where: { id: session.userId },
+      data: { telegramId: null, telegramLinkedAt: null },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[telegram/unlink]", error);
+    return NextResponse.json({ success: false, message: "Lỗi hệ thống" }, { status: 500 });
+  }
 }

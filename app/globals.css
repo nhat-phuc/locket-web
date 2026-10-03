@@ -5204,3 +5204,18 @@ img, video, iframe, svg, canvas {
     height: 24px;
   }
 }
+
+.acc-balances {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.acc-balance-bonus {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24) !important;
+}
+.acc-balance-hint {
+  font-size: 10px;
+  color: rgba(255,255,255,0.85);
+  font-weight: 600;
+  margin-top: 4px;
+}
