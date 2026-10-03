@@ -148,7 +148,7 @@ export default function PricingCard({ service }: { service: Service }) {
             Đã bán {service.sold.toLocaleString("vi-VN")}
           </div>
           <a
-            href={`/thanh-toan?serviceId=${service.slug}`}
+            href={`/thanh-toan?serviceId=${service.slug}&packageId=${(service as any).packages?.[0]?.id || ""}`}
             className="pc-buy"
           >
             <span>Mua ngay</span>

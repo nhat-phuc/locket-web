@@ -6,6 +6,7 @@
 
 import Hero from "@/components/Hero";
 import Stats from "@/components/Stats";
+import HomePricing from "@/components/HomePricing";
 import Marquee from "@/components/Marquee";
 import IconShowcase from "@/components/IconShowcase";
 import Reviews from "@/components/Reviews";
@@ -42,6 +43,7 @@ export default function HomePage() {
         <div className="page-shell">
           <Hero />
           <Stats />
+          <HomePricing />
           <Marquee />
           <IconShowcase />
           <RecentTransactions />

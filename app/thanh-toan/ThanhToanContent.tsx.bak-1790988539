@@ -7,7 +7,7 @@ interface Pkg { id: string; name: string; duration: string; price: number; origi
 interface Service { id: string; name: string; slug: string; type: string; price: number; packages?: Pkg[]; }
 interface Order { id: string; orderCode: string; serviceName: string; finalAmount: number; locketUsername: string; status: string; }
 
-const BANK = {
+const BANK_INFO = {
   bankName: "TPBank",
   bankId: "TPBANK",
   accountNo: "36886368888",
@@ -170,6 +170,7 @@ export default function ThanhToanContent() {
     <div className="pt-page">
       <div className="pt-bg pt-bg-1" />
       <div className="pt-bg pt-bg-2" />
+      <div className="pt-bg pt-bg-3" />
 
       <div className="pt-wrap">
         <div className="pt-head">
@@ -177,13 +178,33 @@ export default function ThanhToanContent() {
           <p>Hoàn tất đơn hàng chỉ trong vài giây</p>
         </div>
 
+        {/* Progress */}
+        <div className="pt-progress">
+          {[
+            { k: "info", n: 1, l: "Thông tin" },
+            { k: "method", n: 2, l: "Thanh toán" },
+            { k: "success", n: 3, l: "Hoàn tất" },
+          ].map((s, i) => {
+            const active = step === s.k;
+            const done = (s.k === "info" && step !== "info") || (s.k === "method" && (step === "qr" || step === "success")) || (s.k === "success" && step === "success");
+            return (
+              <div key={s.k} className="pt-prog-item">
+                <div className={`pt-prog-num ${active ? "active" : ""} ${done ? "done" : ""}`}>{done ? "✓" : s.n}</div>
+                <span className={`pt-prog-lbl ${active ? "active" : ""}`}>{s.l}</span>
+                {i < 2 && <div className={`pt-prog-line ${done ? "done" : ""}`} />}
+              </div>
+            );
+          })}
+        </div>
+
         {error && <div className="pt-alert">⚠ {error}</div>}
 
+        {/* STEP 1 */}
         {step === "info" && (
           <div className="pt-card">
             <div className="pt-banner">
               <div>
-                <div className="pt-banner-lbl">DỊCH VỤ</div>
+                <div className="pt-banner-lbl">DỊCH VỤ ĐÃ CHỌN</div>
                 <div className="pt-banner-name">{service?.name || "..."}</div>
                 <div className="pt-banner-pkg">{pkg?.name || "—"}</div>
               </div>
@@ -230,6 +251,7 @@ export default function ThanhToanContent() {
           </div>
         )}
 
+        {/* STEP 2 */}
         {step === "method" && order && (
           <div className="pt-card">
             <div className="pt-order-info">
@@ -238,10 +260,10 @@ export default function ThanhToanContent() {
               <div className="pt-order-total"><span>Tổng cộng</span><strong>{fmt(order.finalAmount)}</strong></div>
             </div>
 
-            <h3 className="pt-pick">Chọn phương thức</h3>
+            <h3 className="pt-pick">Chọn phương thức thanh toán</h3>
 
             <button onClick={payWithBalance} disabled={loading || notEnough} className={`pt-method ${notEnough ? "off" : ""}`}>
-              <div className="pt-method-ico">��</div>
+              <div className="pt-method-ico">💰</div>
               <div className="pt-method-body">
                 <div className="pt-method-name">Trả bằng số dư</div>
                 <div className="pt-method-desc">Số dư: <b>{fmt(balance)}</b>{notEnough && <span className="pt-method-warn"> — không đủ</span>}</div>
@@ -262,86 +284,101 @@ export default function ThanhToanContent() {
           </div>
         )}
 
-        {/* ====== QR MỚI: DỌC, ĐẸP ====== */}
+        {/* STEP 3: QR — GIAO DIỆN MỚI */}
         {step === "qr" && order && (
-          <div className="pt-card pt-qr2">
-            {/* Header */}
-            <div className="pt-qr2-head">
-              <div className="pt-qr2-head-left">
-                <div className="pt-qr2-icon">📱</div>
-                <div>
-                  <h2>Quét mã thanh toán</h2>
-                  <p>Mở app ngân hàng bất kỳ để quét</p>
-                </div>
-              </div>
-              <div className="pt-qr2-timer">
-                <span className="pt-qr2-timer-dot" />
-                {fmtTime(timeLeft)}
+          <div className="pt-card pt-qr-card">
+            <div className="pt-qr-top">
+              <h2>Quét mã để thanh toán</h2>
+              <div className="pt-qr-timer">
+                <span className="pt-qr-timer-icon">⏱</span> {fmtTime(timeLeft)}
               </div>
             </div>
 
-            {/* Amount */}
-            <div className="pt-qr2-amount">
-              <div className="pt-qr2-amount-lbl">SỐ TIỀN</div>
-              <div className="pt-qr2-amount-val">{fmt(order.finalAmount)}</div>
-              <div className="pt-qr2-code">Nội dung: <b>{order.orderCode}</b></div>
+            <div className="pt-qr-amount">
+              <span>Số tiền cần chuyển</span>
+              <strong>{fmt(order.finalAmount)}</strong>
             </div>
 
-            {/* QR big */}
-            <div className="pt-qr2-img-wrap">
-              <div className="pt-qr2-frame">
-                <span className="pt-qr2-corner tl" />
-                <span className="pt-qr2-corner tr" />
-                <span className="pt-qr2-corner bl" />
-                <span className="pt-qr2-corner br" />
+            <div className="pt-qr-body">
+              {/* QR bên trái */}
+              <div className="pt-qr-box">
                 <img
-                  src={`https://img.vietqr.io/image/${BANK.bankId}-${BANK.accountNo}-compact2.png?amount=${order.finalAmount}&addInfo=${encodeURIComponent(order.orderCode)}&accountName=${encodeURIComponent(BANK.accountName)}`}
+                  src={`https://img.vietqr.io/image/${BANK_INFO.bankId}-${BANK_INFO.accountNo}-compact2.png?amount=${order.finalAmount}&addInfo=${encodeURIComponent(order.orderCode)}&accountName=${encodeURIComponent(BANK_INFO.accountName)}`}
                   alt="QR"
                 />
-              </div></div>
+                <div className="pt-qr-logo">
+                  <span className="pt-qr-logo-v">Viet</span><span className="pt-qr-logo-q">QR</span>
+                  <span className="pt-qr-logo-badge">247</span>
+                </div>
+              </div>
 
-            {/* Bank info list */}
-            <div className="pt-qr2-info">
-              <div className="pt-qr2-row" onClick={() => copy(BANK.bankName, "b")}>
-                <span className="pt-qr2-row-lbl">Ngân hàng</span>
-                <span className="pt-qr2-row-val">{BANK.bankName}</span>
-                <span className={`pt-qr2-copy ${copied === "b" ? "ok" : ""}`}>{copied === "b" ? "✓ Đã copy" : "Copy"}</span>
-              </div>
-              <div className="pt-qr2-row" onClick={() => copy(BANK.accountNo, "a")}>
-                <span className="pt-qr2-row-lbl">Số tài khoản</span>
-                <span className="pt-qr2-row-val pt-mono">{BANK.accountNo}</span>
-                <span className={`pt-qr2-copy ${copied === "a" ? "ok" : ""}`}>{copied === "a" ? "✓ Đã copy" : "Copy"}</span>
-              </div>
-              <div className="pt-qr2-row" onClick={() => copy(BANK.accountName, "n")}>
-                <span className="pt-qr2-row-lbl">Chủ tài khoản</span>
-                <span className="pt-qr2-row-val">{BANK.accountName}</span>
-                <span className={`pt-qr2-copy ${copied === "n" ? "ok" : ""}`}>{copied === "n" ? "✓ Đã copy" : "Copy"}</span>
-              </div>
-              <div className="pt-qr2-row pt-qr2-row-hl" onClick={() => copy(order.orderCode, "c")}>
-                <span className="pt-qr2-row-lbl">Nội dung CK</span>
-                <span className="pt-qr2-row-val pt-mono pt-qr2-purple">{order.orderCode}</span>
-                <span className={`pt-qr2-copy ${copied === "c" ? "ok" : ""}`}>{copied === "c" ? "✓ Đã copy" : "Copy"}</span>
-              </div>
-              <div className="pt-qr2-row" onClick={() => copy(String(order.finalAmount), "amt")}>
-                <span className="pt-qr2-row-lbl">Số tiền</span>
-                <span className="pt-qr2-row-val pt-qr2-purple">{fmt(order.finalAmount)}</span>
-                <span className={`pt-qr2-copy ${copied === "amt" ? "ok" : ""}`}>{copied === "amt" ? "✓ Đã copy" : "Copy"}</span>
+              {/* Info bên phải */}
+              <div className="pt-qr-info">
+                <div className="pt-qr-info-item">
+                  <div className="pt-qr-info-lbl">Ngân hàng</div>
+                  <div className="pt-qr-info-val">
+                    <b>{BANK_INFO.bankName}</b>
+                    <button className="pt-copy" onClick={() => copy(BANK_INFO.bankName, "bank")}>
+                      {copied === "bank" ? "✓" : "📋"}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pt-qr-info-item">
+                  <div className="pt-qr-info-lbl">Số tài khoản</div>
+                  <div className="pt-qr-info-val">
+                    <b className="pt-mono">{BANK_INFO.accountNo}</b>
+                    <button className="pt-copy" onClick={() => copy(BANK_INFO.accountNo, "acc")}>
+                      {copied === "acc" ? "✓" : "📋"}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pt-qr-info-item">
+                  <div className="pt-qr-info-lbl">Chủ tài khoản</div>
+                  <div className="pt-qr-info-val">
+                    <b>{BANK_INFO.accountName}</b>
+                    <button className="pt-copy" onClick={() => copy(BANK_INFO.accountName, "name")}>
+                      {copied === "name" ? "✓" : "📋"}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pt-qr-info-item pt-qr-info-highlight">
+                  <div className="pt-qr-info-lbl">Nội dung CK</div>
+                  <div className="pt-qr-info-val">
+                    <b className="pt-mono pt-purple">{order.orderCode}</b>
+                    <button className="pt-copy" onClick={() => copy(order.orderCode, "code")}>
+                      {copied === "code" ? "✓" : "📋"}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pt-qr-info-item">
+                  <div className="pt-qr-info-lbl">Số tiền</div>
+                  <div className="pt-qr-info-val">
+                    <b className="pt-purple">{fmt(order.finalAmount)}</b>
+                    <button className="pt-copy" onClick={() => copy(String(order.finalAmount), "amt")}>
+                      {copied === "amt" ? "✓" : "📋"}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="pt-qr2-warn">
-              ⚠️ Vui lòng giữ <b>nguyên nội dung CK</b> để hệ thống tự động xác nhận
+            <div className="pt-qr-note">
+              ⚠️ <b>Lưu ý:</b> Vui lòng giữ nguyên nội dung chuyển khoản để hệ thống tự động xác nhận
             </div>
 
-            <div className="pt-qr2-wait">
-              <span className="pt-qr2-pulse" />
-              Đang chờ thanh toán...
+            <div className="pt-qr-wait">
+              <span className="pt-pulse" /> Đang chờ thanh toán...
             </div>
 
             <button onClick={() => setStep("method")} className="pt-btn-ghost">← Chọn phương thức khác</button>
           </div>
         )}
 
+        {/* STEP 4 */}
         {step === "success" && (
           <div className="pt-card pt-card-success">
             <div className="pt-success-ico">🎉</div>
@@ -357,12 +394,25 @@ export default function ThanhToanContent() {
         .pt-bg { position: absolute; border-radius: 50%; filter: blur(120px); opacity: .3; pointer-events: none; }
         .pt-bg-1 { width: 420px; height: 420px; background: #a78bfa; top: -140px; left: -100px; }
         .pt-bg-2 { width: 380px; height: 380px; background: #f472b6; bottom: -120px; right: -100px; }
-        .pt-wrap { max-width: 520px; margin: 0 auto; position: relative; }
+        .pt-bg-3 { width: 300px; height: 300px; background: #60a5fa; top: 40%; left: 40%; opacity: .15; }
+        .pt-wrap { max-width: 820px; margin: 0 auto; position: relative; }
         .pt-head { text-align: center; margin-bottom: 24px; }
         .pt-head h1 { font-size: 32px; font-weight: 800; margin: 0 0 6px; background: linear-gradient(135deg, #7c3aed, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .pt-head p { color: #64748b; margin: 0; font-size: 14px; }
 
+        .pt-progress { display: flex; align-items: center; background: rgba(255,255,255,.85); backdrop-filter: blur(12px); padding: 14px 20px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(124,58,237,.06); }
+        .pt-prog-item { display: flex; align-items: center; gap: 8px; flex: 1; }
+        .pt-prog-item:last-child { flex: 0; }
+        .pt-prog-num { width: 30px; height: 30px; border-radius: 50%; background: #e2e8f0; color: #94a3b8; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+        .pt-prog-num.active { background: linear-gradient(135deg, #7c3aed, #a78bfa); color: #fff; box-shadow: 0 4px 12px rgba(124,58,237,.4); }
+        .pt-prog-num.done { background: #10b981; color: #fff; }
+        .pt-prog-lbl { font-size: 12px; font-weight: 600; color: #94a3b8; }
+        .pt-prog-lbl.active { color: #7c3aed; }
+        .pt-prog-line { flex: 1; height: 2px; background: #e2e8f0; margin: 0 8px; border-radius: 2px; }
+        .pt-prog-line.done { background: #10b981; }
+
         .pt-alert { background: #fef2f2; color: #dc2626; padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; font-size: 14px; border: 1px solid #fecaca; }
+
         .pt-card { background: #fff; border-radius: 24px; padding: 24px; box-shadow: 0 12px 40px rgba(124,58,237,.1); border: 1px solid #f1f5f9; }
 
         .pt-banner { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #faf5ff, #fdf4ff); border: 1px solid #e9d5ff; border-radius: 16px; padding: 16px 18px; margin-bottom: 20px; }
@@ -408,11 +458,13 @@ export default function ThanhToanContent() {
         .pt-order-total { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; margin-top: 12px; border-top: 1px dashed #cbd5e1; font-size: 15px; font-weight: 600; color: #334155; }
         .pt-order-total strong { font-size: 24px; color: #7c3aed; }
         .pt-mono { font-family: ui-monospace, monospace; font-size: 13px; }
+        .pt-purple { color: #7c3aed !important; }
 
         .pt-pick { font-size: 15px; font-weight: 700; margin: 0 0 12px; color: #0f172a; }
         .pt-method { display: flex; align-items: center; gap: 14px; width: 100%; padding: 16px; background: #fff; border: 2px solid #e2e8f0; border-radius: 16px; cursor: pointer; text-align: left; margin-bottom: 10px; transition: all .18s; }
         .pt-method:hover:not(:disabled):not(.off) { border-color: #a78bfa; background: #faf5ff; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,58,237,.12); }
         .pt-method.off { opacity: .5; cursor: not-allowed; background: #f8fafc; }
+        .pt-method:disabled { cursor: not-allowed; }
         .pt-method-ico { font-size: 28px; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: #faf5ff; border-radius: 12px; flex-shrink: 0; }
         .pt-method-body { flex: 1; }
         .pt-method-name { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 3px; }
@@ -421,76 +473,77 @@ export default function ThanhToanContent() {
         .pt-method-warn { color: #ef4444; font-weight: 700; }
         .pt-method-arrow { font-size: 20px; color: #a78bfa; font-weight: 700; }
 
-        /* ===== QR MỚI ===== */
-        .pt-qr2 { padding: 0; overflow: hidden; }
+        /* QR CARD */
+        .pt-qr-card { max-width: 820px; }
+        .pt-qr-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .pt-qr-top h2 { font-size: 20px; font-weight: 800; margin: 0; color: #0f172a; }
+        .pt-qr-timer { display: flex; align-items: center; gap: 6px; background: #faf5ff; color: #7c3aed; font-weight: 700; font-size: 14px; padding: 6px 14px; border-radius: 999px; border: 1px solid #e9d5ff; }
+        .pt-qr-timer-icon { font-size: 14px; }
 
-        .pt-qr2-head { display: flex; justify-content: space-between; align-items: center; padding: 20px 20px 16px; border-bottom: 1px solid #f1f5f9; }
-        .pt-qr2-head-left { display: flex; gap: 12px; align-items: center; }
-        .pt-qr2-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #faf5ff, #f3e8ff); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-        .pt-qr2-head h2 { font-size: 16px; font-weight: 800; margin: 0 0 2px; color: #0f172a; }
-        .pt-qr2-head p { font-size: 12px; color: #94a3b8; margin: 0; }
-        .pt-qr2-timer { display: flex; align-items: center; gap: 6px; background: #fef2f2; color: #dc2626; font-weight: 800; font-size: 14px; padding: 8px 12px; border-radius: 999px; font-variant-numeric: tabular-nums; }
-        .pt-qr2-timer-dot { width: 8px; height: 8px; background: #dc2626; border-radius: 50%; animation: pulseRed 1.2s infinite; }
-        @keyframes pulseRed { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+        .pt-qr-amount { text-align: center; padding: 16px; background: linear-gradient(135deg, #faf5ff, #fdf4ff); border-radius: 14px; margin-bottom: 20px; border: 1px solid #e9d5ff; }
+        .pt-qr-amount span { display: block; font-size: 12px; color: #7c3aed; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; }
+        .pt-qr-amount strong { font-size: 28px; color: #7c3aed; font-weight: 800; }
 
-        .pt-qr2-amount { padding: 16px 20px; text-align: center; background: linear-gradient(135deg, #faf5ff 0%, #fdf4ff 100%); }
-        .pt-qr2-amount-lbl { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: #a78bfa; margin-bottom: 4px; }
-        .pt-qr2-amount-val { font-size: 36px; font-weight: 900; color: #7c3aed; line-height: 1.1; margin-bottom: 8px; }
-        .pt-qr2-code { font-size: 13px; color: #64748b; }
-        .pt-qr2-code b { color: #0f172a; font-family: ui-monospace, monospace; }
-
-        .pt-qr2-img-wrap { padding: 24px 20px; text-align: center; background: #fff; }
-        .pt-qr2-frame { position: relative; display: inline-block; padding: 16px; background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(124,58,237,.15); }
-        .pt-qr2-frame img { display: block; width: 240px; height: 240px; }
-        .pt-qr2-corner { position: absolute; width: 24px; height: 24px; border-color: #7c3aed; }
-        .pt-qr2-corner.tl { top: -2px; left: -2px; border-top: 4px solid; border-left: 4px solid; border-top-left-radius: 14px; }
-        .pt-qr2-corner.tr { top: -2px; right: -2px; border-top: 4px solid; border-right: 4px solid; border-top-right-radius: 14px; }
-        .pt-qr2-corner.bl { bottom: -2px; left: -2px; border-bottom: 4px solid; border-left: 4px solid; border-bottom-left-radius: 14px; }
-        .pt-qr2-corner.br { bottom: -2px; right: -2px; border-bottom: 4px solid; border-right: 4px solid; border-bottom-right-radius: 14px; }
-
-        
-        
-        
-        
-
-        .pt-qr2-info { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 8px; }
-        .pt-qr2-row {
+        .pt-qr-body {
           display: grid;
-          grid-template-columns: 1fr auto auto;
-          align-items: center;
-          gap: 10px;
-          padding: 12px 14px;
+          grid-template-columns: 300px 1fr;
+          gap: 24px;
+          align-items: start;
+        }
+        .pt-qr-box {
+          position: relative;
+          background: #fff;
+          border: 1px solid #e9d5ff;
+          border-radius: 16px;
+          padding: 16px;
+          text-align: center;
+          box-shadow: 0 4px 20px rgba(124,58,237,.08);
+        }
+        .pt-qr-box img { width: 100%; border-radius: 8px; }
+        .pt-qr-logo { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 10px; font-size: 14px; font-weight: 800; }
+        .pt-qr-logo-v { color: #e63946; }
+        .pt-qr-logo-q { color: #1d4ed8; }
+        .pt-qr-logo-badge { background: #1d4ed8; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 4px; margin-left: 4px; }
+
+        .pt-qr-info { display: flex; flex-direction: column; gap: 10px; }
+        .pt-qr-info-item {
           background: #f8fafc;
           border: 1px solid #e2e8f0;
           border-radius: 12px;
+          padding: 12px 14px;
+          transition: all .18s;
+        }
+        .pt-qr-info-item:hover { border-color: #c4b5fd; background: #faf5ff; }
+        .pt-qr-info-highlight { background: linear-gradient(135deg, #faf5ff, #fdf4ff); border-color: #d8b4fe; }
+        .pt-qr-info-lbl { font-size: 11px; font-weight: 700; color: #94a3b8; letter-spacing: 0.5px; margin-bottom: 4px; text-transform: uppercase; }
+        .pt-qr-info-val { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .pt-qr-info-val b { font-size: 14px; color: #0f172a; }
+        .pt-copy {
+          background: transparent;
+          border: none;
           cursor: pointer;
-          transition: all .15s;
-        }
-        .pt-qr2-row:hover { background: #faf5ff; border-color: #c4b5fd; }
-        .pt-qr2-row-hl { background: linear-gradient(135deg, #faf5ff, #fdf4ff); border-color: #d8b4fe; }
-        .pt-qr2-row-lbl { font-size: 12px; color: #64748b; font-weight: 600; }
-        .pt-qr2-row-val { font-size: 14px; font-weight: 700; color: #0f172a; text-align: right; }
-        .pt-qr2-purple { color: #7c3aed; }
-        .pt-qr2-copy {
-          font-size: 11px;
-          font-weight: 700;
-          color: #7c3aed;
-          background: rgba(124,58,237,.1);
-          padding: 4px 8px;
+          font-size: 14px;
+          padding: 4px;
           border-radius: 6px;
-          transition: all .15s;
-          white-space: nowrap;
+          transition: background .15s;
         }
-        .pt-qr2-copy.ok { background: #10b981; color: #fff; }
+        .pt-copy:hover { background: #e9d5ff; }
 
-        .pt-qr2-warn { margin: 0 20px 16px; padding: 12px 14px; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 12px; font-size: 12px; color: #92400e; line-height: 1.5; }
-        .pt-qr2-warn b { color: #78350f; }
+        .pt-qr-note {
+          margin-top: 20px;
+          padding: 12px 16px;
+          background: #fffbeb;
+          border: 1px solid #fcd34d;
+          border-radius: 12px;
+          font-size: 13px;
+          color: #92400e;
+          line-height: 1.5;
+        }
+        .pt-qr-note b { color: #78350f; }
 
-        .pt-qr2-wait { display: flex; align-items: center; justify-content: center; gap: 8px; color: #64748b; font-size: 13px; padding: 12px 0; margin: 0 20px; border-top: 1px dashed #e2e8f0; }
-        .pt-qr2-pulse { width: 8px; height: 8px; border-radius: 50%; background: #10b981; animation: pulse 1.2s infinite; }
+        .pt-qr-wait { display: flex; align-items: center; justify-content: center; gap: 8px; color: #64748b; font-size: 13px; margin-top: 16px; }
+        .pt-pulse { width: 8px; height: 8px; border-radius: 50%; background: #10b981; animation: pulse 1.2s infinite; }
         @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .5; transform: scale(1.4); } }
-
-        .pt-qr2 .pt-btn-ghost { margin: 0 20px 20px; width: calc(100% - 40px); }
 
         .pt-card-success { text-align: center; padding: 48px 24px; }
         .pt-success-ico { font-size: 72px; margin-bottom: 16px; }
@@ -498,12 +551,15 @@ export default function ThanhToanContent() {
         .pt-card-success p { color: #334155; margin: 0 0 8px; font-size: 14px; }
         .pt-dim { color: #94a3b8 !important; font-size: 13px !important; }
 
+        @media (max-width: 700px) {
+          .pt-qr-body { grid-template-columns: 1fr; }
+          .pt-qr-box { max-width: 280px; margin: 0 auto; }
+        }
         @media (max-width: 480px) {
           .pt-head h1 { font-size: 26px; }
-          .pt-qr2-frame img { width: 200px; height: 200px; }
-          .pt-qr2-amount-val { font-size: 30px; }
-          .pt-qr2-row { grid-template-columns: 1fr auto; }
-          .pt-qr2-row-lbl { display: none; }
+          .pt-card { padding: 20px 16px; }
+          .pt-banner { flex-direction: column; align-items: flex-start; gap: 8px; }
+          .pt-banner-right { text-align: left; }
         }
       `}</style>
     </div>

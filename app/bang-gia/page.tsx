@@ -1,121 +1,45 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import FloatingWidgets from "@/components/FloatingWidgets";
 
+interface Pkg {
+  id: string;
+  name: string;
+  duration?: string;
+  price: number;
+  originalPrice?: number | null;
+  isPopular?: boolean;
+}
 interface Service {
   id: string;
   name: string;
   slug: string;
-  description: string;
   type: string;
-  platform: string;
   price: number;
   originalPrice?: number | null;
-  duration?: string | null;
+  description: string;
   features: string;
-  isFeatured: boolean;
-  sold: number;
+  packages?: Pkg[];
 }
 
-interface PackageVariant {
-  label: string;
-  price: number;
-}
-
-// Màu theo loại
-const typeTheme: Record<string, {
-  accent: string;
-  accentLight: string;
-  border: string;
-  bg: string;
-  pill: string;
-}> = {
-  gold: {
-    accent: "#e63946",
-    accentLight: "#ff6b7a",
-    border: "#e63946",
-    bg: "#fef2f3",
-    pill: "#e63946",
-  },
-  vip: {
-    accent: "#10b981",
-    accentLight: "#34d399",
-    border: "#10b981",
-    bg: "#ecfdf5",
-    pill: "#4f46e5",
-  },
-  luxury: {
-    accent: "#f59e0b",
-    accentLight: "#fbbf24",
-    border: "#f59e0b",
-    bg: "#fffbeb",
-    pill: "#f97316",
-  },
-  adr: {
-    accent: "#3b82f6",
-    accentLight: "#60a5fa",
-    border: "#3b82f6",
-    bg: "#eff6ff",
-    pill: "#3b82f6",
-  },
-  agent: {
-    accent: "#8b5cf6",
-    accentLight: "#a78bfa",
-    border: "#8b5cf6",
-    bg: "#f5f3ff",
-    pill: "#8b5cf6",
-  },
-};
-
-// Quyền lợi mặc định (nếu service không có features)
-const defaultFeatures: Record<string, string[]> = {
-  gold: [
-    "Mở khóa Locket Gold vĩnh viễn.",
-    "Không quảng cáo, cực mượt.",
-    "Upload ảnh trực tiếp từ thư viện.",
-    "Xem chính xác người đã xem Lockets.",
-  ],
-  vip: [
-    "Mở khóa Locket Gold vĩnh viễn.",
-    "Không quảng cáo, cực mượt.",
-    "Upload ảnh trực tiếp từ thư viện.",
-    "Quay video Lockets 3s.",
-    "Xem chính xác người đã xem.",
-    "Thêm bạn bè không giới hạn.",
-  ],
-  luxury: [
-    "Mở khóa Locket Gold vĩnh viễn.",
-    "Không quảng cáo, cực mượt.",
-    "Upload ảnh trực tiếp từ thư viện.",
-    "Quay video Lockets 15s.",
-    "Xem chính xác người đã xem.",
-    "Thêm bạn bè không giới hạn.",
-  ],
-};
-
-// Biến thể giá mặc định
-const defaultPackages: Record<string, PackageVariant[]> = {
-  gold: [
-    { label: "1 tài khoản (Quay 3s)", price: 79000 },
-    { label: "1 tài khoản (Quay 15s)", price: 109000 },
-  ],
-  vip: [
-    { label: "1 tài khoản", price: 99000 },
-    { label: "2 tài khoản", price: 180000 },
-    { label: "3 tài khoản", price: 250000 },
-    { label: "5 tài khoản", price: 330000 },
-  ],
-  luxury: [
-    { label: "1 tài khoản", price: 149000 },
-    { label: "2 tài khoản", price: 279000 },
-    { label: "3 tài khoản", price: 399000 },
-    { label: "5 tài khoản", price: 499000 },
-  ],
+const THEME: Record<string, { accent: string; bg: string; border: string; text: string }> = {
+  gold:    { accent: "#e63946", bg: "#fef2f3", border: "#fca5a5", text: "#991b1b" },
+  vip:     { accent: "#4f46e5", bg: "#eef2ff", border: "#a5b4fc", text: "#3730a3" },
+  luxury:  { accent: "#f59e0b", bg: "#fffbeb", border: "#fcd34d", text: "#92400e" },
+  adr:     { accent: "#10b981", bg: "#ecfdf5", border: "#6ee7b7", text: "#065f46" },
+  agent:   { accent: "#fb923c", bg: "#fff7ed", border: "#fdba74", text: "#9a3412" },
 };
 
 function formatPrice(n: number) {
   return n.toLocaleString("vi-VN") + "đ";
+}
+
+function parseFeatures(s: string): string[] {
+  try {
+    const arr = JSON.parse(s);
+    if (Array.isArray(arr)) return arr;
+  } catch {}
+  return s.split("\n").filter(Boolean);
 }
 
 export default function BangGiaPage() {
@@ -125,471 +49,234 @@ export default function BangGiaPage() {
   useEffect(() => {
     fetch("/api/services")
       .then((r) => r.json())
-      .then((d) => {
-        if (d.success) setServices(d.services || []);
-      })
-      .catch(() => {})
+      .then((d) => { if (d.success) setServices(d.services || []); })
       .finally(() => setLoading(false));
   }, []);
 
-  const parseFeatures = (s: string): string[] => {
-    try {
-      const arr = JSON.parse(s);
-      return Array.isArray(arr) ? arr : [];
-    } catch {
-      return s.split("\n").filter(Boolean);
-    }
-  };
-
-  // Nhóm services theo type, chỉ lấy 3 loại chính: gold, vip, luxury
-  const grouped = {
-    gold: services.find((s) => s.type === "gold"),
-    vip: services.find((s) => s.type === "vip"),
-    luxury: services.find((s) => s.type === "luxury"),
-  };
-
   return (
-    <>
-      <main className="pr-page">
-        <div className="pr-deco pr-deco-1" />
-        <div className="pr-deco pr-deco-2" />
+    <main className="pr-page">
+      <div className="pr-bg" />
+      <div className="pr-wrap">
+        <header className="pr-header">
+          <h1>Bảng Giá Dịch Vụ</h1>
+          <p>Chọn gói phù hợp — thanh toán tự động, kích hoạt tức thì</p>
+        </header>
 
-        <div className="pr-wrap">
-          {/* Header */}
-          <div className="pr-header">
-            <h1 className="pr-title">
-              Bảng giá <span>dịch vụ</span>
-            </h1>
-            <p className="pr-sub">
-              Chọn gói phù hợp với nhu cầu. Thanh toán tự động tức thì.
-            </p>
+        {loading && <div className="pr-loading">Đang tải bảng giá...</div>}
+
+        {!loading && services.length === 0 && (
+          <div className="pr-empty">Chưa có dịch vụ nào</div>
+        )}
+
+        {!loading && services.length > 0 && (
+          <div className="pr-cards">
+            {services.map((s) => (
+              <PriceCard key={s.id} service={s} />
+            ))}
           </div>
+        )}
+      </div>
 
-          {loading && (
-            <div className="pr-loading">
-              <div className="pr-spin" />
-              <div>Đang tải bảng giá...</div>
-            </div>
-          )}
-
-          {!loading && services.length > 0 && (
-            <div className="pr-cards">
-              {/* GOLD */}
-              <PriceCard
-                type="gold"
-                service={grouped.gold}
-                title={grouped.gold?.name || "Gói GOLD (iOS)"}
-                badge="1 NĂM"
-                features={
-                  grouped.gold
-                    ? parseFeatures(grouped.gold.features)
-                    : defaultFeatures.gold
-                }
-                packages={defaultPackages.gold}
-              />
-
-              {/* VIP — featured */}
-              <PriceCard
-                type="vip"
-                service={grouped.vip}
-                title={grouped.vip?.name || "Gói VIP 3S (iOS)"}
-                badge="VĨNH VIỄN"
-                features={
-                  grouped.vip
-                    ? parseFeatures(grouped.vip.features)
-                    : defaultFeatures.vip
-                }
-                packages={defaultPackages.vip}
-                featured
-              />
-
-              {/* LUXURY */}
-              <PriceCard
-                type="luxury"
-                service={grouped.luxury}
-                title={grouped.luxury?.name || "Gói LUXURY 15S (iOS)"}
-                badge="15S VĨNH VIỄN"
-                features={
-                  grouped.luxury
-                    ? parseFeatures(grouped.luxury.features)
-                    : defaultFeatures.luxury
-                }
-                packages={defaultPackages.luxury}
-              />
-            </div>
-          )}
-        </div>
-
-        <style jsx>{`
-          .pr-page {
-            position: relative;
-            min-height: 100vh;
-            padding: 110px 20px 80px;
-            background: var(--bg-0);
-            overflow: hidden;
-          }
-
-          /* Decorative circles */
-          .pr-deco {
-            position: absolute;
-            border-radius: 50%;
-            pointer-events: none;
-            opacity: 0.4;
-          }
-          .pr-deco-1 {
-            width: 400px; height: 400px;
-            background: radial-gradient(circle, rgba(167,139,250,0.15), transparent 70%);
-            top: 100px; left: -150px;
-          }
-          .pr-deco-2 {
-            width: 500px; height: 500px;
-            background: radial-gradient(circle, rgba(251,146,60,0.12), transparent 70%);
-            bottom: -100px; right: -150px;
-          }
-
-          .pr-wrap {
-            position: relative;
-            z-index: 1;
-            max-width: 1200px;
-            margin: 0 auto;
-          }
-
-          /* HEADER */
-          .pr-header {
-            text-align: center;
-            margin-bottom: 48px;
-          }
-          .pr-title {
-            font-size: clamp(32px, 5vw, 52px);
-            font-weight: 900;
-            color: #1a1d21;
-            letter-spacing: -0.02em;
-            margin-bottom: 14px;
-            line-height: 1.1;
-          }
-          .pr-title span {
-            background: linear-gradient(135deg, #3b82f6, #10b981);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-          }
-          .pr-sub {
-            font-size: 16px;
-            color: var(--text-2);
-            max-width: 520px;
-            margin: 0 auto;
-            line-height: 1.6;
-          }
-
-          /* LOADING */
-          .pr-loading {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 14px;
-            padding: 80px 20px;
-            color: var(--text-2);
-            font-size: 14px;
-          }
-          .pr-spin {
-            width: 36px; height: 36px;
-            border: 3px solid rgba(59,130,246,0.15);
-            border-top-color: #3b82f6;
-            border-radius: 50%;
-            animation: prSpin 0.8s linear infinite;
-          }
-          @keyframes prSpin { to { transform: rotate(360deg); } }
-
-          /* CARDS */
-          .pr-cards {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            align-items: start;
-          }
-          @media (max-width: 1000px) {
-            .pr-cards { grid-template-columns: 1fr; max-width: 460px; margin: 0 auto; }
-          }
-        `}</style>
-      </main>
-      <FloatingWidgets />
-    </>
+      <style jsx>{`
+        .pr-page {
+          min-height: 100vh;
+          padding: 40px 16px 80px;
+          position: relative;
+          overflow: hidden;
+        }
+        .pr-bg {
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(circle at 15% 20%, rgba(167,139,250,.18), transparent 40%),
+            radial-gradient(circle at 85% 80%, rgba(244,114,182,.15), transparent 40%);
+          pointer-events: none;
+        }
+        .pr-wrap {
+          max-width: 1200px;
+          margin: 0 auto;
+          position: relative;
+        }
+        .pr-header {
+          text-align: center;
+          margin-bottom: 40px;
+        }
+        .pr-header h1 {
+          font-size: 36px;
+          font-weight: 800;
+          margin: 0 0 8px;
+          background: linear-gradient(135deg, #7c3aed, #ec4899);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .pr-header p {
+          color: #64748b;
+          margin: 0;
+          font-size: 15px;
+        }
+        .pr-loading,
+        .pr-empty {
+          text-align: center;
+          color: #94a3b8;
+          padding: 60px 0;
+        }
+        .pr-cards {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 20px;
+        }
+        @media (max-width: 768px) {
+          .pr-header h1 { font-size: 28px; }
+        }
+      `}</style>
+    </main>
   );
 }
 
-/* =================== PRICE CARD =================== */
-
-function PriceCard({
-  type,
-  service,
-  title,
-  badge,
-  features,
-  packages,
-  featured = false,
-}: {
-  type: string;
-  service?: Service;
-  title: string;
-  badge: string;
-  features: string[];
-  packages: PackageVariant[];
-  featured?: boolean;
-}) {
-  const theme = typeTheme[type] || typeTheme.gold;
+function PriceCard({ service }: { service: Service }) {
+  const theme = THEME[service.type] || THEME.gold;
+  const features = parseFeatures(service.features);
+  const packages = service.packages || [];
 
   return (
     <div
-      className={`pc-card ${featured ? "is-featured" : ""}`}
+      className="pc-card"
       style={{
-        "--c": theme.accent,
-        "--c-light": theme.accentLight,
-        "--c-border": theme.border,
-        "--c-bg": theme.bg,
-        "--c-pill": theme.pill,
-      } as React.CSSProperties}
+        borderColor: theme.border,
+        background: `linear-gradient(180deg, #fff 0%, ${theme.bg} 100%)`,
+      }}
     >
-      {/* Title */}
       <div className="pc-head">
-        <h3 className="pc-title">{title}</h3>
-        <span className="pc-badge">{badge}</span>
+        <h3 style={{ color: theme.accent }}>{service.name}</h3>
+        <span className="pc-badge" style={{ background: theme.accent }}>
+          {service.type.toUpperCase()}
+        </span>
       </div>
 
-      <p className="pc-note">(Đã bao gồm thuế VAT &amp; Phí duy trì nền tảng)</p>
+      <p className="pc-desc">{service.description}</p>
 
-      {/* Features heading */}
-      <div className="pc-sub-title">
-        {type === "luxury" ? "Đặc quyền cao cấp:" : "Đặc quyền cơ bản:"}
-      </div>
-
-      {/* Features grid 2 col */}
       <div className="pc-feats">
         {features.map((f, i) => (
           <div key={i} className="pc-feat">
-            <span className="pc-check">✓</span>
-            <span className="pc-feat-text">{renderFeatureText(f, type)}</span>
+            <span className="pc-check" style={{ color: theme.accent }}>✓</span>
+            <span>{f}</span>
           </div>
         ))}
       </div>
 
-      {/* Packages / prices */}
       <div className="pc-packs">
-        {packages.map((p, i) => (
+        {packages.length === 0 && (
           <a
-            href={`/thanh-toan?serviceId=${service?.slug || service?.id || type || "gold"}&variant=${i}`}
+            href={`/thanh-toan?serviceId=${service.slug}`}
             className="pc-pack"
+            style={{ background: theme.accent, borderColor: theme.accent }}
           >
-            <div className="pc-pack-name">{p.label}</div>
-            <div className="pc-pack-price">- {formatPrice(p.price)}</div>
+            <div className="pc-pack-name">Mua ngay</div>
+            <div className="pc-pack-price">{formatPrice(service.price)}</div>
+          </a>
+        )}
+        {packages.map((p) => (
+          <a
+            key={p.id}
+            href={`/thanh-toan?serviceId=${service.slug}&packageId=${p.id}`}
+            className="pc-pack"
+            style={{ background: theme.accent, borderColor: theme.accent }}
+          >
+            <div className="pc-pack-name">{p.name}</div>
+            <div className="pc-pack-price">{formatPrice(p.price)}</div>
           </a>
         ))}
       </div>
 
-      {/* Footnote */}
-      {type !== "gold" && (
-        <p className="pc-footnote">
-          *Lưu ý: Gói Vĩnh Viễn được Admin cam kết bảo hành tốt nhất và lâu nhất
-          có thể cho đến khi website ngừng hoạt động. Nên yên tâm nhé!
-        </p>
-      )}
-
       <style jsx>{`
         .pc-card {
-          position: relative;
+          border: 2px solid;
+          border-radius: 24px;
           padding: 24px 20px;
-          border-radius: 20px;
-          border: 2px solid var(--c-border);
-          background: linear-gradient(180deg, var(--c-bg) 0%, #ffffff 100%);
-          box-shadow: 0 10px 40px rgba(0,0,0,0.06);
-          transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-          height: 100%;
           display: flex;
           flex-direction: column;
+          transition: transform .2s, box-shadow .2s;
+          box-shadow: 0 8px 30px rgba(0,0,0,.04);
         }
-
-        .pc-card.is-featured {
-          transform: scale(1.03);
-          box-shadow: 0 20px 60px rgba(16,185,129,0.15);
-          border-width: 2.5px;
-          z-index: 2;
-        }
-
         .pc-card:hover {
-          transform: translateY(-6px);
-          box-shadow: 0 24px 60px rgba(0,0,0,0.12);
+          transform: translateY(-4px);
+          box-shadow: 0 16px 40px rgba(0,0,0,.08);
         }
-        .pc-card.is-featured:hover {
-          transform: scale(1.03) translateY(-6px);
-        }
-
-        /* Head */
         .pc-head {
           display: flex;
           align-items: center;
-          gap: 10px;
-          flex-wrap: wrap;
-          margin-bottom: 6px;
+          justify-content: space-between;
+          margin-bottom: 8px;
         }
-        .pc-title {
-          font-size: 19px;
-          font-weight: 900;
-          color: var(--c);
-          line-height: 1.25;
+        .pc-head h3 {
+          font-size: 22px;
+          font-weight: 800;
           margin: 0;
         }
         .pc-badge {
-          padding: 3px 10px;
-          background: color-mix(in srgb, var(--c) 15%, transparent);
-          border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
-          border-radius: 6px;
+          color: #fff;
           font-size: 10px;
-          font-weight: 900;
-          color: var(--c);
+          font-weight: 800;
+          padding: 4px 10px;
+          border-radius: 999px;
           letter-spacing: 0.5px;
-          white-space: nowrap;
         }
-
-        .pc-note {
-          font-size: 11.5px;
-          color: var(--text-2);
-          font-style: italic;
-          margin-bottom: 20px;
-        }
-
-        .pc-sub-title {
+        .pc-desc {
+          color: #64748b;
           font-size: 13px;
-          font-weight: 800;
-          color: #1f2937;
-          margin-bottom: 14px;
+          margin: 0 0 16px;
+          line-height: 1.5;
         }
-
-        /* Features */
         .pc-feats {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 10px;
-          margin-bottom: 22px;
-        }
-        @media (max-width: 500px) {
-          .pc-feats { grid-template-columns: 1fr; }
-        }
-
-        .pc-feat {
-          display: flex;
-          align-items: flex-start;
-          gap: 8px;
-          padding: 10px 12px;
-          background: #ffffff;
-          border: 1px solid color-mix(in srgb, var(--c) 25%, transparent);
-          border-radius: 10px;
-          min-height: 62px;
-        }
-
-        .pc-check {
-          flex-shrink: 0;
-          width: 16px; height: 16px;
-          display: grid; place-items: center;
-          color: var(--c);
-          font-size: 13px;
-          font-weight: 900;
-          margin-top: 1px;
-        }
-
-        .pc-feat-text {
-          font-size: 12px;
-          color: var(--text-1);
-          line-height: 1.45;
-        }
-        .pc-feat-text :global(.hl) {
-          color: var(--c);
-          font-weight: 800;
-        }
-
-        /* Packages */
-        .pc-packs {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 10px;
-          margin-top: auto;
-        }
-        @media (max-width: 500px) {
-          .pc-packs { grid-template-columns: 1fr; }
-        }
-
-        .pc-pack {
           display: flex;
           flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 4px;
-          padding: 12px 10px;
-          background: var(--c-pill);
-          color: var(--text-0);
-          border-radius: 14px;
+          gap: 8px;
+          margin-bottom: 20px;
+          flex: 1;
+        }
+        .pc-feat {
+          display: flex;
+          gap: 8px;
+          font-size: 13px;
+          color: #334155;
+        }
+        .pc-check {
+          font-weight: 800;
+          flex-shrink: 0;
+        }
+        .pc-packs {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+        }
+        .pc-pack {
+          display: block;
+          padding: 10px 8px;
+          border-radius: 999px;
+          color: #fff;
           text-decoration: none;
-          transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-          box-shadow: 0 6px 18px color-mix(in srgb, var(--c-pill) 35%, transparent);
           text-align: center;
-          min-height: 60px;
+          font-weight: 700;
+          font-size: 12px;
+          transition: transform .15s, opacity .15s;
         }
         .pc-pack:hover {
-          transform: translateY(-3px) scale(1.02);
-          box-shadow: 0 12px 28px color-mix(in srgb, var(--c-pill) 45%, transparent);
+          transform: scale(1.04);
+          opacity: .92;
         }
-
         .pc-pack-name {
-          font-size: 11.5px;
-          font-weight: 700;
-          opacity: 0.95;
-          line-height: 1.25;
+          line-height: 1.2;
         }
         .pc-pack-price {
-          font-size: 15px;
-          font-weight: 900;
-          letter-spacing: -0.01em;
+          font-size: 11px;
+          margin-top: 2px;
+          opacity: .9;
         }
-
-        /* Footnote */
-        .pc-footnote {
-          margin-top: 16px;
-          padding-top: 14px;
-          border-top: 1px dashed color-mix(in srgb, var(--c) 25%, transparent);
-          font-size: 10.5px;
-          color: var(--text-2);
-          font-style: italic;
-          line-height: 1.55;
+        @media (max-width: 400px) {
+          .pc-packs { grid-template-columns: 1fr; }
         }
       `}</style>
     </div>
   );
-}
-
-/* Highlight các từ khóa quan trọng trong feature text */
-function renderFeatureText(text: string, type: string) {
-  const highlights = ["vĩnh viễn", "15s", "3s", "Locket Gold", "iOS", "Android"];
-  const parts: (string | React.ReactElement)[] = [];
-  let remaining = text;
-  let key = 0;
-
-  // Simple highlight — chỉ xử lý "vĩnh viễn" và "3s"/"15s"
-  const regex = /(vĩnh viễn|15s|3s)/gi;
-  let lastIndex = 0;
-  let match;
-  const result: React.ReactNode[] = [];
-
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      result.push(text.slice(lastIndex, match.index));
-    }
-    result.push(
-      <span key={`hl-${key++}`} className="hl">
-        {match[0]}
-      </span>
-    );
-    lastIndex = match.index + match[0].length;
-  }
-  if (lastIndex < text.length) {
-    result.push(text.slice(lastIndex));
-  }
-  return result.length > 0 ? result : text;
 }
