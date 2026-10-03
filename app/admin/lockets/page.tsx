@@ -37,8 +37,11 @@ export default function AdminLocketsPage() {
       body: JSON.stringify({ id }),
     });
     const data = await res.json();
-    if (data.success) setLockets((p) => p.filter((l) => l.id !== id));
-    else alert(data.message || "Lỗi");
+    if (data.success) {
+      setLockets((p) => p.filter((l) => l.id !== id));
+    } else {
+      alert(data.message || "Không thể xóa Locket");
+    }
   };
 
   const filtered = lockets.filter((l) =>
