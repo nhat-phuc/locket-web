@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 interface LocketProfile {
@@ -12,12 +12,12 @@ interface LocketProfile {
 }
 
 const BADGES = [
-  { value: "", label: "Không có", color: "#9ca3af" },
-  { value: "VIP", label: "VIP", color: "#fbbf24" },
-  { value: "GOLD", label: "GOLD", color: "#f59e0b" },
-  { value: "HOT", label: "HOT", color: "#ef4444" },
-  { value: "NEW", label: "NEW", color: "#ec4899" },
-  { value: "PRO", label: "PRO", color: "#7c3aed" },
+  { value: "", label: "Không có" },
+  { value: "VIP", label: "VIP" },
+  { value: "GOLD", label: "GOLD" },
+  { value: "HOT", label: "HOT" },
+  { value: "NEW", label: "NEW" },
+  { value: "PRO", label: "PRO" },
 ];
 
 export default function AddLocketPage() {
@@ -32,18 +32,6 @@ export default function AddLocketPage() {
   const [cover, setCover] = useState("");
   const [badge, setBadge] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [badgeOpen, setBadgeOpen] = useState(false);
-  const badgeRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      if (badgeRef.current && !badgeRef.current.contains(e.target as Node)) {
-        setBadgeOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, []);
 
   const extractUsername = (input: string): string => {
     let s = input.trim().split("?")[0].split("#")[0].replace(/\/+$/, "");
@@ -289,59 +277,15 @@ export default function AddLocketPage() {
                 {/* Huy hiệu */}
                 <div className="alp-field">
                   <label className="alp-label">Huy hiệu</label>
-                  <div className="alp-badge-select" ref={badgeRef}>
-                    <button
-                      type="button"
-                      className={`alp-input alp-input-plain alp-select-trigger ${badgeOpen ? "is-open" : ""}`}
-                      onClick={() => setBadgeOpen((s) => !s)}
-                    >
-                      <span
-                        className="alp-select-current"
-                        style={{
-                          color: BADGES.find((b) => b.value === badge)?.color || "var(--text-0)",
-                        }}
-                      >
-                        {BADGES.find((b) => b.value === badge)?.label || "Không có"}
-                      </span>
-                      <svg
-                        className="alp-select-arrow"
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                      >
-                        <polyline points="6 9 12 15 18 9" />
-                      </svg>
-                    </button>
-
-                    {badgeOpen && (
-                      <div className="alp-select-menu">
-                        {BADGES.map((b) => (
-                          <button
-                            key={b.value}
-                            type="button"
-                            className={`alp-select-item ${b.value === badge ? "is-active" : ""}`}
-                            onClick={() => {
-                              setBadge(b.value);
-                              setBadgeOpen(false);
-                            }}
-                          >
-                            <span style={{ color: b.color, fontWeight: 800 }}>
-                              {b.label}
-                            </span>
-                            {b.value === badge && (
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="3" strokeLinecap="round">
-                                <polyline points="20 6 9 17 4 12" />
-                              </svg>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <select
+                    value={badge}
+                    onChange={(e) => setBadge(e.target.value)}
+                    className="alp-input alp-input-plain alp-select"
+                  >
+                    {BADGES.map((b) => (
+                      <option key={b.value} value={b.value}>{b.label}</option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Bio */}
@@ -583,65 +527,6 @@ export default function AddLocketPage() {
           line-height: 1.5;
         }
         .alp-select { cursor: pointer; }
-
-        /* Custom badge dropdown */
-        .alp-badge-select { position: relative; width: 100%; }
-        .alp-select-trigger {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          cursor: pointer;
-          text-align: left;
-          width: 100%;
-          font-family: inherit;
-        }
-        .alp-select-trigger.is-open {
-          border-color: #a78bfa !important;
-          box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.12);
-        }
-        .alp-select-current { font-weight: 700; font-size: 13px; }
-        .alp-select-arrow {
-          color: var(--text-2);
-          transition: transform 0.2s;
-          flex-shrink: 0;
-        }
-        .alp-select-trigger.is-open .alp-select-arrow { transform: rotate(180deg); }
-        .alp-select-menu {
-          position: absolute;
-          top: calc(100% + 6px);
-          left: 0;
-          right: 0;
-          z-index: 50;
-          padding: 6px;
-          border-radius: 12px;
-          background: #fff;
-          border: 1px solid rgba(167, 139, 250, 0.25);
-          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
-          max-height: 280px;
-          overflow-y: auto;
-          animation: alpDropIn 0.15s ease;
-        }
-        @keyframes alpDropIn {
-          from { opacity: 0; transform: translateY(-6px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .alp-select-item {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 10px 12px;
-          background: transparent;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-          font-size: 13px;
-          font-family: inherit;
-          text-align: left;
-          transition: background 0.15s;
-        }
-        .alp-select-item:hover { background: rgba(167, 139, 250, 0.1); }
-        .alp-select-item.is-active { background: rgba(167, 139, 250, 0.15); }
         .alp-input::placeholder, .alp-input-plain::placeholder { color: #9ca3af; }
 
         .alp-spinner {

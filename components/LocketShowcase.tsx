@@ -9,8 +9,6 @@ interface Locket {
   avatar: string | null;
   cover: string | null;
   badge: string | null;
-  bio: string | null;
-  interests: string | null;
   profileUrl: string | null;
   isAdmin?: boolean;
 }
@@ -186,19 +184,7 @@ function Card({
           {l.badge && <span className="ls-badge">{l.badge}</span>}
         </div>
         <div className="ls-name">{l.displayName || l.username}</div>
-        {l.bio && <div className="ls-bio">{l.bio}</div>}
-        {l.interests && (
-          <div className="ls-interests">
-            {l.interests
-              .split(",")
-              .map((t) => t.trim())
-              .filter(Boolean)
-              .slice(0, 3)
-              .map((t, i) => (
-                <span key={i} className="ls-tag">{t}</span>
-              ))}
-          </div>
-        )}
+        <div className="ls-username">@{l.username}</div>
       </a>
 
       {/* Nút xóa chỉ hiện cho admin */}
