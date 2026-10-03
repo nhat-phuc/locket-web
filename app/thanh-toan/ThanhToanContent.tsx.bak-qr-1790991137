@@ -274,7 +274,7 @@ export default function ThanhToanContent() {
           </div>
         )}
 
-                {step === "qr" && order && (
+        {step === "qr" && order && (
           <div className="pt-card">
             <div className="pt-qr2-head">
               <div className="pt-qr2-head-left">
@@ -293,37 +293,12 @@ export default function ThanhToanContent() {
               <div className="pt-qr2-code">Nội dung: <b>{order.orderCode}</b></div>
             </div>
 
-            <div className="pt-qr2-body">
-              <div className="pt-qr2-img-wrap">
-                <img
-                  src={`https://img.vietqr.io/image/TPBANK-36886368888-compact2.png?amount=${order.finalAmount}&addInfo=${encodeURIComponent(order.orderCode)}&accountName=${encodeURIComponent("TRAN NHAT PHUC")}`}
-                  alt="QR"
-                  className="pt-qr2-img"
-                />
-              </div>
-
-              <div className="pt-qr2-info">
-                <div className="pt-qr2-info-item">
-                  <div className="pt-qr2-info-lbl">Ngân hàng</div>
-                  <div className="pt-qr2-info-val">TPBank</div>
-                </div>
-                <div className="pt-qr2-info-item">
-                  <div className="pt-qr2-info-lbl">Số tài khoản</div>
-                  <div className="pt-qr2-info-val pt-mono">36886368888</div>
-                </div>
-                <div className="pt-qr2-info-item">
-                  <div className="pt-qr2-info-lbl">Chủ tài khoản</div>
-                  <div className="pt-qr2-info-val">TRAN NHAT PHUC</div>
-                </div>
-                <div className="pt-qr2-info-item pt-qr2-info-hl">
-                  <div className="pt-qr2-info-lbl">Nội dung CK</div>
-                  <div className="pt-qr2-info-val pt-mono pt-purple">{order.orderCode}</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-qr2-warn">
-              ⚠️ Vui lòng giữ <b>nguyên nội dung CK</b> để hệ thống tự động xác nhận
+            <div className="pt-qr2-img-wrap">
+              <img
+                src={`https://img.vietqr.io/image/TPBANK-36886368888-compact2.png?amount=${order.finalAmount}&addInfo=${encodeURIComponent(order.orderCode)}&accountName=${encodeURIComponent("TRAN NHAT PHUC")}`}
+                alt="QR"
+                className="pt-qr2-img"
+              />
             </div>
 
             <div className="pt-qr2-wait">
@@ -333,7 +308,6 @@ export default function ThanhToanContent() {
             <button onClick={() => setStep("method")} className="pt-btn-ghost">← Chọn phương thức khác</button>
           </div>
         )}
-
 
         {step === "success" && (
           <div className="pt-card pt-card-success">
@@ -401,19 +375,12 @@ export default function ThanhToanContent() {
         .pt-field { margin-bottom: 18px; }
         .pt-lbl { display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 8px; }
         .pt-req { color: #ef4444; }
-        
-        .pt-input:focus, .pt-input:focus-visible {
-          outline: none;
-          border: none;
-          box-shadow: none;
-        }
-    
         .pt-input-box { display: flex; align-items: center; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 14px; padding: 0 14px; transition: all .18s; }
         .pt-input-box:focus-within { border-color: #a78bfa; background: #fff; }
         .pt-input-box.ok { border-color: #10b981; background: #f0fdf4; }
         .pt-input-box.err { border-color: #ef4444; background: #fef2f2; }
         .pt-input-ico { color: #94a3b8; font-weight: 700; margin-right: 6px; }
-        .pt-input { flex: 1; padding: 14px 0; border: none; outline: none; box-shadow: none; background: transparent; font-size: 15px; -webkit-appearance: none; }
+        .pt-input { flex: 1; padding: 14px 0; border: none; outline: none; background: transparent; font-size: 15px; }
         .pt-status { margin-left: 6px; }
         .pt-spin { width: 14px; height: 14px; border: 2px solid #e2e8f0; border-top-color: #7c3aed; border-radius: 50%; display: inline-block; animation: spin .6s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -451,93 +418,8 @@ export default function ThanhToanContent() {
         .pt-method-desc b { color: #10b981; }
         .pt-method-warn { color: #ef4444; font-weight: 700; }
         .pt-method-arrow { font-size: 20px; color: #a78bfa; font-weight: 700; }
-        .pt-deposit-btn {
-          position: absolute;
-          top: 50%;
-          right: 10px;
-          transform: translateY(-50%);
-          background: linear-gradient(135deg, #10b981, #34d399);
-          color: #fff;
-          border: none;
-          padding: 6px 10px;
-          border-radius: 999px;
-          font-weight: 700;
-          font-size: 11px;
-          line-height: 1;
-          cursor: pointer;
-          box-shadow: 0 3px 10px rgba(16,185,129,.35);
-          transition: all .18s;
-          z-index: 2;
-          white-space: nowrap;
-        }
-        .pt-deposit-btn:hover {
-          transform: translateY(-50%) scale(1.08);
-          box-shadow: 0 5px 16px rgba(16,185,129,.55);
-        }
-        .pt-deposit-btn:hover {
-          transform: translateY(-50%) scale(1.08);
-          box-shadow: 0 5px 16px rgba(16,185,129,.55);
-        }
+        .pt-deposit-btn { position: absolute; top: 50%; right: 4px; transform: translateY(-50%); background: linear-gradient(135deg, #10b981, #34d399); color: #fff; border: none; padding: 6px 10px; border-radius: 999px; font-weight: 700; font-size: 11px; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,.35); transition: all .18s; z-index: 2; white-space: nowrap; }
         .pt-deposit-btn:hover { transform: translateY(-50%) scale(1.05); box-shadow: 0 6px 18px rgba(16,185,129,.5); }
-                .pt-qr2-body { display: flex; flex-direction: column; gap: 20px; align-items: center; margin: 16px 0; }
-        
-        @keyframes qrGlow {
-          0%, 100% { box-shadow: 0 0 0 4px rgba(124,58,237,.15), 0 12px 32px rgba(124,58,237,.25); }
-          50% { box-shadow: 0 0 0 8px rgba(124,58,237,.25), 0 16px 44px rgba(124,58,237,.4); }
-        }
-        
-        .pt-qr2-img-wrap {
-          position: relative;
-          overflow: hidden;
-          border-radius: 16px;
-        }
-        .pt-qr2-img-wrap::after {
-          content: '';
-          position: absolute;
-          left: 8px;
-          right: 8px;
-          height: 3px;
-          background: linear-gradient(90deg, transparent, #38bdf8, #7dd3fc, #38bdf8, transparent);
-          box-shadow: 0 0 12px 3px rgba(56,189,248,.9), 0 0 24px 8px rgba(125,211,252,.5);
-          border-radius: 2px;
-          animation: qrScan 2.2s ease-in-out infinite;
-          pointer-events: none;
-          z-index: 10;
-        }
-        @keyframes qrScan {
-          0%   { top: 12px; opacity: 0; }
-          10%  { opacity: 1; }
-          90%  { opacity: 1; }
-          100% { top: calc(100% - 16px); opacity: 0; }
-        }
-
-        .pt-qr2-img {
-          animation: qrGlow 2.5s ease-in-out infinite;
-        }
-    
-        .pt-qr2-img-wrap { text-align: center; }
-        .pt-qr2-img {
-          width: 100%;
-          max-width: 240px;
-          border-radius: 16px;
-          border: 3px solid #7c3aed;
-          padding: 8px;
-          background: #fff;
-          box-shadow: 0 0 0 4px rgba(124,58,237,.15), 0 12px 32px rgba(124,58,237,.25);
-          transition: box-shadow .3s ease;
-        }
-        .pt-qr2-img:hover {
-          box-shadow: 0 0 0 6px rgba(124,58,237,.2), 0 16px 40px rgba(124,58,237,.35);
-        }
-        .pt-qr2-info { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 100%; }
-        .pt-qr2-info-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; }
-        .pt-qr2-info-hl { background: linear-gradient(135deg, #faf5ff, #fdf4ff); border-color: #d8b4fe; }
-        .pt-qr2-info-lbl { font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
-        .pt-qr2-info-val { font-size: 14px; font-weight: 700; color: #0f172a; }
-        .pt-qr2-info-val.pt-purple { color: #7c3aed; }
-        .pt-qr2-warn { margin-top: 12px; padding: 10px 12px; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px; font-size: 12px; color: #92400e; line-height: 1.5; }
-        .pt-qr2-warn b { color: #78350f; }
-
         .pt-qr2-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .pt-qr2-head-left { display: flex; gap: 12px; align-items: center; }
         .pt-qr2-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #faf5ff, #f3e8ff); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
@@ -589,7 +471,7 @@ export default function ThanhToanContent() {
           .pt-card { padding: 20px 16px; }
           .pt-banner { flex-direction: column; align-items: flex-start; gap: 8px; }
           .pt-banner-right { text-align: left; }
-          .pt-deposit-btn { position: static; transform: none; display: block; width: 100%; margin-top: 8px; padding: 10px; font-size: 13px; }
+          .pt-deposit-btn { right: 48px; padding: 6px 12px; font-size: 12px; }
         }
       `}</style>
     </div>

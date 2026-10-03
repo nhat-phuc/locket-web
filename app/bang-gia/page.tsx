@@ -77,6 +77,8 @@ export default function BangGiaPage() {
         )}
       </div>
 
+      
+
       <style jsx>{`
         .pr-page {
           min-height: 100vh;
@@ -189,6 +191,12 @@ function PriceCard({ service }: { service: Service }) {
         ))}
       </div>
 
+      {service.type !== "gold" && (
+        <p className="pc-footnote">
+          *Lưu ý: <b>Gói Vĩnh Viễn</b> được Admin cam kết bảo hành tốt nhất và lâu nhất có thể cho đến khi website ngừng hoạt động. Nên yên tâm nhé!
+        </p>
+      )}
+
       <style jsx>{`
         .pc-card {
           border: 2px solid;
@@ -196,6 +204,7 @@ function PriceCard({ service }: { service: Service }) {
           padding: 24px 20px;
           display: flex;
           flex-direction: column;
+          overflow: hidden;
           transition: transform .2s, box-shadow .2s;
           box-shadow: 0 8px 30px rgba(0,0,0,.04);
         }
@@ -206,21 +215,33 @@ function PriceCard({ service }: { service: Service }) {
         .pc-head {
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          margin-bottom: 8px;
+          justify-content: center;
+          gap: 10px;
+          margin-bottom: 10px;
+          flex-wrap: nowrap;
         }
         .pc-head h3 {
-          font-size: 22px;
+          font-size: 20px;
           font-weight: 800;
           margin: 0;
+          white-space: nowrap;
+          text-align: center;
         }
         .pc-badge {
           color: #fff;
           font-size: 10px;
           font-weight: 800;
           padding: 4px 10px;
-          border-radius: 999px;
+          border-radius: 6px;
           letter-spacing: 0.5px;
+          white-space: nowrap;
+          flex-shrink: 0;
+          display: inline-block;
+          background: var(--pc-accent, #e63946);
+          position: static;
+          top: auto;
+          right: auto;
+          transform: none;
         }
         .pc-desc {
           color: #64748b;
@@ -245,6 +266,20 @@ function PriceCard({ service }: { service: Service }) {
           font-weight: 800;
           flex-shrink: 0;
         }
+        
+        .pc-footnote {
+          margin: 16px 0 0;
+          padding: 10px 12px;
+          background: #f8fafc;
+          border-left: 3px solid #cbd5e1;
+          border-radius: 8px;
+          font-size: 11px;
+          font-style: italic;
+          color: #64748b;
+          line-height: 1.5;
+        }
+        .pc-footnote b { color: #475569; font-style: normal; }
+    
         .pc-packs {
           display: grid;
           grid-template-columns: repeat(2, 1fr);

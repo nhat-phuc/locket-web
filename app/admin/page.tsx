@@ -70,10 +70,10 @@ export default function AdminDashboard() {
   return (
     <div>
       <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 900, color: "#f5f5ff", marginBottom: 8 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 900, color: "#0f0a1e", marginBottom: 8 }}>
           📊 Dashboard
         </h1>
-        <p style={{ fontSize: 14, color: "#8b88a8" }}>
+        <p style={{ fontSize: 14, color: "#6b7280" }}>
           Tổng quan hoạt động của Locket Gold
         </p>
       </div>

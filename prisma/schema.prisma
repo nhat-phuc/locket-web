@@ -20,6 +20,7 @@ model User {
   isActive      Boolean   @default(true)
   isBanned      Boolean   @default(false)
   referralCode  String?   @unique
+  giftClaimed   Boolean   @default(false)
   referredBy    String?
   resetToken        String?
   resetTokenExpiry  DateTime?
@@ -38,6 +39,7 @@ model User {
   transactions  Transaction[]
   reviews       Review[]
   withdrawalRequests  WithdrawalRequest[]
+  spins               Spin[]
 
   @@index([email])
   @@index([username])
@@ -75,7 +77,7 @@ model Service {
 
 model ServicePackage {
   id            String    @id @default(cuid())
-  serviceId     String
+  serviceId     String?
   name          String
   duration      String
   price         Int
@@ -84,7 +86,7 @@ model ServicePackage {
   isPopular     Boolean   @default(false)
   order         Int       @default(0)
 
-  service       Service   @relation(fields: [serviceId], references: [id])
+  service       Service?  @relation(fields: [serviceId], references: [id])
 
   @@index([serviceId])
 }
@@ -93,7 +95,7 @@ model Order {
   id            String    @id @default(cuid())
   orderCode     String    @unique
   userId        String
-  serviceId     String
+  serviceId     String?
   packageId     String?
   serviceName   String
   amount        Int
@@ -112,7 +114,7 @@ model Order {
   expiresAt     DateTime?
 
   user          User      @relation(fields: [userId], references: [id])
-  service       Service   @relation(fields: [serviceId], references: [id])
+  service       Service?  @relation(fields: [serviceId], references: [id])
 
   @@index([userId])
   @@index([orderCode])
@@ -297,4 +299,32 @@ model WithdrawalRequest {
 
   @@index([userId])
   @@index([status])
+}
+
+model WheelItem {
+  id        String   @id @default(cuid())
+  label     String
+  value     Int      @default(0)
+  type      String   @default("money")
+  color     String   @default("#7c3aed")
+  weight    Int      @default(10)
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Spin {
+  id        String   @id @default(cuid())
+  userId    String
+  itemId    String?
+  label     String
+  value     Int      @default(0)
+  type      String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
 }

@@ -66,7 +66,7 @@ export default function AdminOrdersPage() {
           onChange={(e) => { setFilter(e.target.value); setPage(1); }}
           style={{ padding: "10px 16px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--bg-1)", color: "var(--text-0)" }}
         >
-          <option value="">Tất cả trạng thái</option>
+                              <option value="">Tất cả trạng thái</option>
           <option value="pending">Chờ xử lý</option>
           <option value="paid">Đã thanh toán</option>
           <option value="processing">Đang xử lý</option>

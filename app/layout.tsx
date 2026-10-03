@@ -4,6 +4,7 @@ import "./globals.css";
 import CatLoader from "@/components/CatLoader";
 import FallingCanvas from "@/components/FallingCanvas";
 import FXEffects from "@/components/FXEffects";
+import AdminHideFX from "@/components/AdminHideFX";
 import ClientShell, { ClientFooter } from "./ClientShell";
 
 const inter = Inter({
@@ -48,8 +49,10 @@ export default function RootLayout({
     <html lang="vi" suppressHydrationWarning className={inter.variable}>
       <body className={inter.className} suppressHydrationWarning>
         <CatLoader />
-        <FallingCanvas />
-        <FXEffects />
+        <AdminHideFX>
+          <FallingCanvas />
+          <FXEffects />
+        </AdminHideFX>
 
         {/* Header + Floating widgets */}
         <ClientShell />

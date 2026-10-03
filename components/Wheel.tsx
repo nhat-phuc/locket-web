@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import {
   WHEEL_ITEMS,
@@ -99,7 +98,7 @@ export default function Wheel() {
 
   return (
     <>
-      <Header />
+      
       <main className="wrap center-y" style={{ paddingTop: 40, paddingBottom: 60 }}>
         <div style={{ width: "100%", maxWidth: 900 }}>
           <div style={{ textAlign: "center", marginBottom: 40 }}>

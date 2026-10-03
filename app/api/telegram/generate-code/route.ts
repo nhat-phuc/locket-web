@@ -21,7 +21,7 @@ export async function POST() {
     });
 
     // Lưu expiry vào telegramLinkedAt tạm (hoặc bỏ nếu không có field)
-    const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "YOUR_BOT";
+    const botUsername = "amirose_bot";
     const deepLink = `https://t.me/${botUsername}?start=${token}`;
 
     return NextResponse.json({

@@ -1,5 +1,6 @@
 "use client";
 
+import { useSiteImages } from "@/hooks/useSiteImages";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -21,6 +22,7 @@ const NAV_LINKS = [
 ];
 
 export default function Header({ user: propUser, onLogout }: HeaderProps) {
+  const { logo_url } = useSiteImages();
   const pathname = usePathname();
   const [user, setUser] = useState<UserPublic | null>(propUser ?? null);
   const [balance, setBalance] = useState("0đ");
@@ -148,7 +150,7 @@ export default function Header({ user: propUser, onLogout }: HeaderProps) {
           <Link href="/" className="logo">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/img/logo/logo.jpg"
+              src={logo_url}
               alt="Locket Gold"
               style={{ width: 42, height: 42, borderRadius: 12, objectFit: "contain" }}
             />

@@ -166,7 +166,7 @@ export default function Sidebar() {
       >
         {/* HEADER */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 22px 16px", borderBottom: "1px solid rgba(167,139,250,0.15)" }}>
-          <span style={{ fontSize: 20, fontWeight: 900, color: "#fff" }}>
+          <span style={{ fontSize: 20, fontWeight: 900, color: "#0f0a1e" }}>
             {isMobile ? "Menu" : "Admin Panel"}
           </span>
           {isMobile && (
@@ -181,7 +181,7 @@ export default function Sidebar() {
 
         {/* USER CARD */}
         {user && (
-          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 14, margin: 12, background: "linear-gradient(135deg, rgba(167,139,250,0.12), rgba(124,58,237,0.08))", border: "1px solid rgba(167,139,250,0.2)", borderRadius: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 14, margin: 12, background: "linear-gradient(135deg, #faf5ff, #fdf4ff)", border: "1px solid #e9d5ff", borderRadius: 14 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={avatar}
@@ -192,10 +192,10 @@ export default function Sidebar() {
               style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", border: "2px solid #a78bfa", flexShrink: 0 }}
             />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 10.5, color: "#a78bfa", fontWeight: 800, letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 3 }}>
+              <div style={{ fontSize: 10.5, color: "#7c3aed", fontWeight: 800, letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 3 }}>
                 Đang đăng nhập
               </div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: "#fff", marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#0f0a1e", marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {displayName}
               </div>
               <div style={{ display: "inline-block", padding: "2px 8px", background: "rgba(251,191,36,0.15)", color: "#fbbf24", borderRadius: 999, fontSize: 10.5, fontWeight: 800 }}>

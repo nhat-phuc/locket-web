@@ -4334,22 +4334,20 @@ body:has(.admin-layout) {
 }
 
 .tk-avatar-wrapper {
-  width: 120px;
-  height: 120px;
-  margin: 0 auto 16px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: linear-gradient(135deg, #a78bfa, #7c3aed);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.25);
   position: relative;
+  display: inline-block;
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 8px 32px rgba(124,58,237,.25);
+  margin-bottom: 16px;
 }
 
 .tk-avatar-wrapper img {
-  width: 100%;
-  height: 100%;
+  display: block;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
   object-fit: cover;
 }
 
@@ -4383,13 +4381,14 @@ body:has(.admin-layout) {
 
 /* Card chung */
 .tk-card {
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(20px);
-  border: 1.5px solid rgba(167, 139, 250, 0.2);
+  background: #fff;
   border-radius: 20px;
-  padding: 20px;
+  padding: 20px 24px;
   margin-bottom: 16px;
-  box-shadow: 0 4px 24px rgba(167, 139, 250, 0.08);
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 6px 24px rgba(124,58,237,.06);
+  transition: box-shadow .2s, transform .2s;
+  overflow: hidden;
 }
 
 .tk-card-header {
@@ -4412,10 +4411,14 @@ body:has(.admin-layout) {
 /* Rows */
 .tk-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 6px;
+  transition: background .15s;
+  min-width: 0;
 }
 
 .tk-row:last-child {
@@ -4423,14 +4426,21 @@ body:has(.admin-layout) {
 }
 
 .tk-label {
-  font-size: 15px;
-  color: var(--text-2);
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+  flex-shrink: 0;
 }
 
 .tk-value {
-  font-size: 15px;
+  font-size: 13.5px;
+  color: #0f172a;
   font-weight: 700;
-  color: var(--text-0);
+  text-align: right;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  max-width: 60%;
 }
 
 /* Description */
@@ -4537,23 +4547,49 @@ body:has(.admin-layout) {
 /* Mobile */
 @media (max-width: 640px) {
   .tk-title { font-size: 26px; }
-  .tk-card { padding: 16px; border-radius: 16px; }
+  .tk-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 6px 24px rgba(124,58,237,.06);
+  transition: box-shadow .2s, transform .2s;
+  overflow: hidden;
+}
   .tk-card-header h2 { font-size: 18px; }
-  .tk-row { padding: 10px 0; font-size: 14px; }
+  .tk-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 6px;
+  transition: background .15s;
+  min-width: 0;
+}
 }
 
 /* ═══════════ TRANG TÀI KHOẢN ═══════════ */
 .tai-khoan-page { max-width: 640px; margin: 0 auto; padding: 24px 16px 120px; }
 .tk-hero { text-align: center; margin-bottom: 32px; }
 .tk-avatar-wrapper {
-  width: 120px; height: 120px; margin: 0 auto 16px;
-  border-radius: 50%; overflow: hidden;
-  background: linear-gradient(135deg, #a78bfa, #7c3aed);
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.25);
   position: relative;
+  display: inline-block;
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 8px 32px rgba(124,58,237,.25);
+  margin-bottom: 16px;
 }
-.tk-avatar-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+.tk-avatar-wrapper img {
+  display: block;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+}
 .tk-avatar-fallback { font-size: 56px; font-weight: 900; color: #fff; text-transform: uppercase; }
 .tk-title {
   font-size: 32px; font-weight: 900;
@@ -4567,21 +4603,46 @@ body:has(.admin-layout) {
   font-size: 11px; font-weight: 800; letter-spacing: 1.5px; border-radius: 999px;
 }
 .tk-card {
-  background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(20px);
-  border: 1.5px solid rgba(167, 139, 250, 0.2);
-  border-radius: 20px; padding: 20px; margin-bottom: 16px;
-  box-shadow: 0 4px 24px rgba(167, 139, 250, 0.08);
+  background: #fff;
+  border-radius: 20px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 6px 24px rgba(124,58,237,.06);
+  transition: box-shadow .2s, transform .2s;
+  overflow: hidden;
 }
 .tk-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
 .tk-card-header h2 { font-size: 20px; font-weight: 800; color: var(--text-0); }
 .tk-card-header svg { color: var(--accent-bright); }
 .tk-row {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 12px 0; border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 6px;
+  transition: background .15s;
+  min-width: 0;
 }
 .tk-row:last-child { border-bottom: none; }
-.tk-label { font-size: 15px; color: var(--text-2); }
-.tk-value { font-size: 15px; font-weight: 700; color: var(--text-0); }
+.tk-label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.tk-value {
+  font-size: 13.5px;
+  color: #0f172a;
+  font-weight: 700;
+  text-align: right;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  max-width: 60%;
+}
 .tk-desc { font-size: 14px; color: var(--text-2); line-height: 1.6; margin-bottom: 16px; }
 .tk-telegram-box {
   background: rgba(0, 0, 0, 0.04); border: 2px dashed rgba(0, 0, 0, 0.1);
@@ -4616,23 +4677,49 @@ body:has(.admin-layout) {
 }
 @media (max-width: 640px) {
   .tk-title { font-size: 26px; }
-  .tk-card { padding: 16px; border-radius: 16px; }
+  .tk-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 6px 24px rgba(124,58,237,.06);
+  transition: box-shadow .2s, transform .2s;
+  overflow: hidden;
+}
   .tk-card-header h2 { font-size: 18px; }
-  .tk-row { padding: 10px 0; font-size: 14px; }
+  .tk-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 6px;
+  transition: background .15s;
+  min-width: 0;
+}
 }
 
 /* ═══════════ TRANG TÀI KHOẢN ═══════════ */
 .tai-khoan-page { max-width: 640px; margin: 0 auto; padding: 24px 16px 120px; }
 .tk-hero { text-align: center; margin-bottom: 32px; }
 .tk-avatar-wrapper {
-  width: 120px; height: 120px; margin: 0 auto 16px;
-  border-radius: 50%; overflow: hidden;
-  background: linear-gradient(135deg, #a78bfa, #7c3aed);
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.25);
   position: relative;
+  display: inline-block;
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 8px 32px rgba(124,58,237,.25);
+  margin-bottom: 16px;
 }
-.tk-avatar-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+.tk-avatar-wrapper img {
+  display: block;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+}
 .tk-avatar-fallback { font-size: 56px; font-weight: 900; color: #fff; text-transform: uppercase; }
 .tk-title {
   font-size: 32px; font-weight: 900;
@@ -4646,21 +4733,46 @@ body:has(.admin-layout) {
   font-size: 11px; font-weight: 800; letter-spacing: 1.5px; border-radius: 999px;
 }
 .tk-card {
-  background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(20px);
-  border: 1.5px solid rgba(167, 139, 250, 0.2);
-  border-radius: 20px; padding: 20px; margin-bottom: 16px;
-  box-shadow: 0 4px 24px rgba(167, 139, 250, 0.08);
+  background: #fff;
+  border-radius: 20px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 6px 24px rgba(124,58,237,.06);
+  transition: box-shadow .2s, transform .2s;
+  overflow: hidden;
 }
 .tk-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
 .tk-card-header h2 { font-size: 20px; font-weight: 800; color: var(--text-0); }
 .tk-card-header svg { color: var(--accent-bright); }
 .tk-row {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 12px 0; border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 6px;
+  transition: background .15s;
+  min-width: 0;
 }
 .tk-row:last-child { border-bottom: none; }
-.tk-label { font-size: 15px; color: var(--text-2); }
-.tk-value { font-size: 15px; font-weight: 700; color: var(--text-0); }
+.tk-label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.tk-value {
+  font-size: 13.5px;
+  color: #0f172a;
+  font-weight: 700;
+  text-align: right;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  max-width: 60%;
+}
 .tk-desc { font-size: 14px; color: var(--text-2); line-height: 1.6; margin-bottom: 16px; }
 .tk-telegram-box {
   background: rgba(0, 0, 0, 0.04); border: 2px dashed rgba(0, 0, 0, 0.1);
@@ -4695,9 +4807,28 @@ body:has(.admin-layout) {
 }
 @media (max-width: 640px) {
   .tk-title { font-size: 26px; }
-  .tk-card { padding: 16px; border-radius: 16px; }
+  .tk-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 6px 24px rgba(124,58,237,.06);
+  transition: box-shadow .2s, transform .2s;
+  overflow: hidden;
+}
   .tk-card-header h2 { font-size: 18px; }
-  .tk-row { padding: 10px 0; font-size: 14px; }
+  .tk-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 6px;
+  transition: background .15s;
+  min-width: 0;
+}
 }
 
 /* ═══ FIX CỨNG: Card giao dịch trên mobile ═══ */
@@ -5135,3 +5266,418 @@ body {
   .btn-primary, .auth-btn { padding: 12px 20px; font-size: 14px; }
   input, textarea, select { padding: 12px 14px; font-size: 14px; }
 }
+
+
+
+/* ============= TÀI KHOẢN — ĐẸP HƠN ============= */
+.tai-khoan-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+}
+
+/* Hero */
+.tk-hero {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 20px 24px;
+  margin-bottom: 24px;
+  background: linear-gradient(180deg, #faf5ff 0%, #fff 100%);
+  border-radius: 24px;
+  border: 1px solid #f1e8ff;
+  box-shadow: 0 8px 30px rgba(124,58,237,.08);
+}
+
+.tk-avatar-wrapper {
+  position: relative;
+  display: inline-block;
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 8px 32px rgba(124,58,237,.25);
+  margin-bottom: 16px;
+}
+
+.tk-avatar-wrapper img {
+  display: block;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.tk-avatar-fallback {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #a78bfa, #ec4899);
+  color: #fff;
+  font-size: 40px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #fff;
+}
+
+.tk-title {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0 0 10px;
+  background: linear-gradient(135deg, #7c3aed, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.tk-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f3e8ff, #fce7f3);
+  color: #7c3aed;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  border: 1px solid #e9d5ff;
+}
+
+/* Card */
+.tk-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 6px 24px rgba(124,58,237,.06);
+  transition: box-shadow .2s, transform .2s;
+  overflow: hidden;
+}
+
+.tk-card:hover {
+  box-shadow: 0 12px 36px rgba(124,58,237,.12);
+  transform: translateY(-2px);
+}
+
+.tk-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed #e9d5ff;
+}
+
+.tk-card-header svg {
+  color: #7c3aed;
+  flex-shrink: 0;
+}
+
+.tk-card-header h2 {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+/* Row */
+.tk-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 6px;
+  transition: background .15s;
+  min-width: 0;
+}
+
+.tk-row:hover {
+  background: #faf5ff;
+}
+
+.tk-label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.tk-value {
+  font-size: 13.5px;
+  color: #0f172a;
+  font-weight: 700;
+  text-align: right;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  max-width: 60%;
+}
+
+/* Description */
+.tk-desc {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0 0 14px;
+}
+
+/* Telegram */
+.tk-telegram-box {
+  padding: 14px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 14px;
+}
+
+.tk-telegram-status {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e40af;
+  margin: 0 0 10px;
+}
+
+.tk-telegram-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all .18s;
+  box-shadow: 0 6px 20px rgba(59,130,246,.3);
+}
+
+.tk-telegram-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(59,130,246,.4);
+}
+
+/* Input */
+.tk-input {
+  width: 100%;
+  padding: 13px 16px;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 14px;
+  margin-bottom: 10px;
+  outline: none;
+  transition: all .18s;
+  box-sizing: border-box;
+}
+
+.tk-input:focus {
+  border-color: #a78bfa;
+  background: #fff;
+}
+
+/* Button primary */
+.tk-btn-primary {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all .18s;
+  box-shadow: 0 6px 20px rgba(124,58,237,.3);
+}
+
+.tk-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(124,58,237,.4);
+}
+
+/* Upgrade */
+.tk-card-upgrade {
+  background: linear-gradient(135deg, #fff7ed 0%, #fff 100%);
+  border-color: #fed7aa;
+}
+
+.tk-card-upgrade .tk-card-header svg {
+  color: #e85d04;
+}
+
+/* Empty */
+.tk-empty {
+  text-align: center;
+  padding: 30px 0;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ADMIN LIGHT THEME — Giống trang chủ (sáng, gradient tím-hồng)
+   ═══════════════════════════════════════════════════════════ */
+
+.admin-layout {
+  background: linear-gradient(180deg, #f8f8fc 0%, #fdf4ff 100%) !important;
+  --bg-0: #f8f8fc !important;
+  --bg-1: #ffffff !important;
+  --bg-2: #faf5ff !important;
+  --text-0: #0f0a1e !important;
+  --text-1: #1f1a2e !important;
+  --text-2: #6b7280 !important;
+  --border: #e5e7eb !important;
+  --border-accent: rgba(167, 139, 250, 0.3) !important;
+}
+
+/* Sidebar sáng */
+.admin-sidebar,
+aside.admin-sidebar {
+  background: #ffffff !important;
+  border-right: 1px solid #e5e7eb !important;
+  color: #0f0a1e !important;
+  box-shadow: 4px 0 24px rgba(124, 58, 237, 0.04) !important;
+}
+
+/* Header sidebar */
+.admin-sidebar > div:first-child,
+aside.admin-sidebar > div:first-child {
+  border-bottom: 1px solid #f1f5f9 !important;
+  color: #0f0a1e !important;
+}
+
+/* Nav item */
+aside.admin-sidebar nav a,
+aside.admin-sidebar a {
+  color: #4b5563 !important;
+}
+
+aside.admin-sidebar nav a:hover,
+aside.admin-sidebar a:hover {
+  background: rgba(167, 139, 250, 0.1) !important;
+  color: #7c3aed !important;
+}
+
+/* Active item giữ gradient tím nhạt */
+aside.admin-sidebar nav a[style*="linear-gradient(135deg, rgba(167,139,250,0.22)"] {
+  color: #7c3aed !important;
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(236, 72, 153, 0.1)) !important;
+  border-color: rgba(167, 139, 250, 0.4) !important;
+}
+
+/* Footer sidebar */
+aside.admin-sidebar > div:last-child {
+  border-top: 1px solid #f1f5f9 !important;
+}
+
+/* Main content */
+.admin-main {
+  background: transparent !important;
+  color: #0f0a1e !important;
+}
+
+/* Text trong main */
+.admin-main h1,
+.admin-main h2,
+.admin-main h3,
+.admin-main h4 {
+  color: #0f0a1e !important;
+}
+
+/* Dashboard card */
+.dashboard-card {
+  background: #ffffff !important;
+  border: 1px solid #f1f5f9 !important;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.06) !important;
+}
+
+.dashboard-card:hover {
+  border-color: rgba(167, 139, 250, 0.4) !important;
+  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.12) !important;
+}
+
+/* DataTable / admin table */
+.admin-table-wrap {
+  background: #ffffff !important;
+  border: 1px solid #f1f5f9 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.06) !important;
+  color: #0f0a1e !important;
+}
+
+.admin-table-wrap table {
+  color: #0f0a1e !important;
+}
+
+.admin-table-wrap th {
+  background: #faf5ff !important;
+  color: #7c3aed !important;
+  border-bottom: 1px solid #e9d5ff !important;
+  font-weight: 800 !important;
+}
+
+.admin-table-wrap td {
+  color: #1f1a2e !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+
+.admin-table-wrap tr:hover td {
+  background: #faf5ff !important;
+}
+
+/* Input / form trong admin */
+.admin-main input,
+.admin-main textarea,
+.admin-main select {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  color: #0f0a1e !important;
+}
+
+.admin-main input:focus,
+.admin-main textarea:focus,
+.admin-main select:focus {
+  border-color: #a78bfa !important;
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15) !important;
+}
+
+/* Nút primary giữ gradient */
+.admin-main button {
+  font-family: inherit;
+}
+
+/* Modal overlay trong admin */
+.admin-main [style*="position: fixed"][style*="inset: 0"] {
+  background: rgba(15, 10, 30, 0.5) !important;
+}
+
+
+/* Force light mode cho admin — override inline style */
+body.admin-mode,
+body:has(.admin-layout) {
+  background: linear-gradient(180deg, #f8f8fc 0%, #fdf4ff 100%) !important;
+  color: #0f0a1e !important;
+}
+
+/* Card inline trong admin */
+.admin-main > div > div[style*="background: var(--bg-1)"],
+.admin-main > div > div[style*="background: \"var(--bg-1)\""] {
+  background: #ffffff !important;
+  border-color: #f1f5f9 !important;
+}
+
+/* Text trong admin */
+.admin-main * {
+  color: inherit;
+}
+
+.admin-main h1,
+.admin-main h2,
+.admin-main h3 {
+  color: #0f0a1e !important;
+}
+

@@ -6,7 +6,6 @@
 
 import Hero from "@/components/Hero";
 import Stats from "@/components/Stats";
-import HomePricing from "@/components/HomePricing";
 import Marquee from "@/components/Marquee";
 import IconShowcase from "@/components/IconShowcase";
 import Reviews from "@/components/Reviews";
@@ -19,6 +18,7 @@ import Privileges from "@/components/Privileges";
 import FAQ from "@/components/FAQ";
 
 import SalesPopup from "@/components/SalesPopup";
+import NotificationPopup from "@/components/NotificationPopup";
 import NoticeModal from "@/components/NoticeModal";
 
 
@@ -43,7 +43,6 @@ export default function HomePage() {
         <div className="page-shell">
           <Hero />
           <Stats />
-          <HomePricing />
           <Marquee />
           <IconShowcase />
           <RecentTransactions />
@@ -60,6 +59,7 @@ export default function HomePage() {
       
       {/* <Navbar /> */}
       
+      <NotificationPopup />
       <SalesPopup />
       <NoticeModal />
 

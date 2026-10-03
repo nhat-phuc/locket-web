@@ -3,10 +3,17 @@
 import { useEffect, useState } from "react";
 import AdminPage from "@/components/admin/AdminPage";
 import DataTable from "@/components/admin/DataTable";
+import SendForm from "./SendForm";
 
 export default function AdminNotificationsPage() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const reload = () => {
+    fetch("/api/admin/notifications")
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setNotifications(d.notifications); });
+  };
 
   useEffect(() => {
     fetch("/api/admin/notifications")
@@ -17,6 +24,7 @@ export default function AdminNotificationsPage() {
 
   return (
     <AdminPage title="Thông báo" description="Lịch sử thông báo gửi tới người dùng">
+      <SendForm onSent={reload} />
       <DataTable
         loading={loading}
         data={notifications}

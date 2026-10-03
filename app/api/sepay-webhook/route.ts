@@ -91,12 +91,24 @@ export async function POST(req: Request) {
       }
     }
 
-    // 5c. Tìm NPT... (mã nạp tiền) trong content
+    // 5c. Tìm nội dung nạp tiền mới: <username>nap<amount><rand>
+    // Ví dụ: nhatphucnap200000SQYX
     if (!order && content) {
-      const nptMatch = content.match(/NPT[A-Z0-9]+/i);
-      if (nptMatch) {
-        matchedCode = nptMatch[0].toUpperCase();
-        order = await prisma.order.findFirst({ where: { orderCode: matchedCode } });
+      const patterns = [
+        /NPT[A-Z0-9]+/i,
+        /[a-z0-9]+nap[0-9]+[a-z0-9]*/i,
+      ];
+      for (const p of patterns) {
+        const m = content.match(p);
+        if (m) {
+          matchedCode = m[0];
+          order = await prisma.order.findFirst({ where: { orderCode: matchedCode } });
+          if (order) break;
+          order = await prisma.order.findFirst({
+            where: { orderCode: { equals: matchedCode, mode: "insensitive" } }
+          });
+          if (order) break;
+        }
       }
     }
 
