@@ -4840,3 +4840,203 @@ img, video, iframe, svg, canvas {
 [style*="min-width"] {
   max-width: 100% !important;
 }
+
+/* ═══ LOCKET SHOWCASE ═══ */
+.ls-section {
+  margin: 60px 0;
+  width: 100%;
+}
+.ls-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.ls-title {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--text-0);
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+.ls-sub {
+  font-size: 14px;
+  color: var(--text-2);
+  margin: 0;
+}
+
+/* Marquee */
+.ls-marquee {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 16px;
+  padding: 6px 0;
+  mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+.ls-track {
+  display: flex;
+  gap: 16px;
+  width: max-content;
+}
+
+/* Card */
+.ls-card {
+  position: relative;
+  width: 160px;
+  height: 200px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 14px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(167, 139, 250, 0.18);
+  text-decoration: none;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.08);
+  overflow: hidden;
+  box-sizing: border-box;
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+.ls-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(124, 58, 237, 0.18);
+}
+
+/* Cover */
+.ls-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: 16px;
+}
+.ls-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.ls-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.05) 0%,
+    rgba(0,0,0,0.35) 50%,
+    rgba(0,0,0,0.75) 100%
+  );
+  z-index: 1;
+}
+
+/* Avatar */
+.ls-avatar-wrap {
+  position: relative;
+  z-index: 2;
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  flex-shrink: 0;
+  margin-bottom: 8px;
+}
+.ls-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  border: 3px solid #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.ls-avatar-fallback {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  color: #fff;
+  font-weight: 800;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #fff;
+}
+
+/* Badge */
+.ls-badge {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  color: #fff;
+  white-space: nowrap;
+  border: 2px solid #fff;
+  letter-spacing: 0.3px;
+}
+
+/* Name + Username */
+.ls-name {
+  position: relative;
+  z-index: 2;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-0);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  line-height: 1.3;
+}
+.ls-username {
+  position: relative;
+  z-index: 2;
+  font-size: 11px;
+  color: #7c3aed;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  margin-top: 2px;
+}
+
+/* Khi có cover → text trắng */
+.ls-card:has(.ls-cover) .ls-name {
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+}
+.ls-card:has(.ls-cover) .ls-username {
+  color: #fff;
+  opacity: 0.95;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .ls-section { margin: 40px 0; }
+  .ls-title { font-size: 22px; }
+  .ls-sub { font-size: 12px; }
+  .ls-card {
+    width: 130px;
+    height: 170px;
+    padding: 12px;
+  }
+  .ls-avatar-wrap,
+  .ls-avatar,
+  .ls-avatar-fallback {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+  }
+  .ls-name { font-size: 12px; }
+  .ls-username { font-size: 10px; }
+}
