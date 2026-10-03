@@ -7,6 +7,7 @@ interface Locket {
   username: string;
   displayName: string | null;
   avatar: string | null;
+  cover: string | null;
   badge: string | null;
   profileUrl: string | null;
 }
@@ -126,6 +127,11 @@ function Card({ l }: { l: Locket }) {
       rel="noopener noreferrer"
       className="ls-card"
     >
+      {l.cover && (
+        <div className="ls-cover">
+          <img src={l.cover} alt="" loading="lazy" />
+        </div>
+      )}
       <div className="ls-avatar-wrap">
         {l.avatar ? (
           <img

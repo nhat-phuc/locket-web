@@ -266,7 +266,7 @@ model LocketProfile {
   username      String    @unique
   displayName   String?
   avatar        String?
-  coverImage    String?
+  cover        String?
   badge         String?
   bio           String?
   age           Int?

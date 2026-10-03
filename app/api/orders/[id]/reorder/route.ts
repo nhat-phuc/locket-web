@@ -48,6 +48,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       );
     }
 
+    // Check service tồn tại
+    if (!oldOrder.service) {
+      return NextResponse.json(
+        { success: false, message: "Không tìm thấy service của đơn" },
+        { status: 400 }
+      );
+    }
+
     // Lấy duration từ service
     const duration = oldOrder.service.duration || null;
 

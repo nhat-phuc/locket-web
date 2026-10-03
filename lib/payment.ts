@@ -50,7 +50,7 @@ export async function markOrderAsPaid(orderId: string) {
 
     if (!isRecharge) {
       await tx.service.update({
-        where: { id: order.serviceId },
+        where: { id: order.serviceId ?? undefined },
         data: { sold: { increment: 1 } },
       }).catch(() => {});
     }

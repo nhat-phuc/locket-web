@@ -1,68 +1,16 @@
-# Dependencies
 node_modules/
-.pnp
-.pnp.js
-
-# Next.js
 .next/
 out/
 build/
 dist/
-
-# Env
 .env
 .env.local
-.env*.local
-
-# Database
-*.db
-*.db-journal
-prisma/*.db
-prisma/dev.db
-
-# OS
+.env.*.local
 .DS_Store
-Thumbs.db
-
-# Logs
-*.log
+*.pem
 npm-debug.log*
-
-# IDE
-.vscode/
-.idea/
-
-# TypeScript
+.vercel
 *.tsbuildinfo
 next-env.d.ts
-
-# Scripts tạm
-check-admin.ts
-check-me.ts
-check-users.ts
-make-admin.ts
-fix.sh
-
-# Folder lạ
-nextjs-dashboard/
-.vercel
-.env*
-# Vercel
-.vercel
-
-# Env
-.env
-.env.local
-.env*.local
-
-# OS
-.DS_Store
-
-# Backups
 *.bak
-*.bak2
-*.tmp
-
-# Dev scripts (optional - chỉ bỏ nếu không muốn deploy lên production)
-# scripts/seed-orders.ts
-# scripts/seed-reviews.ts
+*.bak.*

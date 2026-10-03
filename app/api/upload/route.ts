@@ -1,29 +1,24 @@
 import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
-import { getSession } from "@/lib/session";
 
 export async function POST(req: Request) {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ success: false, error: "Chưa đăng nhập" }, { status: 401 });
-    }
-
     const formData = await req.formData();
     const file = formData.get("file") as File;
-    if (!file) {
-      return NextResponse.json({ success: false, error: "Không có file" }, { status: 400 });
-    }
+    const type = (formData.get("type") as string) || "cover";
 
-    if (!file.type.startsWith("image/")) {
-      return NextResponse.json({ success: false, error: "Chỉ nhận ảnh" }, { status: 400 });
+    if (!file) {
+      return NextResponse.json({ success: false, message: "Thiếu file" }, { status: 400 });
     }
     if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json({ success: false, error: "Ảnh tối đa 5MB" }, { status: 400 });
+      return NextResponse.json({ success: false, message: "File quá lớn (max 5MB)" }, { status: 400 });
+    }
+    if (!file.type.startsWith("image/")) {
+      return NextResponse.json({ success: false, message: "Chỉ chấp nhận ảnh" }, { status: 400 });
     }
 
     const ext = file.name.split(".").pop() || "jpg";
-    const filename = `reviews/${session.userId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const filename = `${type}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
     const blob = await put(filename, file, {
       access: "public",
@@ -37,7 +32,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("[upload]", error);
     return NextResponse.json(
-      { success: false, error: "Upload thất bại" },
+      { success: false, message: "Lỗi upload" },
       { status: 500 }
     );
   }

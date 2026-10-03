@@ -3,7 +3,6 @@ import { prisma } from "@/lib/db";
 
 function normalizeUsername(input: string): string {
   let u = input.trim();
-  // Nếu là link → trích username
   const match = u.match(/locket\.(cam|camera)\/([^/?#\s]+)/i);
   if (match) u = match[2];
   return u.replace(/^@/, "").trim();
@@ -12,7 +11,18 @@ function normalizeUsername(input: string): string {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { username, displayName, avatar, coverImage, badge, bio, age, gender, interests, profileUrl } = body;
+    const {
+      username,
+      displayName,
+      avatar,
+      cover,
+      badge,
+      bio,
+      age,
+      gender,
+      interests,
+      profileUrl,
+    } = body;
 
     if (!username) {
       return NextResponse.json({ success: false, message: "Thiếu username" }, { status: 400 });
@@ -35,14 +45,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "Username không tồn tại trên Locket" }, { status: 404 });
     }
 
-    // Trích avatar từ HTML nếu có
+    // Trích avatar từ HTML nếu chưa có
     let avatarUrl = avatar || null;
     if (!avatarUrl) {
       const avatarMatch = html.match(/class="profile-pic-img"\s+src="([^"]+)"/i);
       if (avatarMatch) avatarUrl = avatarMatch[1].replace(/&amp;/g, "&");
     }
 
-    // Upsert
     const existing = await prisma.locketProfile.findUnique({ where: { username: clean } });
 
     let profile;
@@ -52,7 +61,7 @@ export async function POST(req: Request) {
         data: {
           displayName: displayName || existing.displayName,
           avatar: avatarUrl || existing.avatar,
-          coverImage: coverImage !== undefined ? coverImage : existing.coverImage,
+          cover: cover !== undefined ? cover : existing.cover,
           badge: badge !== undefined ? badge : existing.badge,
           bio: bio || existing.bio,
           age: age || existing.age,
@@ -67,7 +76,7 @@ export async function POST(req: Request) {
           username: clean,
           displayName: displayName || null,
           avatar: avatarUrl,
-          coverImage: coverImage || null,
+          cover: cover || null,
           badge: badge || null,
           bio: bio || null,
           age: age || null,
