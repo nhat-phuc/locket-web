@@ -274,6 +274,7 @@ model LocketProfile {
   interests     String?
   profileUrl    String?
   savedBy       String?
+  isAdmin       Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

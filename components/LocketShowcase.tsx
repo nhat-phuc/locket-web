@@ -10,6 +10,7 @@ interface Locket {
   cover: string | null;
   badge: string | null;
   profileUrl: string | null;
+  isAdmin?: boolean;
 }
 
 export default function LocketShowcase() {
@@ -20,7 +21,7 @@ export default function LocketShowcase() {
     const load = () => {
       fetch("/api/locket/list?limit=100")
         .then((r) => r.json())
-        .then((d) => setLockets(d.profiles || d.lockets || d.data || []))
+        .then((d) => setLockets(d.profiles || []))
         .catch(() => {})
         .finally(() => setLoading(false));
     };
@@ -38,27 +39,21 @@ export default function LocketShowcase() {
   return (
     <section className="ls-section">
       <div className="ls-header">
-        <h2 className="ls-title">🌟 Locket Đã Thêm</h2>
-        <p className="ls-sub">{lockets.length} Locket mới nhất từ cộng đồng</p>
+        <div className="ls-hero-badge">
+          <span className="ls-hero-badge-spark">🚀</span>
+          <span>Nền tảng kết bạn Locket số 1 Việt Nam</span>
+        </div>
+        <h2 className="ls-title">Kết bạn <span className="ls-title-gradient">Locket</span></h2>
+        <p className="ls-sub">Khám phá {lockets.length} Locket mới nhất từ cộng đồng</p>
       </div>
 
-      <Marquee items={row1} direction="left" speed={0.5} />
-      {row2.length > 0 && (
-        <Marquee items={row2} direction="right" speed={0.5} />
-      )}
+      <Marquee items={row1} speed={0.5} />
+      {row2.length > 0 && <Marquee items={row2} speed={0.5} />}
     </section>
   );
 }
 
-function Marquee({
-  items,
-  direction,
-  speed,
-}: {
-  items: Locket[];
-  direction: "left" | "right";
-  speed: number;
-}) {
+function Marquee({ items, speed }: { items: Locket[]; speed: number }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef(0);
   const rafRef = useRef<number>(0);
@@ -67,46 +62,28 @@ function Marquee({
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
-
     const startAnim = () => {
-      const halfWidth = track.scrollWidth / 2;
-
-      // Nếu chạy sang phải → bắt đầu ở -halfWidth
-      offsetRef.current = direction === "right" ? -halfWidth : 0;
-      lastTimeRef.current = 0;
-
       const animate = (time: number) => {
         const delta = lastTimeRef.current ? time - lastTimeRef.current : 0;
         lastTimeRef.current = time;
-
-        const hw = track.scrollWidth / 2;
-        if (hw > 0) {
-          // Trái: offset giảm | Phải: offset tăng
-          offsetRef.current +=
-            (direction === "left" ? -1 : 1) * speed * delta * 0.06;
-
-          // Loop chính xác
-          if (direction === "left" && offsetRef.current <= -hw) {
-            offsetRef.current += hw;
-          } else if (direction === "right" && offsetRef.current >= 0) {
-            offsetRef.current -= hw;
-          }
-
+        const halfWidth = track.scrollWidth / 2;
+        if (halfWidth > 0) {
+          offsetRef.current -= speed * delta * 0.06;
+          if (offsetRef.current <= -halfWidth) offsetRef.current += halfWidth;
           track.style.transform = `translate3d(${offsetRef.current}px, 0, 0)`;
         }
-
         rafRef.current = requestAnimationFrame(animate);
       };
-
       rafRef.current = requestAnimationFrame(animate);
     };
-
+    offsetRef.current = 0;
+    lastTimeRef.current = 0;
     const t = setTimeout(startAnim, 100);
     return () => {
       clearTimeout(t);
       cancelAnimationFrame(rafRef.current);
     };
-  }, [direction, speed, items.length]);
+  }, [speed, items.length]);
 
   return (
     <div className="ls-marquee">
@@ -145,10 +122,23 @@ function Card({ l }: { l: Locket }) {
             }}
           />
         ) : (
-          <div className="ls-avatar-fallback">
-            {l.username[0]?.toUpperCase()}
-          </div>
+          <div className="ls-avatar-fallback">{l.username[0]?.toUpperCase()}</div>
         )}
+
+        {/* Badge admin xanh */}
+        {l.isAdmin && (
+          <svg className="ls-admin-badge" viewBox="0 0 24 24" width="20" height="20">
+            <path
+              fill="#1d9bf0"
+              d="M12 1.5l2.4 1.8 3-.3.9 2.9 2.6 1.5-1 2.8 1 2.8-2.6 1.5-.9 2.9-3-.3L12 19.5l-2.4-1.8-3 .3-.9-2.9L3.1 13.6l1-2.8-1-2.8 2.6-1.5.9-2.9 3 .3L12 1.5z"
+            />
+            <path
+              fill="#fff"
+              d="M10.6 13.2l-2-2-1.2 1.2 3.2 3.2 5.8-5.8-1.2-1.2-4.6 4.6z"
+            />
+          </svg>
+        )}
+
         {l.badge && <span className="ls-badge">{l.badge}</span>}
       </div>
       <div className="ls-name">{l.displayName || l.username}</div>
