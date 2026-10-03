@@ -10,8 +10,6 @@ async function isAdmin() {
     select: { role: true } 
   });
   return u?.role === "admin";
-}, select: { role: true } });
-  return u?.role === "admin";
 }
 
 export async function GET() {

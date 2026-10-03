@@ -16,7 +16,11 @@ export async function POST(req: Request) {
       );
     }
     const body = await req.json();
-    const { email, username, password, name, phone } = body;
+    const { email, username, password, name, phone, referralCode: rawReferralCode } = body;
+    const referralCode =
+      typeof rawReferralCode === "string"
+        ? rawReferralCode.trim().toUpperCase()
+        : null;
 
     // Validate bắt buộc
     if (!email || !username || !password) {
