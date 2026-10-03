@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import Analytics from "@/components/Analytics";
+import BrowserNotification from "@/components/BrowserNotification";
 import "./sub-pages.css";
 import CatLoader from "@/components/CatLoader";
 import FallingCanvas from "@/components/FallingCanvas";
@@ -48,6 +50,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi" suppressHydrationWarning className={inter.variable}>
+      <Analytics />
+      <BrowserNotification />
       <body className={inter.className} suppressHydrationWarning>
         <CatLoader />
         <AdminHideFX>

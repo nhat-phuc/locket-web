@@ -2,9 +2,18 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { comparePassword, signToken } from "@/lib/auth";
 import { setSessionCookie } from "@/lib/session";
+import { rateLimit, getIP } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
   try {
+    const ip = getIP(req);
+    const limit = rateLimit(`login:${ip}`, 5, 60000);
+    if (!limit.success) {
+      return NextResponse.json(
+        { success: false, message: "Quá nhiều lần thử. Vui lòng đợi 1 phút." },
+        { status: 429 }
+      );
+    }
     const body = await req.json();
     const { email, password } = body;
 

@@ -2,10 +2,19 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { hashPassword, signToken } from "@/lib/auth";
 import { setSessionCookie } from "@/lib/session";
+import { rateLimit, getIP } from "@/lib/rate-limit";
 import { isValidEmail, isValidUsername, isStrongPassword } from "@/lib/utils";
 
 export async function POST(req: Request) {
   try {
+    const ip = getIP(req);
+    const limit = rateLimit(`register:${ip}`, 3, 3600000);
+    if (!limit.success) {
+      return NextResponse.json(
+        { success: false, message: "Quá nhiều lần đăng ký. Thử lại sau." },
+        { status: 429 }
+      );
+    }
     const body = await req.json();
     const { email, username, password, name, phone } = body;
 
@@ -85,6 +94,18 @@ export async function POST(req: Request) {
     const hashedPassword = await hashPassword(password);
 
     // Tạo user với phone
+    // Tạo mã referral riêng cho user mới
+    const newRefCode = (username || email.split("@")[0]).toLowerCase().replace(/[^a-z0-9]/g, "") + Math.random().toString(36).slice(2, 6);
+
+    // Tìm user giới thiệu
+    let referrer = null;
+    if (referralCode) {
+      referrer = await prisma.user.findUnique({
+        where: { referralCode: referralCode.trim().toUpperCase() },
+        select: { id: true, referralCode: true },
+      });
+    }
+
     const user = await prisma.user.create({
       data: {
         email,
@@ -103,6 +124,22 @@ export async function POST(req: Request) {
       role: user.role,
     });
     await setSessionCookie(token);
+
+    // Tạo record referral
+    if (referrer) {
+      await prisma.referral.create({
+        data: {
+          referrerId: referrer.id,
+          referredUserId: user.id,
+          code: referrer.referralCode || "",
+        },
+      });
+      // Tăng số lượng referrals
+      await prisma.user.update({
+        where: { id: referrer.id },
+        data: { totalReferrals: { increment: 1 } },
+      });
+    }
 
     return NextResponse.json({
       success: true,

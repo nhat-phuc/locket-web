@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { exportUsersExcel } from "@/lib/export-excel";
 
 interface User {
   id: string;

@@ -8,6 +8,7 @@ datasource db {
 }
 
 model User {
+  passwordResetTokens PasswordResetToken[]
   id            String    @id @default(cuid())
   email         String    @unique
   username      String    @unique
@@ -20,6 +21,10 @@ model User {
   isActive      Boolean   @default(true)
   isBanned      Boolean   @default(false)
   referralCode  String?   @unique
+  commission    Int       @default(0)
+  referrals     Referral[] @relation("Referrer")
+  referredByRelation Referral? @relation("Referred")
+  totalReferrals Int      @default(0)
   giftClaimed   Boolean   @default(false)
   referredBy    String?
   resetToken        String?
@@ -328,4 +333,38 @@ model Spin {
 
   @@index([userId])
   @@index([createdAt])
+}
+
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+}
+
+
+model Referral {
+  id              String   @id @default(cuid())
+  referrerId      String
+  referredUserId  String   @unique
+  code            String
+  commission      Int      @default(0)
+  commissionPaid  Boolean  @default(false)
+  firstOrderId    String?
+  createdAt       DateTime @default(now())
+  paidAt          DateTime?
+
+  referrer User @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referred User @relation("Referred", fields: [referredUserId], references: [id], onDelete: Cascade)
+
+  @@index([referrerId])
+  @@index([referredUserId])
 }

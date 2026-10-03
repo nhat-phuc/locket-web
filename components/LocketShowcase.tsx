@@ -16,19 +16,49 @@ interface Locket {
 export default function LocketShowcase() {
   const [lockets, setLockets] = useState<Locket[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const loadLockets = () => {
+    fetch("/api/locket/list?limit=100")
+      .then((r) => r.json())
+      .then((d) => setLockets(d.profiles || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
-    const load = () => {
-      fetch("/api/locket/list?limit=100")
-        .then((r) => r.json())
-        .then((d) => setLockets(d.profiles || []))
-        .catch(() => {})
-        .finally(() => setLoading(false));
-    };
-    load();
-    window.addEventListener("locket-added", load);
-    return () => window.removeEventListener("locket-added", load);
+    loadLockets();
+
+    // Check admin
+    fetch("/api/users/me", { credentials: "include" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success && d.user?.role === "admin") {
+          setIsAdmin(true);
+        }
+      })
+      .catch(() => {});
+
+    window.addEventListener("locket-added", loadLockets);
+    return () => window.removeEventListener("locket-added", loadLockets);
   }, []);
+
+  const handleDelete = async (id: string, username: string) => {
+    if (!confirm(`Xóa Locket @${username}?`)) return;
+
+    const res = await fetch("/api/locket/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      setLockets((prev) => prev.filter((l) => l.id !== id));
+    } else {
+      alert(data.message || "Lỗi xóa");
+    }
+  };
 
   if (loading || lockets.length === 0) return null;
 
@@ -43,17 +73,33 @@ export default function LocketShowcase() {
           <span className="ls-hero-badge-spark">🚀</span>
           <span>Nền tảng kết bạn Locket số 1 Việt Nam</span>
         </div>
-        <h2 className="ls-title">Kết bạn <span className="ls-title-gradient">Locket</span></h2>
-        <p className="ls-sub">Khám phá {lockets.length} Locket mới nhất từ cộng đồng</p>
+        <h2 className="ls-title">
+          Kết bạn <span className="ls-title-gradient">Locket</span>
+        </h2>
+        <p className="ls-sub">
+          Khám phá {lockets.length} Locket mới nhất từ cộng đồng
+        </p>
       </div>
 
-      <Marquee items={row1} speed={0.5} />
-      {row2.length > 0 && <Marquee items={row2} speed={0.5} />}
+      <Marquee items={row1} speed={0.5} isAdmin={isAdmin} onDelete={handleDelete} />
+      {row2.length > 0 && (
+        <Marquee items={row2} speed={0.5} isAdmin={isAdmin} onDelete={handleDelete} />
+      )}
     </section>
   );
 }
 
-function Marquee({ items, speed }: { items: Locket[]; speed: number }) {
+function Marquee({
+  items,
+  speed,
+  isAdmin,
+  onDelete,
+}: {
+  items: Locket[];
+  speed: number;
+  isAdmin: boolean;
+  onDelete: (id: string, username: string) => void;
+}) {
   const trackRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef(0);
   const rafRef = useRef<number>(0);
@@ -89,60 +135,73 @@ function Marquee({ items, speed }: { items: Locket[]; speed: number }) {
     <div className="ls-marquee">
       <div className="ls-track" ref={trackRef}>
         {[...items, ...items].map((l, i) => (
-          <Card key={`m-${i}`} l={l} />
+          <Card key={`m-${i}`} l={l} isAdmin={isAdmin} onDelete={onDelete} />
         ))}
       </div>
     </div>
   );
 }
 
-function Card({ l }: { l: Locket }) {
+function Card({
+  l,
+  isAdmin,
+  onDelete,
+}: {
+  l: Locket;
+  isAdmin: boolean;
+  onDelete: (id: string, username: string) => void;
+}) {
   return (
-    <a
-      href={l.profileUrl || `https://locket.cam/${l.username}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="ls-card"
-    >
-      {l.cover && (
-        <div className="ls-cover">
-          <img src={l.cover} alt="" loading="lazy" />
+    <div className="ls-card-wrap">
+      <a
+        href={l.profileUrl || `https://locket.cam/${l.username}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="ls-card"
+      >
+        {l.cover && (
+          <div className="ls-cover">
+            <img src={l.cover} alt="" loading="lazy" />
+          </div>
+        )}
+        <div className="ls-avatar-wrap">
+          {l.avatar ? (
+            <img
+              src={l.avatar}
+              alt={l.username}
+              className="ls-avatar"
+              loading="lazy"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src =
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(l.username)}&background=7c3aed&color=fff`;
+              }}
+            />
+          ) : (
+            <div className="ls-avatar-fallback">
+              {l.username[0]?.toUpperCase()}
+            </div>
+          )}
+          {l.badge && <span className="ls-badge">{l.badge}</span>}
         </div>
-      )}
-      <div className="ls-avatar-wrap">
-        {l.avatar ? (
-          <img
-            src={l.avatar}
-            alt={l.username}
-            className="ls-avatar"
-            loading="lazy"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src =
-                `https://ui-avatars.com/api/?name=${encodeURIComponent(l.username)}&background=7c3aed&color=fff`;
-            }}
-          />
-        ) : (
-          <div className="ls-avatar-fallback">{l.username[0]?.toUpperCase()}</div>
-        )}
+        <div className="ls-name">{l.displayName || l.username}</div>
+        <div className="ls-username">@{l.username}</div>
+      </a>
 
-        {/* Badge admin xanh */}
-        {l.isAdmin && (
-          <svg className="ls-admin-badge" viewBox="0 0 24 24" width="20" height="20">
-            <path
-              fill="#1d9bf0"
-              d="M12 1.5l2.4 1.8 3-.3.9 2.9 2.6 1.5-1 2.8 1 2.8-2.6 1.5-.9 2.9-3-.3L12 19.5l-2.4-1.8-3 .3-.9-2.9L3.1 13.6l1-2.8-1-2.8 2.6-1.5.9-2.9 3 .3L12 1.5z"
-            />
-            <path
-              fill="#fff"
-              d="M10.6 13.2l-2-2-1.2 1.2 3.2 3.2 5.8-5.8-1.2-1.2-4.6 4.6z"
-            />
+      {/* Nút xóa chỉ hiện cho admin */}
+      {isAdmin && (
+        <button
+          className="ls-delete-btn"
+          onClick={() => onDelete(l.id, l.username)}
+          title="Xóa Locket"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6" />
+            <path d="M10 11v6M14 11v6" />
+            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
           </svg>
-        )}
-
-        {l.badge && <span className="ls-badge">{l.badge}</span>}
-      </div>
-      <div className="ls-name">{l.displayName || l.username}</div>
-      <div className="ls-username">@{l.username}</div>
-    </a>
+        </button>
+      )}
+    </div>
   );
 }

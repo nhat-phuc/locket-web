@@ -19,8 +19,9 @@
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "resend": "^6.31.0",
-    "swr": "^2.5.1"
+    "resend": "^6.32.0",
+    "swr": "^2.5.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

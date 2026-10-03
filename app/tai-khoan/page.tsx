@@ -152,8 +152,9 @@ export default function TaiKhoanPage() {
                   const data = await res.json();
                   console.log("[TG] Data:", data);
 
-                  if (data.success && (data.deepLink || data.token)) {
-                    const tgUrl = `https://t.me/amirose_bot?start=${data.token}`;
+                  if (data.success && data.code) {
+                    const botUsername = "amirose_bot";
+                    const tgUrl = `https://t.me/${botUsername}?start=${data.code}`;
                     console.log("[TG] Mở URL:", tgUrl);
                     const win = window.open(tgUrl, "_blank");
                     if (!win) window.location.href = tgUrl;

@@ -12,7 +12,9 @@ const menuGroups = [
       { href: "/admin/orders", label: "Đơn hàng", icon: "📦" },
       { href: "/admin/pending-transactions", label: "GD chờ duyệt", icon: "⏳" },
       { href: "/admin/withdrawals", label: "Rút tiền", icon: "💸" },
+      { href: "/admin/refunds", label: "Hoàn tiền", icon: "↩️" },
       { href: "/admin/transactions", label: "Giao dịch", icon: "💰" },
+      { href: "/admin/revenue", label: "Doanh thu", icon: "📈" },
       { href: "/admin/coupons", label: "Mã giảm giá", icon: "🏷️" },
       { href: "/admin/packages", label: "Gói dịch vụ", icon: "🎁" },
       { href: "/admin/services", label: "Dịch vụ", icon: "⚙️" },
@@ -22,8 +24,16 @@ const menuGroups = [
     title: "Người dùng",
     items: [
       { href: "/admin/users", label: "Người dùng", icon: "👥" },
+      { href: "/admin/balance", label: "Điều chỉnh số dư", icon: "💳" },
+      { href: "/admin/referral", label: "Mã giới thiệu", icon: "🔗" },
       { href: "/admin/reviews", label: "Đánh giá", icon: "⭐" },
       { href: "/admin/notifications", label: "Thông báo", icon: "🔔" },
+    ],
+  },
+  {
+    title: "Locket",
+    items: [
+      { href: "/admin/lockets", label: "Quản lý Locket", icon: "🎀" },
     ],
   },
   {
@@ -32,13 +42,17 @@ const menuGroups = [
       { href: "/admin/posts", label: "Bài viết", icon: "📝" },
       { href: "/admin/banners", label: "Banner", icon: "🖼️" },
       { href: "/admin/lucky-wheel", label: "Vòng quay", icon: "🎡" },
+      { href: "/admin/marketing", label: "Email marketing", icon: "📧" },
     ],
   },
   {
     title: "Hệ thống",
     items: [
-      { href: "/admin/logs", label: "Logs", icon: "📋" },
+      { href: "/admin/reports", label: "Báo cáo vi phạm", icon: "🚨" },
+      { href: "/admin/activity", label: "Hoạt động", icon: "📋" },
+      { href: "/admin/logs", label: "Logs", icon: "📊" },
       { href: "/admin/settings", label: "Cài đặt", icon: "🔧" },
+      { href: "/admin/logo-icon", label: "Logo & Icon", icon: "🎨" },
     ],
   },
 ];
