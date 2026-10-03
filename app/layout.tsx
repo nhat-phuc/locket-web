@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import "./sub-pages.css";
 import CatLoader from "@/components/CatLoader";
 import FallingCanvas from "@/components/FallingCanvas";
 import FXEffects from "@/components/FXEffects";

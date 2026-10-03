@@ -36,8 +36,8 @@ const icons = [
 ];
 
 // ⚡ TỐC ĐỘ ANIMATION — chỉnh ở đây
-const SPEED_MIN = 0.8;   // Tốc độ tối thiểu (trước: 0.4)
-const SPEED_MAX = 1.5;   // Tốc độ tối đa (trước: 1.0)
+const SPEED_MIN = 0.5;   // Tốc độ tối thiểu (trước: 0.4)
+const SPEED_MAX = 0.9;   // Tốc độ tối đa (trước: 1.0)
 
 export default function IconShowcase() {
   const contentRef = useRef<HTMLDivElement>(null);

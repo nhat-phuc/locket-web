@@ -34,7 +34,7 @@ export default function Privileges() {
             className="privilege-card"
             key={i}
             style={{
-              animationDelay: `${i * 0.05}s`,
+              animationDelay: `${i * 0.02}s`,
               "--icon-color": p.iconColor,
             } as React.CSSProperties}
           >
@@ -86,7 +86,7 @@ export default function Privileges() {
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           overflow: hidden;
           /* ✅ Animation nhanh hơn */
-          animation: privFadeIn 0.4s ease-out both;
+          animation: privFadeIn 0.15s ease-out both;
         }
 
         @keyframes privFadeIn {
@@ -116,14 +116,14 @@ export default function Privileges() {
         /* ═══ ICON ═══ */
         .privilege-icon-wrapper {
           position: relative;
-          width: 56px;
-          height: 56px;
-          border-radius: 16px;
-          display: grid;
-          place-items: center;
-          background: rgba(167, 139, 250, 0.08);
-          border: 1.5px solid rgba(167, 139, 250, 0.15);
-          transition: all 0.3s;
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          background: transparent;
+          border: none;
+          padding: 0;
+          width: auto;
+          height: auto;
         }
 
         .privilege-icon {
@@ -145,7 +145,7 @@ export default function Privileges() {
           letter-spacing: 0.3px;
           white-space: nowrap;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          animation: badgePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+          animation: badgePop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
           animation-delay: inherit;
         }
 
@@ -215,7 +215,17 @@ export default function Privileges() {
         /* ═══ RESPONSIVE ═══ */
         @media (max-width: 600px) {
           .privilege-card { padding: 20px 16px; border-radius: 16px; }
-          .privilege-icon-wrapper { width: 48px; height: 48px; }
+          .privilege-icon-wrapper {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          background: transparent;
+          border: none;
+          padding: 0;
+          width: auto;
+          height: auto;
+        }
           .privilege-icon { font-size: 22px; }
           .privilege-title { font-size: 15px; }
           .privilege-desc { font-size: 13px; }

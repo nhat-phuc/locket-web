@@ -5681,3 +5681,131 @@ body:has(.admin-layout) {
   color: #0f0a1e !important;
 }
 
+
+
+
+
+
+
+
+
+
+
+/* ═══ LOCKET SHOWCASE — JS MARQUEE ═══ */
+.ls-section {
+  margin: 60px 0;
+  width: 100%;
+}
+.ls-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.ls-title {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--text-0);
+  margin-bottom: 8px;
+}
+.ls-sub {
+  font-size: 14px;
+  color: var(--text-2);
+}
+.ls-marquee {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 20px;
+  padding: 8px 0;
+  mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+.ls-track {
+  display: flex;
+  gap: 20px;
+  width: max-content;
+  will-change: transform;
+}
+.ls-card {
+  width: 180px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  text-decoration: none;
+  text-align: center;
+  box-shadow: 0 4px 24px rgba(124, 58, 237, 0.08);
+  transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+}
+.ls-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(124, 58, 237, 0.2);
+  border-color: rgba(167, 139, 250, 0.5);
+}
+.ls-avatar-wrap {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+}
+.ls-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(167, 139, 250, 0.5);
+  display: block;
+}
+.ls-avatar-fallback {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  color: #fff;
+  font-weight: 800;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ls-badge {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  color: #fff;
+  white-space: nowrap;
+}
+.ls-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-0);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.ls-username {
+  font-size: 12px;
+  color: #7c3aed;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+@media (max-width: 640px) {
+  .ls-section { margin: 40px 0; }
+  .ls-title { font-size: 22px; }
+  .ls-card { width: 150px; padding: 14px; gap: 8px; }
+  .ls-avatar-wrap, .ls-avatar, .ls-avatar-fallback { width: 56px; height: 56px; }
+  .ls-track { gap: 14px; }
+}

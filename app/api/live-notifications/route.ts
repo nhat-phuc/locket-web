@@ -1,93 +1,72 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getSession } from "@/lib/session";
 
-function maskName(name: string): string {
-  if (!name) return "***";
-  const n = name.replace(/^@/, "").trim();
-  if (n.length <= 4) return n.charAt(0) + "***" + n.charAt(n.length - 1);
-  return n.slice(0, 2) + "***" + n.slice(-2);
-}
-
-function relativeTime(date: Date): string {
-  const diff = Date.now() - date.getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "Vừa xong";
-  if (mins < 60) return `${mins} phút trước`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours} giờ trước`;
-  return `${Math.floor(hours / 24)} ngày trước`;
+function hideName(name: string): string {
+  if (!name) return "Một người dùng";
+  const parts = name.trim().split(/\s+/);
+  const first = parts[0] || "";
+  if (first.length <= 2) return first.charAt(0) + "***";
+  return first.slice(0, 2) + "***";
 }
 
 export async function GET() {
   try {
-    const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const session = await getSession();
 
-    // Orders paid
-    const orders = await prisma.order.findMany({
-      where: { status: "paid", paidAt: { gte: since24h } },
-      orderBy: { paidAt: "desc" },
-      take: 20,
-      select: {
-        id: true,
-        serviceName: true,
-        locketUsername: true,
-        finalAmount: true,
-        paidAt: true,
-        createdAt: true,
-        user: { select: { name: true, username: true, picture: true, email: true } },
-      },
-    });
-
-    // Recharges
+    // Lấy 20 giao dịch nạp gần nhất
     const txs = await prisma.transaction.findMany({
-      where: { type: "recharge", status: "success", createdAt: { gte: since24h } },
+      where: {
+        type: { in: ["recharge", "deposit", "admin_recharge"] },
+        status: { in: ["completed", "success"] },
+      },
       orderBy: { createdAt: "desc" },
       take: 20,
       include: {
-        user: { select: { name: true, username: true, picture: true, email: true } },
+        user: { select: { id: true, name: true, username: true, picture: true } },
       },
     });
 
-    const notifications = [
-      ...orders.map((o) => {
-        const name = o.locketUsername || o.user?.name || o.user?.username || o.user?.email?.split("@")[0] || "user";
-        return {
-          id: o.id,
-          kind: "order" as const,
-          name: maskName(name),
-          initial: name.charAt(0).toUpperCase(),
-          avatar: o.user?.picture || null,
-          message: `${maskName(name)} vừa đăng ký gói`,
-          detail: o.serviceName,
-          time: relativeTime(o.paidAt || o.createdAt),
-          timestamp: (o.paidAt || o.createdAt).getTime(),
-        };
-      }),
-      ...txs.map((t) => {
-        const name = t.user?.name || t.user?.username || t.user?.email?.split("@")[0] || "user";
-        const amount = Math.abs(t.amount);
-        return {
-          id: t.id,
-          kind: "recharge" as const,
-          name: maskName(name),
-          initial: name.charAt(0).toUpperCase(),
-          avatar: t.user?.picture || null,
-          message: `${maskName(name)} vừa nạp tiền`,
-          detail: `+${amount.toLocaleString("vi-VN")}đ vào số dư`,
-          time: relativeTime(t.createdAt),
-          timestamp: t.createdAt.getTime(),
-        };
-      }),
-    ];
-
-    notifications.sort((a, b) => b.timestamp - a.timestamp);
-
-    return NextResponse.json({
-      success: true,
-      notifications: notifications.slice(0, 30),
+    const items = txs.map((t) => {
+      const isMine = session?.userId === t.userId;
+      const displayName = isMine
+        ? "Bạn"
+        : hideName(t.user.name || t.user.username || "Người dùng");
+      return {
+        id: t.id,
+        name: displayName,
+        amount: t.amount,
+        avatar: t.user.picture,
+        isMine,
+        createdAt: t.createdAt,
+      };
     });
+
+    // Nếu user có giao dịch nạp trong 5 phút gần đây
+    let myRecentRecharge: any = null;
+    if (session) {
+      const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000);
+      const mine = await prisma.transaction.findFirst({
+        where: {
+          userId: session.userId,
+          type: { in: ["recharge", "deposit", "admin_recharge"] },
+          status: { in: ["completed", "success"] },
+          createdAt: { gte: fiveMinAgo },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+      if (mine) {
+        myRecentRecharge = {
+          id: mine.id,
+          amount: mine.amount,
+          createdAt: mine.createdAt,
+        };
+      }
+    }
+
+    return NextResponse.json({ success: true, items, myRecentRecharge });
   } catch (error) {
     console.error("[live-notifications]", error);
-    return NextResponse.json({ success: false, notifications: [] }, { status: 500 });
+    return NextResponse.json({ success: true, items: [], myRecentRecharge: null });
   }
 }

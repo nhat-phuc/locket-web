@@ -17,8 +17,8 @@ interface Tx {
   timestamp: number;
 }
 
-const INITIAL_COUNT = 8;
-const LOAD_MORE = 8;
+const INITIAL_COUNT = 6;
+const LOAD_MORE = 6;
 const POLL_INTERVAL = 5000; // 5s
 
 function uiAvatar(name: string): string {

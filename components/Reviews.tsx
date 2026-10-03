@@ -21,8 +21,8 @@ function uiAvatar(name: string): string {
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(clean)}&background=7c3aed&color=fff&size=128&bold=true`;
 }
 
-const INITIAL_COUNT = 6;
-const LOAD_MORE = 6;
+const INITIAL_COUNT = 8;
+const LOAD_MORE = 8;
 
 export default function Reviews() {
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -268,14 +268,14 @@ export default function Reviews() {
         /* Grid 6 ảnh/hàng */
         .rv-grid {
           display: grid;
-          grid-template-columns: repeat(6, 1fr);
-          gap: 12px;
-          margin-top: 24px;
+          grid-template-columns: repeat(8, 1fr);
+          gap: 8px;
+          margin-top: 16px;
         }
-        @media (max-width: 1200px) { .rv-grid { grid-template-columns: repeat(5, 1fr); } }
-        @media (max-width: 1000px) { .rv-grid { grid-template-columns: repeat(4, 1fr); } }
-        @media (max-width: 768px)  { .rv-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; } }
-        @media (max-width: 500px)  { .rv-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; } }
+        @media (max-width: 1200px) { .rv-grid { grid-template-columns: repeat(7, 1fr); } }
+        @media (max-width: 1000px) { .rv-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 768px)  { .rv-grid { grid-template-columns: repeat(6, 1fr); gap: 8px; } }
+        @media (max-width: 500px)  { .rv-grid { grid-template-columns: repeat(6, 1fr); gap: 6px; } }
 
         .rv-card {
           display: flex;
@@ -293,28 +293,28 @@ export default function Reviews() {
         .rv-img-wrap {
           position: relative;
           width: 100%;
-          aspect-ratio: 9 / 16;
-          border-radius: 14px;
+          aspect-ratio: 3 / 4;
+          border-radius: 10px;
           overflow: hidden;
           cursor: zoom-in;
-          padding: 3px;
-          background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+          padding: 0;
+          background: transparent;
           transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+          box-shadow: none;
         }
         .rv-img-wrap:hover {
           transform: translateY(-4px) scale(1.03);
-          box-shadow: 0 16px 40px rgba(167, 139, 250, 0.5);
+          box-shadow: none;
         }
         .rv-img-wrap.is-featured {
-          background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #f97316 100%);
+          background: transparent;
         }
         .rv-img-wrap :global(.rv-img) {
           width: 100%;
           height: 100%;
           object-fit: cover;
           display: block;
-          border-radius: 11px;
+          border-radius: 8px;
           background: #0a0a0f;
         }
         .rv-img-wrap :global(.rv-img-star) {
@@ -368,14 +368,14 @@ export default function Reviews() {
         }
         .rv-name {
           font-weight: 700;
-          font-size: 12px;
+          font-size: 11px;
           color: var(--text-0);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
         }
         .rv-text {
-          font-size: 12.5px;
+          font-size: 11px;
           color: var(--text-1);
           line-height: 1.45;
           display: -webkit-box;
@@ -393,7 +393,7 @@ export default function Reviews() {
           display: flex;
           justify-content: center;
           align-items: center;
-          gap: 12px;
+          gap: 8px;
           margin-top: 28px;
           flex-wrap: wrap;
         }
@@ -428,7 +428,7 @@ export default function Reviews() {
 
         /* ═══════ LIGHTBOX ẢNH ═══════ */
         .rv-lightbox {
-          position: fixed;
+          position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
           inset: 0;
           background: rgba(0, 0, 0, 0.95);
           display: grid;
@@ -451,16 +451,26 @@ export default function Reviews() {
           right: 20px;
           width: 44px;
           height: 44px;
+          min-width: 44px;
+          min-height: 44px;
+          max-width: 44px;
+          max-height: 44px;
+          aspect-ratio: 1 / 1;
+          flex-shrink: 0;
+          box-sizing: border-box;
+          padding: 0;
+          margin: 0;
           border-radius: 50%;
-          background: rgba(255, 255, 255, 0.15);
-          backdrop-filter: blur(10px);
+          background: rgba(0, 0, 0, 0.55);
           border: 1px solid rgba(255, 255, 255, 0.3);
           color: #fff;
           cursor: pointer;
-          display: grid;
-          place-items: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           transition: all 0.2s;
-          z-index: 2;
+          z-index: 10;
+          line-height: 1;
         }
         .rv-lightbox-close:hover {
           background: rgba(255, 255, 255, 0.3);
@@ -472,11 +482,11 @@ export default function Reviews() {
         }
 
         /* ═══════ POPUP CHI TIẾT ═══════ */
-        .rv-modal-overlay {
-          position: fixed;
+        .rv-modal-overlay { position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100dvh !important;
+          position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
           inset: 0;
           background: rgba(0, 0, 0, 0.7);
-          backdrop-filter: blur(8px);
+          backdrop-filter: none;
           z-index: 999;
           display: grid;
           place-items: center;
@@ -505,10 +515,16 @@ export default function Reviews() {
           width: 100%;
           background: #1a1230;
           flex-shrink: 0;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          overflow: hidden;
         }
         .rv-modal-img {
-          width: 100%;
+          max-width: 100%;
           max-height: 50vh;
+          width: auto;
+          height: auto;
           object-fit: contain;
           display: block;
           background: #1a1230;
@@ -520,16 +536,26 @@ export default function Reviews() {
           right: 12px;
           width: 36px;
           height: 36px;
+          min-width: 36px;
+          min-height: 36px;
+          max-width: 36px;
+          max-height: 36px;
+          aspect-ratio: 1 / 1;
+          flex-shrink: 0;
+          box-sizing: border-box;
+          padding: 0;
+          margin: 0;
           border-radius: 50%;
-          background: rgba(255, 255, 255, 0.2);
-          backdrop-filter: blur(10px);
+          background: rgba(0, 0, 0, 0.55);
           border: 1px solid rgba(255, 255, 255, 0.3);
           color: #fff;
           cursor: pointer;
-          display: grid;
-          place-items: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           transition: all 0.2s;
-          z-index: 2;
+          z-index: 10;
+          line-height: 1;
         }
         .rv-modal-close:hover {
           background: rgba(255, 255, 255, 0.35);
@@ -585,7 +611,7 @@ export default function Reviews() {
           padding: 4px 10px;
           background: #f3f4f6;
           border-radius: 999px;
-          font-size: 12px;
+          font-size: 11px;
           color: #6b7280;
           font-weight: 600;
           align-self: flex-start;
@@ -615,7 +641,7 @@ export default function Reviews() {
         }
 
         @media (max-width: 600px) {
-          .rv-modal-overlay { padding: 12px; }
+          .rv-modal-overlay { position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100dvh !important; padding: 12px; }
           .rv-modal { border-radius: 20px; max-height: 92vh; }
           .rv-modal-body { padding: 18px; gap: 14px; }
           .rv-modal-avatar { width: 48px; height: 48px; }

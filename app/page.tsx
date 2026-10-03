@@ -18,6 +18,8 @@ import Privileges from "@/components/Privileges";
 import FAQ from "@/components/FAQ";
 
 import SalesPopup from "@/components/SalesPopup";
+import SocialProofPopup from "@/components/SocialProofPopup";
+import RechargeSuccessPopup from "@/components/RechargeSuccessPopup";
 import NotificationPopup from "@/components/NotificationPopup";
 import NoticeModal from "@/components/NoticeModal";
 
@@ -61,6 +63,8 @@ export default function HomePage() {
       
       <NotificationPopup />
       <SalesPopup />
+      <SocialProofPopup />
+      <RechargeSuccessPopup />
       <NoticeModal />
 
       
