@@ -33,6 +33,35 @@ export default function ThanhToanContent() {
   const [usernameError, setUsernameError] = useState("");
   const [profile, setProfile] = useState<any>(null);
 
+  // === Khôi phục state khi quay lại trang ===
+  useEffect(() => {
+    const saved = localStorage.getItem("locket_pending_order");
+    if (!saved) return;
+    try {
+      const data = JSON.parse(saved);
+      if (data.expiresAt && new Date(data.expiresAt) > new Date() && data.step === "qr") {
+        setOrder(data.order);
+        setStep("qr");
+        const remain = Math.max(0, Math.floor((new Date(data.expiresAt).getTime() - Date.now()) / 1000));
+        setTimeLeft(remain);
+      } else {
+        localStorage.removeItem("locket_pending_order");
+      }
+    } catch {}
+  }, []);
+
+  // === Lưu state khi ở bước QR ===
+  useEffect(() => {
+    if (step === "qr" && order) {
+      const expiresAt = new Date(Date.now() + timeLeft * 1000).toISOString();
+      localStorage.setItem("locket_pending_order", JSON.stringify({ order, step, expiresAt }));
+    }
+    if (step === "success" || step === "info") {
+      localStorage.removeItem("locket_pending_order");
+    }
+  }, [step, order, timeLeft]);
+
+
   useEffect(() => { if (!serviceId) router.push("/bang-gia"); }, [serviceId, router]);
 
   useEffect(() => {

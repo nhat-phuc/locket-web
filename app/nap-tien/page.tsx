@@ -47,6 +47,35 @@ export default function NapTienPage() {
   const [paidSuccess, setPaidSuccess] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
+  // === Khôi phục state khi quay lại trang ===
+  useEffect(() => {
+    const saved = localStorage.getItem("locket_pending_recharge");
+    if (!saved) return;
+    try {
+      const data = JSON.parse(saved);
+      if (data.expiresAt && new Date(data.expiresAt) > new Date()) {
+        setOrder(data.order);
+        setStep("qr");
+        const remain = Math.max(0, Math.floor((new Date(data.expiresAt).getTime() - Date.now()) / 1000));
+        setTimeLeft(remain);
+      } else {
+        localStorage.removeItem("locket_pending_recharge");
+      }
+    } catch {}
+  }, []);
+
+  // === Lưu state khi tạo đơn QR ===
+  useEffect(() => {
+    if (step === "qr" && order) {
+      const expiresAt = order.expiresAt || new Date(Date.now() + 15 * 60 * 1000).toISOString();
+      localStorage.setItem("locket_pending_recharge", JSON.stringify({ order, expiresAt }));
+    }
+    if (step === "input" || paidSuccess) {
+      localStorage.removeItem("locket_pending_recharge");
+    }
+  }, [step, order, paidSuccess]);
+
+
   useEffect(() => {
     const stored = sessionStorage.getItem("locket_user");
     if (!stored) { router.push("/dang-nhap"); return; }
