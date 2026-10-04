@@ -85,7 +85,7 @@ export default function NapTienPage() {
     if (step !== "qr" || !order || paidSuccess) return;
     const check = async () => {
       try {
-        const r = await fetch(`/api/recharge/check?orderId=${order.orderId}`, { cache: "no-store" });
+        const r = await fetch(`/api/recharge/check?code=${order.orderCode}&email=${encodeURIComponent(user?.email || "")}`, { cache: "no-store" });
         const d = await r.json();
         if (d.status === "paid" || d.status === "success") {
           setPaidSuccess(true);

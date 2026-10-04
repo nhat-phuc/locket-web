@@ -223,12 +223,12 @@ export default function TaiKhoanPage() {
                     <div
                       style={{
                         fontSize: 10.5,
-                        color: tx.status === "completed" ? "#10b981" : "#f59e0b",
+                        color: (tx.status === "completed" || tx.status === "success") ? "#10b981" : "#f59e0b",
                         fontWeight: 700,
                         marginTop: 2,
                       }}
                     >
-                      {tx.status === "completed" ? "✓ Thành công" : "⏳ Chờ"}
+                      {(tx.status === "completed" || tx.status === "success") ? "✓ Thành công" : "⏳ Chờ"}
                     </div>
                   </div>
                 </div>
