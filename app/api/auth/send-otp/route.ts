@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResend() {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) throw new Error("RESEND_API_KEY chưa cấu hình");
+  return new Resend(key);
+}
+
 const EMAIL_FROM = process.env.EMAIL_FROM || "onboarding@resend.dev";
 
 export async function POST(req: Request) {
@@ -21,7 +26,6 @@ export async function POST(req: Request) {
       user = await prisma.user.findFirst({ where: { username: String(username).trim() } });
     }
 
-    // Không tiết lộ user có tồn tại hay không
     if (!user) {
       return NextResponse.json({
         success: true,
@@ -29,7 +33,6 @@ export async function POST(req: Request) {
       });
     }
 
-    // Tạo OTP 6 số
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiry = new Date(Date.now() + 5 * 60 * 1000);
 
@@ -38,9 +41,8 @@ export async function POST(req: Request) {
       data: { otpCode: otp, otpExpiry: expiry },
     });
 
-    // Gửi email
     try {
-      await resend.emails.send({
+      await getResend().emails.send({
         from: EMAIL_FROM,
         to: user.email,
         subject: "🔐 Mã OTP đặt lại mật khẩu - Locket Gold",
