@@ -1,89 +1,36 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import AdminPage from "@/components/admin/AdminPage";
-import DataTable from "@/components/admin/DataTable";
-import SendForm from "./SendForm";
-
-const TYPE_LABELS: Record<string, string> = {
-  info: "Thông tin",
-  success: "Thành công",
-  warning: "Cảnh báo",
-  error: "Lỗi",
-};
-
-export default function AdminNotificationsPage() {
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const reload = () => {
-    fetch("/api/admin/notifications")
-      .then((r) => r.json())
-      .then((d) => { if (d.success) setNotifications(d.notifications); });
+export default function Page() {
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [sending, setSending] = useState(false);
+  const [msg, setMsg] = useState("");
+  const send = async () => {
+    setSending(true); setMsg("");
+    try {
+      const r = await fetch("/api/admin/notifications/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title, content }) });
+      const d = await r.json();
+      setMsg(d.success ? "✅ " + d.message : "❌ " + d.message);
+    } catch { setMsg("❌ Lỗi kết nối"); }
+    finally { setSending(false); }
   };
-
-  useEffect(() => {
-    fetch("/api/admin/notifications")
-      .then((r) => r.json())
-      .then((d) => { if (d.success) setNotifications(d.notifications); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, []);
-
   return (
-    <AdminPage title="Thông báo" description="Lịch sử thông báo gửi tới người dùng">
-      <SendForm onSent={reload} />
-      <DataTable
-        loading={loading}
-        data={notifications}
-        emptyMessage="Chưa có thông báo nào"
-        columns={[
-          {
-            key: "title",
-            label: "Tiêu đề",
-            render: (v) => <strong style={{ color: "var(--text-0)" }}>{v}</strong>,
-          },
-          {
-            key: "content",
-            label: "Nội dung",
-            className: "cell-ellipsis",
-          },
-          {
-            key: "type",
-            label: "Loại",
-            render: (v) => (
-              <span className={`status-badge ${v}`}>
-                {TYPE_LABELS[v] || v}
-              </span>
-            ),
-          },
-          {
-            key: "isRead",
-            label: "Trạng thái",
-            render: (v) => (
-              <span className={`status-badge ${v ? "completed" : "pending"}`}>
-                {v ? "Đã đọc" : "Chưa đọc"}
-              </span>
-            ),
-          },
-          {
-            key: "createdAt",
-            label: "Ngày gửi",
-            render: (v) => {
-              const d = new Date(v);
-              return (
-                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  <span style={{ fontWeight: 700, color: "var(--text-0)", fontSize: 14 }}>
-                    {d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
-                  </span>
-                  <span style={{ fontSize: 12, color: "var(--text-2)" }}>
-                    {d.toLocaleDateString("vi-VN")}
-                  </span>
-                </div>
-              );
-            },
-          },
-        ]}
-      />
+    <AdminPage title="Thông báo" description="Gửi thông báo cho tất cả người dùng">
+      {msg && <div style={{ padding: 12, borderRadius: 12, marginBottom: 16, background: msg.startsWith("✅") ? "rgba(52,211,153,.12)" : "rgba(248,113,113,.12)", color: msg.startsWith("✅") ? "#34d399" : "#f87171" }}>{msg}</div>}
+      <div style={{ display: "grid", gap: 14, maxWidth: 640 }}>
+        <div>
+          <label style={{ display: "block", fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Tiêu đề</label>
+          <input className="admin-btn" style={{ width: "100%", textAlign: "left" }} value={title} onChange={e => setTitle(e.target.value)} />
+        </div>
+        <div>
+          <label style={{ display: "block", fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Nội dung</label>
+          <textarea className="admin-btn" style={{ width: "100%", minHeight: 140, textAlign: "left", fontFamily: "inherit" }} value={content} onChange={e => setContent(e.target.value)} />
+        </div>
+        <button onClick={send} disabled={sending || !title || !content} className="admin-btn" style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)", color: "#fff", fontWeight: 700, borderColor: "transparent" }}>
+          {sending ? "Đang gửi..." : "🔔 Gửi thông báo"}
+        </button>
+      </div>
     </AdminPage>
   );
 }

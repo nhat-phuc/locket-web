@@ -1,55 +1,30 @@
 "use client";
-
 import { useEffect, useState } from "react";
-
-export default function AdminReferralPage() {
-  const [users, setUsers] = useState<any[]>([]);
+import AdminPage from "@/components/admin/AdminPage";
+export default function Page() {
+  const [data, setData] = useState<any>({ total: 0, items: [] });
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
-    fetch("/api/admin/referral")
-      .then((r) => r.json())
-      .then((d) => { if (d.success) setUsers(d.users || []); })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    fetch("/api/admin/referral").then(r => r.json()).then(d => { if (d.success) setData(d); }).finally(() => setLoading(false));
   }, []);
-
   return (
-    <main className="aref-page">
-      <div className="aref-container">
-        <h1 className="aref-title">🔗 Mã giới thiệu</h1>
-        <p className="aref-sub">{users.length} user có mã giới thiệu</p>
-
-        {loading ? (
-          <div className="aref-loading">Đang tải...</div>
-        ) : (
-          <div className="aref-list">
-            {users.map((u) => (
-              <div key={u.id} className="aref-row">
-                <div>
-                  <div className="aref-name">{u.name || u.username}</div>
-                  <div className="aref-email">{u.email}</div>
-                </div>
-                <div className="aref-code">{u.referralCode || "—"}</div>
-                <div className="aref-count">{u._count?.referredBy || 0} refs</div>
+    <AdminPage title="Mã giới thiệu" description="Quản lý hoa hồng giới thiệu">
+      {loading ? <div style={{ padding: 40, textAlign: "center" }}>Đang tải...</div> : (
+        <div>
+          <div style={{ background: "var(--bg-1)", border: "1px solid var(--border)", borderRadius: 14, padding: 20, marginBottom: 20 }}>
+            <div style={{ fontSize: 12, color: "var(--text-2)", textTransform: "uppercase", fontWeight: 700, marginBottom: 6 }}>Tổng hoa hồng đã trả</div>
+            <div style={{ fontSize: 32, fontWeight: 900, color: "var(--accent-bright)" }}>{(data.total || 0).toLocaleString("vi-VN")}đ</div>
+          </div>
+          <div style={{ display: "grid", gap: 8 }}>
+            {(data.items || []).map((it: any, i: number) => (
+              <div key={i} style={{ background: "var(--bg-1)", border: "1px solid var(--border)", borderRadius: 10, padding: 12, display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 13 }}>@{it.username}</span>
+                <b style={{ color: "#34d399" }}>+{(it.amount || 0).toLocaleString("vi-VN")}đ</b>
               </div>
             ))}
           </div>
-        )}
-      </div>
-      <style jsx>{`
-        .aref-page { min-height: 100vh; padding: 32px 20px 80px; background: var(--bg-0); }
-        .aref-container { max-width: 900px; margin: 0 auto; }
-        .aref-title { font-size: 26px; font-weight: 900; color: var(--text-0); margin: 0 0 4px; }
-        .aref-sub { font-size: 13px; color: var(--text-2); margin: 0 0 20px; }
-        .aref-loading { text-align: center; padding: 60px; color: var(--text-2); }
-        .aref-list { display: flex; flex-direction: column; gap: 8px; }
-        .aref-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; align-items: center; padding: 14px 18px; border-radius: 12px; background: rgba(255,255,255,0.7); border: 1.5px solid rgba(167,139,250,0.15); }
-        .aref-name { font-size: 13px; font-weight: 700; color: var(--text-0); }
-        .aref-email { font-size: 11px; color: var(--text-2); }
-        .aref-code { font-family: monospace; font-size: 13px; font-weight: 800; color: #a78bfa; }
-        .aref-count { font-size: 13px; font-weight: 800; color: #22c55e; text-align: right; }
-      `}</style>
-    </main>
+        </div>
+      )}
+    </AdminPage>
   );
 }
