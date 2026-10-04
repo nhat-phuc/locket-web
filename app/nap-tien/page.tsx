@@ -95,7 +95,7 @@ export default function NapTienPage() {
               .then((d) => { if (typeof d.balance === "number") setBalance(d.balance); })
               .catch(() => {});
           }
-          setTimeout(() => router.push("/tai-khoan"), 3000);
+          setTimeout(() => router.push(`/nap-tien/thanh-cong?orderId=${order?.orderId || ""}`), 1500);
         }
       } catch {}
     };
