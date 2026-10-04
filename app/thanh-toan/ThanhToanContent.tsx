@@ -290,13 +290,13 @@ export default function ThanhToanContent() {
             <div className="pt-qr2-amount">
               <div className="pt-qr2-amount-lbl">SỐ TIỀN</div>
               <div className="pt-qr2-amount-val">{fmt(order.finalAmount)}</div>
-              <div className="pt-qr2-code">Nội dung: <b>{order.orderCode}</b></div>
+              <div className="pt-qr2-code">Nội dung: <b style={{background:"#fef3c7",padding:"4px 8px",borderRadius:6,display:"inline-block",color:"#92400e"}}>{order.orderCode.replace(/[-\s]/g, "")}</b></div>
             </div>
 
             <div className="pt-qr2-body">
               <div className="pt-qr2-img-wrap">
                 <img
-                  src={`https://img.vietqr.io/image/TPBANK-36886368888-compact2.png?amount=${order.finalAmount}&addInfo=${encodeURIComponent(order.orderCode)}&accountName=${encodeURIComponent("TRAN NHAT PHUC")}`}
+                  src={`https://img.vietqr.io/image/TPBANK-36886368888-compact2.png?amount=${order.finalAmount}&addInfo=${encodeURIComponent(order.orderCode.replace(/[-\s]/g, ""))}&accountName=${encodeURIComponent("TRAN NHAT PHUC")}`}
                   alt="QR"
                   className="pt-qr2-img"
                 />
@@ -317,7 +317,7 @@ export default function ThanhToanContent() {
                 </div>
                 <div className="pt-qr2-info-item pt-qr2-info-hl">
                   <div className="pt-qr2-info-lbl">Nội dung CK</div>
-                  <div className="pt-qr2-info-val pt-mono pt-purple">{order.orderCode}</div>
+                  <div className="pt-qr2-info-val pt-mono pt-purple">{order.orderCode.replace(/[-\s]/g, "")}</div>
                 </div>
               </div>
             </div>
