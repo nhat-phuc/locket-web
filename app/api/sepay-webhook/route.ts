@@ -262,35 +262,48 @@ export async function POST(req: Request) {
         },
       });
 
-      const user = await tx.user.findUnique({ where: { id: order.userId } });
-      if (user) {
-        const newBalance = user.balance + Number(transferAmount);
-        await tx.user.update({
-          where: { id: user.id },
-          data: { balance: newBalance },
-        });
+      const isRecharge = order.serviceName === "Nạp tiền vào ví";
 
-        await tx.transaction.create({
-          data: {
-            userId: user.id,
-            type: "recharge",
-            amount: Number(transferAmount),
-            balanceBefore: user.balance,
-            balanceAfter: newBalance,
-            status: "completed",
-            method: "bank_transfer",
-            reference: String(sepayId || referenceCode || ""),
-            description: `Nạp tiền tự động qua ${gateway || "ngân hàng"}`,
-            orderId: order.id,
-            completedAt: new Date(),
-          },
-        });
+      if (isRecharge) {
+        const user = await tx.user.findUnique({ where: { id: order.userId } });
+        if (user) {
+          const newBalance = user.balance + Number(transferAmount);
+          await tx.user.update({
+            where: { id: user.id },
+            data: { balance: newBalance },
+          });
 
-        userInfo = {
-          name: user.name || user.username || user.email,
-          balance: user.balance,
-          newBalance,
-        };
+          await tx.transaction.create({
+            data: {
+              userId: user.id,
+              type: "recharge",
+              amount: Number(transferAmount),
+              balanceBefore: user.balance,
+              balanceAfter: newBalance,
+              status: "completed",
+              method: "bank_transfer",
+              reference: String(sepayId || referenceCode || ""),
+              description: `Nạp tiền tự động qua ${gateway || "ngân hàng"}`,
+              orderId: order.id,
+              completedAt: new Date(),
+            },
+          });
+
+          userInfo = {
+            name: user.name || user.username || user.email,
+            balance: user.balance,
+            newBalance,
+          };
+        }
+      } else {
+        const user = await tx.user.findUnique({ where: { id: order.userId } });
+        if (user) {
+          userInfo = {
+            name: user.name || user.username || user.email,
+            balance: user.balance,
+            newBalance: user.balance,
+          };
+        }
       }
 
       await tx.log.create({
@@ -302,7 +315,7 @@ export async function POST(req: Request) {
     });
 
     await notifyAdmin(
-      `✅ <b>NẠP TIỀN THÀNH CÔNG</b>\n\n` +
+      `✅ <b>THANH TOÁN THÀNH CÔNG</b>\n\n` +
         `👤 Khách: <b>${userInfo.name}</b>\n` +
         `📦 Đơn: <code>${order.orderCode}</code>\n` +
         `💰 Số tiền: <b>+${(transferAmount || 0).toLocaleString("vi-VN")}đ</b>\n` +
