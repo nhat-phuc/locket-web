@@ -1,44 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_ADMIN_CHAT_ID;
-
-// Gửi thông báo Telegram cho admin
-async function notifyAdmin(message: string) {
-  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
-    console.warn("[sepay] Chưa cấu hình Telegram");
-    return;
-  }
-  try {
-    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: TELEGRAM_CHAT_ID,
-        text: message,
-        parse_mode: "HTML",
-      }),
-    });
-  } catch (e) {
-    console.error("[sepay] Telegram error:", e);
-  }
-}
-
-export async function POST(req: Request) {
-  try {
-    // 1. Xác thực API Key
-    const authHeader = req.headers.get("authorization") || "";
-    const expectedKey = process.env.SEPAY_API_KEY;
-
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import crypto from "crypto";
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_ADMIN_CHAT_ID;
 
-// Gửi thông báo Telegram cho admin
 async function notifyAdmin(message: string) {
   if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
     console.warn("[sepay] Chưa cấu hình Telegram");
@@ -61,7 +27,7 @@ async function notifyAdmin(message: string) {
 
 export async function POST(req: Request) {
   try {
-    // ═══ 1. VERIFY HMAC-SHA256 ═══
+    // 1. VERIFY HMAC-SHA256
     const rawBody = await req.text();
     const signature = req.headers.get("x-sepay-signature");
     const timestamp = req.headers.get("x-sepay-timestamp");
@@ -71,7 +37,7 @@ export async function POST(req: Request) {
       process.env.SEPAY_WEBHOOK_SECRET;
 
     if (!secret) {
-      console.error("[sepay-webhook] Chưa cấu hình PAYMENT_WEBHOOK_SECRET");
+      console.error("[sepay-webhook] Chưa cấu hình secret");
       return NextResponse.json(
         { success: false, message: "Server chưa cấu hình" },
         { status: 500 }
@@ -79,18 +45,17 @@ export async function POST(req: Request) {
     }
 
     if (!signature || !timestamp) {
-      console.warn("[sepay-webhook] Thiếu signature hoặc timestamp");
+      console.warn("[sepay-webhook] Thiếu signature/timestamp");
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
         { status: 401 }
       );
     }
 
-    // Chống replay: timestamp không quá 5 phút
     const now = Math.floor(Date.now() / 1000);
     const ts = Number(timestamp);
     if (isNaN(ts) || Math.abs(now - ts) > 300) {
-      console.warn("[sepay-webhook] Timestamp không hợp lệ:", timestamp);
+      console.warn("[sepay-webhook] Timestamp không hợp lệ");
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
         { status: 401 }
@@ -104,10 +69,8 @@ export async function POST(req: Request) {
         .update(`${timestamp}.${rawBody}`)
         .digest("hex");
 
-    // So sánh constant-time để tránh timing attack
     const sigBuf = Buffer.from(signature);
     const expBuf = Buffer.from(expected);
-
     if (
       sigBuf.length !== expBuf.length ||
       !crypto.timingSafeEqual(sigBuf, expBuf)
@@ -119,7 +82,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ═══ 2. PARSE PAYLOAD ═══
+    // 2. PARSE PAYLOAD
     const payload = JSON.parse(rawBody);
     console.log("[sepay-webhook] Payload:", JSON.stringify(payload));
 
@@ -135,12 +98,10 @@ export async function POST(req: Request) {
       transactionDate,
     } = payload;
 
-    // ═══ 3. CHỈ XỬ LÝ TIỀN VÀO ═══
     if (transferType !== "in") {
       return NextResponse.json({ success: true });
     }
 
-    // ═══ 4. IDEMPOTENT — chống xử lý trùng ═══
     if (sepayId) {
       const existingTx = await prisma.transaction.findFirst({
         where: { reference: String(sepayId) },
@@ -151,16 +112,13 @@ export async function POST(req: Request) {
       }
     }
 
-    // ═══ 5. TÌM ORDER — THỬ NHIỀU CÁCH ═══
     let order = null;
     let matchedCode = code;
 
-    // 5a. Tìm theo code SePay gửi
     if (code) {
       order = await prisma.order.findFirst({ where: { orderCode: code } });
     }
 
-    // 5b. Tìm theo regex LKT-... trong content
     if (!order && content) {
       const match = content.match(/LKT-[A-Z]+-[A-Z0-9]+-[A-Z0-9]+/i);
       if (match) {
@@ -171,7 +129,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // 5c. Tìm nội dung nạp tiền: <username>nap<amount><rand>
     if (!order && content) {
       const patterns = [/NPT[A-Z0-9]+/i, /[a-z0-9]+nap[0-9]+[a-z0-9]*/i];
       for (const p of patterns) {
@@ -192,7 +149,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // 5d. Quét toàn bộ order pending
     if (!order && content) {
       const contentUpper = content.toUpperCase();
       const pendingOrders = await prisma.order.findMany({
@@ -210,7 +166,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // ═══ 6. KHÔNG KHỚP ĐƠN → GHI PENDING + BÁO TELEGRAM ═══
     if (!order) {
       console.warn("[sepay-webhook] Không khớp đơn:", { code, content });
       await prisma.pendingTransaction.create({
@@ -239,7 +194,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true });
     }
 
-    // ═══ 7. KIỂM TRA SỐ TIỀN ═══
     if (Number(transferAmount) < Number(order.finalAmount)) {
       console.warn("[sepay-webhook] Số tiền không khớp");
       await prisma.pendingTransaction.create({
@@ -270,7 +224,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true });
     }
 
-    // ═══ 8. CỘNG TIỀN + CẬP NHẬT ORDER ═══
     let userInfo = { name: "", balance: 0, newBalance: 0 };
 
     await prisma.$transaction(async (tx) => {
@@ -317,12 +270,11 @@ export async function POST(req: Request) {
       await tx.log.create({
         data: {
           action: "SEPAY_WEBHOOK_SUCCESS",
-          detail: `Đơn ${order.orderCode} đã thanh toán ${transferAmount.toLocaleString("vi-VN")}đ → cộng ví ${userInfo.name}`,
+          detail: `Đơn ${order.orderCode} đã thanh toán ${transferAmount.toLocaleString("vi-VN")}đ`,
         },
       });
     });
 
-    // ═══ 9. BÁO TELEGRAM ADMIN ═══
     await notifyAdmin(
       `✅ <b>NẠP TIỀN THÀNH CÔNG</b>\n\n` +
         `👤 Khách: <b>${userInfo.name}</b>\n` +
