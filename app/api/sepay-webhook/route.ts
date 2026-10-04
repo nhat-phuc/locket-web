@@ -117,6 +117,32 @@ export async function POST(req: Request) {
 
     if (code) {
       order = await prisma.order.findFirst({ where: { orderCode: code } });
+      if (!order) {
+        order = await prisma.order.findFirst({
+          where: { orderCode: { equals: code.replace(/-/g, ""), mode: "insensitive" } }
+        });
+      }
+    }
+
+    if (!order && content) {
+      const noDash = content.replace(/[\s\-]/g, "").toUpperCase();
+      order = await prisma.order.findFirst({
+        where: { orderCode: { equals: noDash, mode: "insensitive" } }
+      });
+    }
+
+    if (!order && content) {
+      const normalized = content.replace(/[\s\-]/g, "").toUpperCase();
+      const allPending = await prisma.order.findMany({
+        where: { status: "pending" },
+        orderBy: { createdAt: "desc" },
+        take: 100,
+        select: { id: true, orderCode: true }
+      });
+      const found = allPending.find(o => normalized.includes(o.orderCode.replace(/[\s\-]/g, "").toUpperCase()));
+      if (found) {
+        order = await prisma.order.findUnique({ where: { id: found.id } });
+      }
     }
 
     if (!order && content) {
