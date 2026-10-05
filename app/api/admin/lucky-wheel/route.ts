@@ -51,12 +51,14 @@ export async function GET() {
     });
     const userMap = new Map(users.map((u) => [u.id, u]));
 
+    const uniqueUsers = await prisma.spin.groupBy({ by: ["userId"] });
     return NextResponse.json({
       success: true,
       stats: {
         totalSpins,
         todaySpins,
         totalPaid: totalPaid._sum.amount || 0,
+        totalUsers: uniqueUsers.length,
       },
       spins: spins.map((s) => ({
         id: s.id,

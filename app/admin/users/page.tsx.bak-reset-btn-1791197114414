@@ -508,33 +508,6 @@ export default function AdminUsersPage() {
                             💰 Nạp tiền
                           </button>
 
-                          <button
-                            onClick={() => {
-                              handleResetSpins(u.id, u.username);
-                              setOpenMenu(null);
-                            }}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 10,
-                              width: "100%",
-                              padding: "10px 14px",
-                              background: "transparent",
-                              border: "none",
-                              borderRadius: 8,
-                              fontSize: 13.5,
-                              fontWeight: 700,
-                              color: "#f59e0b",
-                              cursor: "pointer",
-                              textAlign: "left",
-                              fontFamily: "inherit",
-                            }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = "#f8fafc")}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                          >
-                            🎯 Reset lượt quay
-                          </button>
-
                           {u.role === "user" ? (
                             <button
                               onClick={() => {

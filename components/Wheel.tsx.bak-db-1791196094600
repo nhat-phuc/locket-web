@@ -3,29 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Footer from "@/components/Footer";
-import { MAX_SPINS_PER_DAY, WHEEL_ITEMS, type SpinHistory } from "@/lib/wheel";
-
-
-
-function pickRandomItem() {
-  const total = WHEEL_ITEMS.reduce((s, i) => s + i.weight, 0);
-  let r = Math.random() * total;
-  for (const item of WHEEL_ITEMS) {
-    r -= item.weight;
-    if (r <= 0) return item;
-  }
-  return WHEEL_ITEMS[0];
-}
-
-function getTargetRotation(itemId: number, currentRotation: number) {
-  const sliceAngle = 360 / WHEEL_ITEMS.length;
-  const targetAngle = 360 - (itemId * sliceAngle + sliceAngle / 2);
-  const currentMod = ((currentRotation % 360) + 360) % 360;
-  let diff = targetAngle - currentMod;
-  if (diff < 0) diff += 360;
-  const fullSpins = 5 * 360;
-  return currentRotation + fullSpins + diff + (Math.random() * 40 - 20);
-}
+import {
+  WHEEL_ITEMS,
+  MAX_SPINS_PER_DAY,
+  getSpinData,
+  saveSpinData,
+  getHistory,
+  addHistory,
+  pickRandomItem,
+  getTargetRotation,
+  type SpinHistory,
+} from "@/lib/wheel";
 
 export default function Wheel() {
   const router = useRouter();
@@ -47,15 +35,9 @@ export default function Wheel() {
     try {
       const u = JSON.parse(stored);
       setUser(u);
-      // Load lịch sử từ API
-      fetch("/api/spin/history", { credentials: "include" })
-        .then((r) => r.json())
-        .then((d) => {
-          if (d.success && Array.isArray(d.history)) {
-            setHistory(d.history);
-          }
-        })
-        .catch(() => {});
+      const data = getSpinData();
+      setSpinsLeft(Math.max(0, MAX_SPINS_PER_DAY - (data.spins || 0)));
+      setHistory(getHistory());
 
       // Load số dư mới nhất từ API
       fetch("/api/auth/me", { credentials: "include" })
@@ -91,44 +73,39 @@ export default function Wheel() {
     }
 
     setTimeout(async () => {
+      const newSpins = MAX_SPINS_PER_DAY - spinsLeft + 1;
+      saveSpinData(newSpins);
+      setSpinsLeft(spinsLeft - 1);
+
+      const historyItem: SpinHistory = {
+        id: Date.now().toString(),
+        label: item.label,
+        value: item.value,
+        type: item.type,
+        date: new Date().toISOString(),
+      };
+      addHistory(historyItem);
+      setHistory((h) => [historyItem, ...h].slice(0, 50));
+
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
         const res = await fetch("/api/spin", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include",
           body: JSON.stringify({ label: item.label, value: item.value, type: item.type }),
-          signal: controller.signal,
         });
-        clearTimeout(timeoutId);
         const data = await res.json();
         if (data.success) {
           setResult(data.message);
           setResultType(item.value > 0 ? "success" : "error");
-          setSpinsLeft(data.spinsLeft ?? Math.max(0, spinsLeft - 1));
+          // Cập nhật số dư ngay
           setUser((prev) => prev ? { ...prev, balance: data.balance, bonusBalance: data.bonusBalance } : prev);
-
-          const historyItem: SpinHistory = {
-            id: Date.now().toString(),
-            label: item.label,
-            value: item.value,
-            type: item.type,
-            date: new Date().toISOString(),
-          };
-          setHistory((h) => [historyItem, ...h].slice(0, 50));
-        } else {
-          setResult(data.message || "Lỗi");
-          setResultType("error");
-          setSpinsLeft(data.spinsLeft ?? spinsLeft);
         }
-      } catch (err) {
-        console.error("Spin error:", err);
-        setResult("Lỗi kết nối, vui lòng thử lại");
-        setResultType("error");
-      } finally {
-        setSpinning(false);
+      } catch {
+        setResult(item.value > 0 ? `Chúc mừng! Bạn nhận ${item.value.toLocaleString("vi-VN")}đ` : "Chúc bạn may mắn lần sau!");
+        setResultType(item.value > 0 ? "success" : "error");
       }
+
+      setSpinning(false);
     }, 5100);
   };
 

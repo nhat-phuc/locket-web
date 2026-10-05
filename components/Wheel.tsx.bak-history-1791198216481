@@ -6,27 +6,6 @@ import Footer from "@/components/Footer";
 import { MAX_SPINS_PER_DAY, WHEEL_ITEMS, type SpinHistory } from "@/lib/wheel";
 
 
-
-function pickRandomItem() {
-  const total = WHEEL_ITEMS.reduce((s, i) => s + i.weight, 0);
-  let r = Math.random() * total;
-  for (const item of WHEEL_ITEMS) {
-    r -= item.weight;
-    if (r <= 0) return item;
-  }
-  return WHEEL_ITEMS[0];
-}
-
-function getTargetRotation(itemId: number, currentRotation: number) {
-  const sliceAngle = 360 / WHEEL_ITEMS.length;
-  const targetAngle = 360 - (itemId * sliceAngle + sliceAngle / 2);
-  const currentMod = ((currentRotation % 360) + 360) % 360;
-  let diff = targetAngle - currentMod;
-  if (diff < 0) diff += 360;
-  const fullSpins = 5 * 360;
-  return currentRotation + fullSpins + diff + (Math.random() * 40 - 20);
-}
-
 export default function Wheel() {
   const router = useRouter();
   const wheelRef = useRef<HTMLDivElement>(null);
@@ -47,15 +26,9 @@ export default function Wheel() {
     try {
       const u = JSON.parse(stored);
       setUser(u);
-      // Load lịch sử từ API
-      fetch("/api/spin/history", { credentials: "include" })
-        .then((r) => r.json())
-        .then((d) => {
-          if (d.success && Array.isArray(d.history)) {
-            setHistory(d.history);
-          }
-        })
-        .catch(() => {});
+      const data = getSpinData();
+      setSpinsLeft(Math.max(0, MAX_SPINS_PER_DAY - (data.spins || 0)));
+      setHistory(getHistory());
 
       // Load số dư mới nhất từ API
       fetch("/api/auth/me", { credentials: "include" })

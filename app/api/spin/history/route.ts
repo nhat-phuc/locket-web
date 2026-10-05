@@ -5,17 +5,28 @@ import { getSession } from "@/lib/session";
 export async function GET() {
   try {
     const session = await getSession();
-    if (!session) return NextResponse.json({ success: false }, { status: 401 });
+    if (!session) {
+      return NextResponse.json({ success: false, message: "Chưa đăng nhập" }, { status: 401 });
+    }
 
     const spins = await prisma.spin.findMany({
       where: { userId: session.userId },
       orderBy: { createdAt: "desc" },
-      take: 100,
+      take: 50,
     });
 
-    return NextResponse.json({ success: true, spins });
-  } catch (e) {
-    console.error("[spin/history]", e);
-    return NextResponse.json({ success: false }, { status: 500 });
+    return NextResponse.json({
+      success: true,
+      history: spins.map((s) => ({
+        id: s.id,
+        label: s.label,
+        value: s.value,
+        type: s.type,
+        date: s.createdAt.toISOString(),
+      })),
+    });
+  } catch (error) {
+    console.error("[spin/history]", error);
+    return NextResponse.json({ success: false, message: "Lỗi hệ thống" }, { status: 500 });
   }
 }

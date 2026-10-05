@@ -10,9 +10,6 @@ interface User {
   picture: string | null;
   balance: number;
   bonusBalance: number;
-  spinsUsed?: number;
-  spinsLeft?: number;
-  maxSpins?: number;
   role: string;
   isActive: boolean;
   isBanned: boolean;
@@ -56,26 +53,6 @@ export default function AdminUsersPage() {
     document.addEventListener("click", handleClick);
     return () => document.removeEventListener("click", handleClick);
   }, []);
-
-  const handleResetSpins = async (userId: string, username: string) => {
-    if (!confirm(`Reset lượt quay cho @${username}?`)) return;
-    try {
-      const res = await fetch(`/api/admin/users/${userId}/reset-spins`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "reset" }),
-      });
-      const d = await res.json();
-      if (d.success) {
-        showToast("success", d.message);
-        load();
-      } else {
-        showToast("error", d.message || "Lỗi");
-      }
-    } catch {
-      showToast("error", "Lỗi kết nối");
-    }
-  };
 
   const showToast = (type: string, msg: string) => {
     setToast({ type, msg });
@@ -308,7 +285,6 @@ export default function AdminUsersPage() {
                   <th style={thStyle}>Vai trò</th>
                   <th style={{ ...thStyle, textAlign: "right" }}>Số dư</th>
                   <th style={{ ...thStyle, textAlign: "right" }}>Bonus</th>
-                  <th style={{ ...thStyle, textAlign: "center" }}>Lượt quay</th>
                   <th style={thStyle}>Ngày tạo</th>
                   <th style={{ ...thStyle, width: 60, textAlign: "center" }}></th>
                 </tr>
@@ -415,19 +391,6 @@ export default function AdminUsersPage() {
                     <td style={{ ...tdStyle, textAlign: "right", fontWeight: 800, color: "#8b5cf6", fontSize: 13.5 }}>
                       {fmt(u.bonusBalance || 0)}
                     </td>
-                    <td style={{ ...tdStyle, textAlign: "center" }}>
-                      <span style={{
-                        display: "inline-block",
-                        padding: "3px 10px",
-                        borderRadius: 999,
-                        fontSize: 11.5,
-                        fontWeight: 800,
-                        background: (u.spinsLeft || 0) > 0 ? "rgba(52,211,153,.15)" : "rgba(148,163,184,.15)",
-                        color: (u.spinsLeft || 0) > 0 ? "#10b981" : "#94a3b8",
-                      }}>
-                        {(u.spinsLeft || 0)}/{u.maxSpins || 3}
-                      </span>
-                    </td>
                     <td style={{ ...tdStyle, fontSize: 12.5, color: "#64748b" }}>
                       {fmtDate(u.createdAt)}
                     </td>
@@ -506,33 +469,6 @@ export default function AdminUsersPage() {
                             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                           >
                             💰 Nạp tiền
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              handleResetSpins(u.id, u.username);
-                              setOpenMenu(null);
-                            }}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 10,
-                              width: "100%",
-                              padding: "10px 14px",
-                              background: "transparent",
-                              border: "none",
-                              borderRadius: 8,
-                              fontSize: 13.5,
-                              fontWeight: 700,
-                              color: "#f59e0b",
-                              cursor: "pointer",
-                              textAlign: "left",
-                              fontFamily: "inherit",
-                            }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = "#f8fafc")}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                          >
-                            🎯 Reset lượt quay
                           </button>
 
                           {u.role === "user" ? (

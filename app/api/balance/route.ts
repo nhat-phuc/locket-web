@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getSession } from "@/lib/session";
 
 export async function GET(req: Request) {
   try {
@@ -8,25 +7,26 @@ export async function GET(req: Request) {
     const email = searchParams.get("email");
 
     if (!email) {
-      const session = await getSession();
-      if (!session) {
-        return NextResponse.json({ success: false, balance: 0 });
-      }
-      const user = await prisma.user.findUnique({
-        where: { id: session.userId },
-        select: { balance: true },
-      });
-      return NextResponse.json({ success: true, balance: user?.balance || 0 });
+      return NextResponse.json({ success: false, message: "Thiếu email" }, { status: 400 });
     }
 
     const user = await prisma.user.findUnique({
       where: { email },
-      select: { balance: true },
+      select: { balance: true, bonusBalance: true },
     });
 
-    return NextResponse.json({ success: true, balance: user?.balance || 0 });
+    if (!user) {
+      return NextResponse.json({ success: false, message: "User không tồn tại" }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      balance: user.balance,
+      bonusBalance: user.bonusBalance,
+      total: user.balance + user.bonusBalance,
+    });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ success: false, balance: 0 });
+    console.error("[balance]", error);
+    return NextResponse.json({ success: false, message: "Lỗi hệ thống" }, { status: 500 });
   }
 }
