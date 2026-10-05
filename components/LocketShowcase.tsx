@@ -159,11 +159,9 @@ function Card({
         rel="noopener noreferrer"
         className="ls-card"
       >
-        {l.cover && (
-          <div className="ls-cover">
-            <img src={l.cover} alt="" loading="lazy" />
-          </div>
-        )}
+        <div className="ls-cover" style={{ background: l.cover ? "#000" : `linear-gradient(135deg, hsl(${(l.username.charCodeAt(0) * 7) % 360}, 70%, 75%), hsl(${(l.username.charCodeAt(0) * 13) % 360}, 70%, 65%))` }}>
+          {l.cover && <img src={l.cover} alt="" loading="lazy" />}
+        </div>
         <div className="ls-avatar-wrap">
           {l.avatar ? (
             <img

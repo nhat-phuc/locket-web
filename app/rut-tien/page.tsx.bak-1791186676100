@@ -73,7 +73,7 @@ export default function RutTienPage() {
 
     const amt = Number(amount.replace(/\D/g, ""));
     if (!amt || amt < 50000) { setError("Số tiền rút tối thiểu 50.000đ"); return; }
-    if (amt > balance) { setError(`Số dư khả dụng không đủ. Bạn có ${balance.toLocaleString("vi-VN")}đ khả dụng${bonusBalance > 0 ? ` + ${bonusBalance.toLocaleString("vi-VN")}đ tiền thưởng (không rút được)` : ""}`); return; }
+    if (amt > balance) { setError(`Số dư không đủ. Hiện có: ${balance.toLocaleString("vi-VN")}đ`); return; }
     if (!bankName || !bankAccount || !accountName) { setError("Vui lòng nhập đầy đủ thông tin ngân hàng"); return; }
 
     if (!confirm(`Xác nhận rút ${amt.toLocaleString("vi-VN")}đ về ${bankName} - ${bankAccount}?`)) return;
@@ -119,27 +119,13 @@ export default function RutTienPage() {
           Rút tiền về ngân hàng — Admin xử lý trong 1-24h
         </p>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12, marginBottom: 24 }}>
-          <div style={{ padding: "16px 20px", background: "linear-gradient(135deg, rgba(16,185,129,.08), rgba(52,211,153,.04))", border: "1.5px solid rgba(16,185,129,.3)", borderRadius: 16 }}>
-            <div style={{ fontSize: 11, color: "#10b981", fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>
-              💰 Số dư khả dụng
+        <div style={{ textAlign: "center", marginBottom: 24 }}>
+          <div style={{ display: "inline-block", padding: "16px 32px", background: "var(--bg-1)", border: "1.5px solid rgba(167,139,250,0.2)", borderRadius: 16 }}>
+            <div style={{ fontSize: 11, color: "#7c3aed", fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>
+              Số dư hiện tại
             </div>
-            <div style={{ fontSize: 26, fontWeight: 900, color: "#10b981", marginBottom: 4 }}>
+            <div style={{ fontSize: 28, fontWeight: 900, background: "linear-gradient(135deg, #a78bfa, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               {balance.toLocaleString("vi-VN")}đ
-            </div>
-            <div style={{ fontSize: 11.5, color: "var(--text-2)" }}>
-              Có thể rút về ngân hàng
-            </div>
-          </div>
-          <div style={{ padding: "16px 20px", background: "linear-gradient(135deg, rgba(251,191,36,.08), rgba(245,158,11,.04))", border: "1.5px solid rgba(251,191,36,.3)", borderRadius: 16 }}>
-            <div style={{ fontSize: 11, color: "#fbbf24", fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>
-              🎁 Tiền thưởng
-            </div>
-            <div style={{ fontSize: 26, fontWeight: 900, color: "#fbbf24", marginBottom: 4 }}>
-              {bonusBalance.toLocaleString("vi-VN")}đ
-            </div>
-            <div style={{ fontSize: 11.5, color: "var(--text-2)" }}>
-              Không rút được — dùng mua gói
             </div>
           </div>
         </div>
