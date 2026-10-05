@@ -24,3 +24,4 @@ telegram-bot/handlers/__pycache__/
 telegram-bot/.env
 *.pyc
 *.pyo
+.env
