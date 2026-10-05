@@ -18,7 +18,7 @@ import {
 export default function Wheel() {
   const router = useRouter();
   const wheelRef = useRef<HTMLDivElement>(null);
-  const [user, setUser] = useState<{ username: string; email: string; balance?: number; bonusBalance?: number } | null>(null);
+  const [user, setUser] = useState<{ username: string; email: string } | null>(null);
   const [spinning, setSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [spinsLeft, setSpinsLeft] = useState(MAX_SPINS_PER_DAY);
@@ -38,21 +38,6 @@ export default function Wheel() {
       const data = getSpinData();
       setSpinsLeft(Math.max(0, MAX_SPINS_PER_DAY - (data.spins || 0)));
       setHistory(getHistory());
-
-      // Load số dư mới nhất từ API
-      fetch("/api/auth/me", { credentials: "include" })
-        .then((r) => r.json())
-        .then((d) => {
-          if (d.success && d.user) {
-            setUser({
-              username: d.user.username || u.username,
-              email: d.user.email || u.email,
-              balance: d.user.balance || 0,
-              bonusBalance: d.user.bonusBalance || 0,
-            });
-          }
-        })
-        .catch(() => {});
     } catch {}
   }, [router]);
 
@@ -97,8 +82,6 @@ export default function Wheel() {
         if (data.success) {
           setResult(data.message);
           setResultType(item.value > 0 ? "success" : "error");
-          // Cập nhật số dư ngay
-          setUser((prev) => prev ? { ...prev, balance: data.balance, bonusBalance: data.bonusBalance } : prev);
         }
       } catch {
         setResult(item.value > 0 ? `Chúc mừng! Bạn nhận ${item.value.toLocaleString("vi-VN")}đ` : "Chúc bạn may mắn lần sau!");
