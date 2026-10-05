@@ -13,7 +13,7 @@ from telegram.ext import (
     filters,
 )
 from config import BOT_TOKEN, ADMIN_IDS
-from handlers import user, admin, start
+from handlers import user, admin
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -32,10 +32,14 @@ def main():
     app = Application.builder().token(BOT_TOKEN).build()
 
     # User commands
-    app.add_handler(CommandHandler("start", start.cmd_start))
+    
+    app.add_handler(CommandHandler("start", user.cmd_start))
     app.add_handler(CommandHandler("help", user.cmd_help))
-
-    # Admin commands
+    app.add_handler(CommandHandler("sodu", user.cmd_sodu))
+    app.add_handler(CommandHandler("donhang", user.cmd_donhang))
+    app.add_handler(CommandHandler("naptien", user.cmd_naptien))
+    app.add_handler(CommandHandler("vongquay", user.cmd_vongquay))
+    app.add_handler(CommandHandler("taikhoan", user.cmd_taikhoan))
     app.add_handler(CommandHandler("admin", admin.cmd_admin))
 
     # Callback (buttons)
