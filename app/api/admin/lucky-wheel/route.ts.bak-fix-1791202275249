@@ -1,0 +1,116 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { getSession } from "@/lib/session";
+
+const MAX_SPINS_PER_DAY = 3;
+
+async function isAdmin() {
+  const session = await getSession();
+  if (!session?.userId) return false;
+  const u = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: { role: true },
+  });
+  return u?.role === "admin";
+}
+
+function getTodayVN() {
+  const now = new Date();
+  const vnOffset = 7 * 60 * 60 * 1000;
+  const vnNow = new Date(now.getTime() + vnOffset);
+  vnNow.setUTCHours(0, 0, 0, 0);
+  return new Date(vnNow.getTime() - vnOffset);
+}
+
+export async function GET() {
+  if (!(await isAdmin())) {
+    return NextResponse.json({ success: false, message: "Không có quyền" }, { status: 403 });
+  }
+
+  try {
+    // 1. Lịch sử spin
+    const spins = await prisma.spin.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 100,
+      include: { user: { select: { username: true, email: true } } },
+    });
+
+    // 2. Thống kê
+    const totalSpins = await prisma.spin.count();
+    const todayStart = getTodayVN();
+    const todaySpins = await prisma.spin.count({
+      where: { createdAt: { gte: todayStart } },
+    });
+    const totalPaid = await prisma.transaction.aggregate({
+      where: { method: "lucky_wheel", status: "success" },
+      _sum: { amount: true },
+    });
+    const uniqueUsers = await prisma.spin.groupBy({ by: ["userId"] });
+
+    // 3. Top user
+    const topUsers = await prisma.spin.groupBy({
+      by: ["userId"],
+      _count: { userId: true },
+      orderBy: { _count: { userId: "desc" } },
+      take: 10,
+    });
+    const userIds = topUsers.map((t) => t.userId);
+    const users = await prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, username: true, email: true, balance: true, bonusBalance: true },
+    });
+    const userMap = new Map(users.map((u) => [u.id, u]));
+
+    // 4. User hôm nay (để admin biết ai đã quay)
+    const todaySpinsByUser = await prisma.spin.groupBy({
+      by: ["userId"],
+      where: { createdAt: { gte: todayStart } },
+      _count: { userId: true },
+    });
+    const todayUserIds = todaySpinsByUser.map((t) => t.userId);
+    const todayUsers = await prisma.user.findMany({
+      where: { id: { in: todayUserIds } },
+      select: { id: true, username: true, email: true, bonusBalance: true },
+    });
+
+    return NextResponse.json({
+      success: true,
+      stats: {
+        totalSpins,
+        todaySpins,
+        totalPaid: totalPaid._sum.amount || 0,
+        totalUsers: uniqueUsers.length,
+      },
+      topUsers: topUsers.map((t) => ({
+        userId: t.userId,
+        username: userMap.get(t.userId)?.username || "—",
+        email: userMap.get(t.userId)?.email || "—",
+        count: t._count.userId,
+      })),
+      todayUsers: todayUsers.map((u) => {
+        const used = todaySpinsByUser.find((t) => t.userId === u.id)?._count.userId || 0;
+        return {
+          userId: u.id,
+          username: u.username,
+          email: u.email,
+          bonusBalance: u.bonusBalance,
+          spinsUsed: used,
+          spinsLeft: Math.max(0, MAX_SPINS_PER_DAY - used),
+        };
+      }),
+      spins: spins.map((s) => ({
+        id: s.id,
+        userId: s.userId,
+        username: s.user?.username || "—",
+        email: s.user?.email || "—",
+        label: s.label,
+        value: s.value,
+        type: s.type,
+        createdAt: s.createdAt,
+      })),
+    });
+  } catch (error) {
+    console.error("[admin/lucky-wheel]", error);
+    return NextResponse.json({ success: false, message: "Lỗi hệ thống" }, { status: 500 });
+  }
+}

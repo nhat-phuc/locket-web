@@ -2,77 +2,111 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
 
-async function isAdmin() {
-  const session = await getSession();
-  if (!session?.userId) return false;
-  const u = await prisma.user.findUnique({
-    where: { id: session.userId },
-    select: { role: true },
-  });
-  return u?.role === "admin";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+const MAX_SPINS_PER_DAY = 3;
+
+function getTodayVN() {
+  const now = new Date();
+  const vnOffset = 7 * 60 * 60 * 1000;
+  const vnNow = new Date(now.getTime() + vnOffset);
+  vnNow.setUTCHours(0, 0, 0, 0);
+  return new Date(vnNow.getTime() - vnOffset);
 }
 
 export async function GET() {
-  if (!(await isAdmin())) {
-    return NextResponse.json({ success: false, message: "Không có quyền" }, { status: 403 });
-  }
-
   try {
-    // 1. Lịch sử spin gần đây
-    const spins = await prisma.spin.findMany({
+    const session = await getSession();
+    if (!session?.userId) {
+      return NextResponse.json({ success: false, message: "Chưa đăng nhập" }, { status: 401 });
+    }
+
+    const me = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: { role: true },
+    });
+    if (me?.role !== "admin") {
+      return NextResponse.json({ success: false, message: "Không có quyền" }, { status: 403 });
+    }
+
+    // 1. TẤT CẢ users
+    const allUsers = await prisma.user.findMany({
       orderBy: { createdAt: "desc" },
-      take: 100,
+      select: {
+        id: true, username: true, email: true, name: true, picture: true,
+        role: true, balance: true, bonusBalance: true, createdAt: true,
+      },
     });
 
-    // 2. Tổng hợp
+    // 2. Lịch sử spin
+    const spins = await prisma.spin.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 500,
+    });
+
+    // 3. Spin hôm nay + tổng spin theo user
+    const todayStart = getTodayVN();
+    const [todaySpinsByUser, totalSpinsByUser] = await Promise.all([
+      prisma.spin.groupBy({
+        by: ["userId"],
+        where: { createdAt: { gte: todayStart } },
+        _count: { userId: true },
+      }),
+      prisma.spin.groupBy({
+        by: ["userId"],
+        _count: { userId: true },
+        _sum: { value: true },
+      }),
+    ]);
+    const todayMap = new Map(todaySpinsByUser.map((t) => [t.userId, t._count.userId]));
+    const totalMap = new Map(totalSpinsByUser.map((t) => [t.userId, { count: t._count.userId, sum: t._sum.value || 0 }]));
+
+    // 4. Thống kê
     const totalSpins = await prisma.spin.count();
+    const todaySpins = todaySpinsByUser.reduce((s, t) => s + t._count.userId, 0);
     const totalPaid = await prisma.transaction.aggregate({
       where: { method: "lucky_wheel", status: "success" },
       _sum: { amount: true },
     });
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todaySpins = await prisma.spin.count({
-      where: { createdAt: { gte: today } },
+
+    // 5. Users với info
+    const usersWithInfo = allUsers.map((u) => {
+      const used = todayMap.get(u.id) || 0;
+      const total = totalMap.get(u.id) || { count: 0, sum: 0 };
+      return {
+        ...u,
+        spinsUsed: used,
+        spinsLeft: Math.max(0, MAX_SPINS_PER_DAY - used),
+        maxSpins: MAX_SPINS_PER_DAY,
+        totalSpins: total.count,
+        totalWon: total.sum,
+      };
     });
 
-    // 3. Top user quay nhiều
-    const topUsers = await prisma.spin.groupBy({
-      by: ["userId"],
-      _count: { userId: true },
-      orderBy: { _count: { userId: "desc" } },
-      take: 10,
-    });
+    // 6. Spins với username
+    const userMap = new Map(allUsers.map((u) => [u.id, { username: u.username, email: u.email }]));
+    const spinsWithUser = spins.map((s) => ({
+      id: s.id,
+      userId: s.userId,
+      username: userMap.get(s.userId)?.username || "—",
+      email: userMap.get(s.userId)?.email || "—",
+      label: s.label,
+      value: s.value,
+      type: s.type,
+      createdAt: s.createdAt,
+    }));
 
-    const userIds = topUsers.map((t) => t.userId);
-    const users = await prisma.user.findMany({
-      where: { id: { in: userIds } },
-      select: { id: true, username: true, email: true },
-    });
-    const userMap = new Map(users.map((u) => [u.id, u]));
-
-    const uniqueUsers = await prisma.spin.groupBy({ by: ["userId"] });
     return NextResponse.json({
       success: true,
       stats: {
         totalSpins,
         todaySpins,
         totalPaid: totalPaid._sum.amount || 0,
-        totalUsers: uniqueUsers.length,
+        totalUsers: allUsers.length,
       },
-      spins: spins.map((s) => ({
-        id: s.id,
-        userId: s.userId,
-        label: s.label,
-        value: s.value,
-        createdAt: s.createdAt,
-      })),
-      topUsers: topUsers.map((t) => ({
-        userId: t.userId,
-        username: userMap.get(t.userId)?.username || "—",
-        email: userMap.get(t.userId)?.email || "—",
-        count: t._count.userId,
-      })),
+      users: usersWithInfo,
+      spins: spinsWithUser,
     });
   } catch (error) {
     console.error("[admin/lucky-wheel]", error);
