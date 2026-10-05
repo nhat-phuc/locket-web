@@ -24,13 +24,13 @@ export async function GET(req: Request) {
   const stream = new ReadableStream({
     async start(controller) {
       const send = (data: any) => {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+        try {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+        } catch {}
       };
 
-      // Ping ban đầu
       send({ type: "connected", time: new Date().toISOString() });
 
-      // Poll DB mỗi 5s để tìm user mới active
       const interval = setInterval(async () => {
         try {
           const recentLogs = await prisma.log.findMany({
@@ -39,26 +39,39 @@ export async function GET(req: Request) {
               createdAt: { gt: lastSeen },
             },
             orderBy: { createdAt: "asc" },
-            include: { user: { select: { username: true, email: true } } },
           });
 
+          // Lấy username qua query riêng
           for (const log of recentLogs) {
+            let username = "—";
+            let email = "—";
+            if (log.userId) {
+              const u = await prisma.user.findUnique({
+                where: { id: log.userId },
+                select: { username: true, email: true },
+              });
+              if (u) {
+                username = u.username || "—";
+                email = u.email || "—";
+              }
+            }
             send({
               type: "user-visit",
-              username: log.user?.username || "—",
-              email: log.user?.email || "—",
+              username,
+              email,
               time: log.createdAt,
             });
           }
 
           lastSeen = new Date();
-        } catch {}
+        } catch (e) {
+          console.error("[live-users]", e);
+        }
       }, 5000);
 
-      // Cleanup khi client ngắt
       req.signal.addEventListener("abort", () => {
         clearInterval(interval);
-        controller.close();
+        try { controller.close(); } catch {}
       });
     },
   });
