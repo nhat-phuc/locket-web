@@ -16,3 +16,11 @@ next-env.d.ts
 *.bak.*
 cookies.txt
 .env*
+
+# Telegram Bot
+telegram-bot/venv/
+telegram-bot/__pycache__/
+telegram-bot/handlers/__pycache__/
+telegram-bot/.env
+*.pyc
+*.pyo
