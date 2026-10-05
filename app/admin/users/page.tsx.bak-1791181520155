@@ -44,12 +44,7 @@ export default function AdminUsersPage() {
 
   // Đóng menu khi click ra ngoài
   useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      const t = e.target as HTMLElement;
-      if (t.closest("[data-menu-panel]")) return;
-      if (t.closest("[data-menu-trigger]")) return;
-      setOpenMenu(null);
-    };
+    const handleClick = () => setOpenMenu(null);
     document.addEventListener("click", handleClick);
     return () => document.removeEventListener("click", handleClick);
   }, []);
@@ -391,14 +386,13 @@ export default function AdminUsersPage() {
                     </td>
                     <td style={{ ...tdStyle, textAlign: "center", position: "relative" }}>
                       <button
-                        data-menu-trigger onClick={(e) => {
+                        onClick={(e) => {
                           e.stopPropagation();
                           const rect = e.currentTarget.getBoundingClientRect();
-                          const menuH = 220;
-                          const spaceBelow = window.innerHeight - rect.bottom;
-                          const top = spaceBelow < menuH ? rect.top - menuH - 4 : rect.bottom + 4;
-                          const left = Math.min(rect.right - 170, window.innerWidth - 180);
-                          setOpenMenuPos({ top, left });
+                          setOpenMenuPos({
+                            top: rect.bottom + 4,
+                            left: rect.right - 170,
+                          });
                           setOpenMenu(openMenu === u.id ? null : u.id);
                         }}
                         style={{

@@ -16,8 +16,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "User không tồn tại" }, { status: 404 });
     }
 
-    const balanceBefore = user.balance;
-    const balanceAfter = balanceBefore + (value || 0);
+    const bonusBefore = user.bonusBalance;
+    const bonusAfter = bonusBefore + (value || 0);
+    const totalBefore = user.balance + user.bonusBalance;
+    const totalAfter = totalBefore + (value || 0);
 
     const ops: any[] = [
       prisma.transaction.create({
@@ -25,8 +27,8 @@ export async function POST(req: Request) {
           userId: user.id,
           type: "bonus",
           amount: value || 0,
-          balanceBefore,
-          balanceAfter,
+          balanceBefore: totalBefore,
+          balanceAfter: totalAfter,
           status: "success",
           method: "lucky_wheel",
           description: `Vòng quay: ${label}`,
@@ -35,11 +37,12 @@ export async function POST(req: Request) {
       }),
     ];
 
+    // ✅ QUAN TRỌNG: Cộng vào `bonusBalance`, KHÔNG cộng vào `balance`
     if (value > 0) {
       ops.push(
         prisma.user.update({
           where: { id: user.id },
-          data: { balance: balanceAfter },
+          data: { bonusBalance: bonusAfter },
         })
       );
     }
@@ -48,8 +51,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      balance: balanceAfter,
-      message: value > 0 ? `Chúc mừng! Bạn nhận ${value.toLocaleString("vi-VN")}đ` : "Chúc bạn may mắn lần sau!",
+      balance: user.balance,           // Tiền rút được (không đổi)
+      bonusBalance: bonusAfter,        // Tiền vòng quay (tăng)
+      total: totalAfter,
+      message: value > 0 ? `Chúc mừng! Bạn nhận ${value.toLocaleString("vi-VN")}đ vào Ví Vòng Quay` : "Chúc bạn may mắn lần sau!",
     });
   } catch (error) {
     console.error("Spin error:", error);

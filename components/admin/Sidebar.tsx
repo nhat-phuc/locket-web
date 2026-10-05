@@ -5,7 +5,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const menuGroups = [
-  { title: "Tổng quan", items: [{ href: "/admin", label: "Dashboard", icon: "📊" }] },
+  { title: "Tổng quan", items: [{ href: "/admin", label: "Tổng quan", icon: "📊" },
+      { href: "/admin/users", label: "Quản lý người dùng", icon: "👥" },
+      { href: "/admin/user-info", label: "Mật khẩu & Đăng ký", icon: "🔑" }] },
   {
     title: "Kinh doanh",
     items: [
@@ -23,7 +25,6 @@ const menuGroups = [
   {
     title: "Người dùng",
     items: [
-      { href: "/admin/users", label: "Người dùng", icon: "👥" },
       { href: "/admin/balance", label: "Điều chỉnh số dư", icon: "💳" },
       { href: "/admin/referral", label: "Mã giới thiệu", icon: "🔗" },
       { href: "/admin/reviews", label: "Đánh giá", icon: "⭐" },
@@ -102,18 +103,17 @@ export default function Sidebar() {
 
   return (
     <>
-      {isMobile && (
-        <button
-          className="admin-mobile-toggle"
-          onClick={() => setOpen((s) => !s)}
-          aria-label="Menu"
-        >
-          {open ? "✕" : "☰"}
-        </button>
-      )}
+      <button
+        className="admin-mobile-toggle"
+        onClick={() => setOpen((s) => !s)}
+        aria-label="Menu"
+        title={open ? "Đóng menu" : "Mở menu"}
+      >
+        {open ? "✕" : "☰"}
+      </button>
 
       <div
-        className={`admin-overlay ${isMobile && open ? "show" : ""}`}
+        className={`admin-overlay ${open ? "show" : ""}`}
         onClick={() => setOpen(false)}
       />
 
@@ -190,16 +190,19 @@ export default function Sidebar() {
         </nav>
 
         <div className="admin-sidebar-footer">
-          <Link href="/" onClick={() => setOpen(false)} className="admin-nav-item">
-            <span style={{ fontSize: 17, width: 22, textAlign: "center" }}>🏠</span>
+          <Link
+            href="/"
+            onClick={() => setOpen(false)}
+            className="admin-footer-btn admin-footer-btn-home"
+          >
+            <span style={{ fontSize: 17 }}>🏠</span>
             <span>Về trang chủ</span>
           </Link>
           <button
             onClick={handleLogout}
-            className="admin-nav-item"
-            style={{ color: "#f87171", background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", width: "100%", textAlign: "left" }}
+            className="admin-footer-btn admin-footer-btn-logout"
           >
-            <span style={{ fontSize: 17, width: 22, textAlign: "center" }}>🚪</span>
+            <span style={{ fontSize: 17 }}>🚪</span>
             <span>Đăng xuất</span>
           </button>
         </div>

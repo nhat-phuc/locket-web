@@ -8,6 +8,7 @@ export default function ViPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [balance, setBalance] = useState(0);
+  const [bonusBalance, setBonusBalance] = useState(0);
   const [txs, setTxs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,6 +23,7 @@ export default function ViPage() {
       fetch("/api/users/transactions", { credentials: "include" }).then((r) => r.json()),
     ]).then(([b, t]) => {
       if (typeof b.balance === "number") setBalance(b.balance);
+      if (typeof b.bonusBalance === "number") setBonusBalance(b.bonusBalance);
       if (t.success) setTxs(t.transactions || []);
     }).finally(() => setLoading(false));
   }, [router]);

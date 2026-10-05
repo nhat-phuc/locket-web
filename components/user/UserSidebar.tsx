@@ -9,6 +9,7 @@ const menuItems = [
   { href: "/tai-khoan/lich-su-nap-tien", label: "Lịch sử nạp tiền", icon: "📥" },
   { href: "/tai-khoan/voucher", label: "Voucher của tôi", icon: "🎟️" },
   { href: "/tai-khoan/lich-su-quay", label: "Lịch sử vòng quay", icon: "🎡" },
+  { href: "/tai-khoan/lich-su-hoa-hong", label: "Lịch sử hoa hồng", icon: "💰" },
   { href: "/tai-khoan/ho-so", label: "Thông tin cá nhân", icon: "👤" },
   { href: "/tai-khoan/don-hang", label: "Lịch sử đơn hàng", icon: "📦" },
   { href: "/tai-khoan/giao-dich", label: "Lịch sử giao dịch", icon: "💰" },

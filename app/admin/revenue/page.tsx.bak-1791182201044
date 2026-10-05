@@ -75,8 +75,8 @@ export default function Page() {
           <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 8, height: 200, padding: "20px 0" }}>
             {last7Days.map((d) => {
               const height = maxAmount > 0 ? (d.amount / maxAmount) * 100 : 0;
-              const parts = d.date.slice(0, 10).split("-");
-              const dayLabel = `${parseInt(parts[2])}/${parseInt(parts[1])}`;
+              const date = new Date(d.date);
+              const dayLabel = `${date.getDate()}/${date.getMonth() + 1}`;
               return (
                 <div key={d.date} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 8, height: "100%", justifyContent: "flex-end" }}>
                   <div style={{ fontSize: 10.5, fontWeight: 800, color: d.amount > 0 ? "#10b981" : "#94a3b8" }}>
@@ -110,9 +110,9 @@ export default function Page() {
               }).join(" ")} />
             </svg>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, color: "#64748b", fontWeight: 700, marginTop: 8 }}>
-              <span>{data.days[0]?.date ? data.days[0].date.slice(5, 10) : ""}</span>
-              <span>{data.days[Math.floor(data.days.length / 2)]?.date ? data.days[Math.floor(data.days.length / 2)].date.slice(5, 10) : ""}</span>
-              <span>{data.days[data.days.length - 1]?.date ? data.days[data.days.length - 1].date.slice(5, 10) : ""}</span>
+              <span>{data.days[0]?.date.slice(5) || ""}</span>
+              <span>{data.days[Math.floor(data.days.length / 2)]?.date.slice(5) || ""}</span>
+              <span>{data.days[data.days.length - 1]?.date.slice(5) || ""}</span>
             </div>
           </div>
         </div>

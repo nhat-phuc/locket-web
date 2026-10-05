@@ -32,6 +32,7 @@ const BANKS = [
 export default function RutTienPage() {
   const router = useRouter();
   const [balance, setBalance] = useState(0);
+  const [bonusBalance, setBonusBalance] = useState(0);
   const [amount, setAmount] = useState("");
   const [bankName, setBankName] = useState("");
   const [bankAccount, setBankAccount] = useState("");
@@ -47,6 +48,7 @@ export default function RutTienPage() {
       .then((d) => {
         if (d.success) {
           setBalance(d.user.balance || 0);
+          setBonusBalance(d.user.bonusBalance || 0);
           setAccountName((d.user.name || d.user.username || "").toUpperCase());
         }
       })

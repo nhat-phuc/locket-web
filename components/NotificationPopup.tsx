@@ -11,26 +11,14 @@ interface Notification {
 }
 
 const DISMISS_KEY = "locket_noti_dismissed";
-const DISMISS_HOURS = 24;
+const DISMISS_HOURS = 24 * 365 * 100; // 100 năm = vĩnh viễn
 
 export default function NotificationPopup() {
   const [noti, setNoti] = useState<Notification | null>(null);
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    // Check localStorage — đã bấm "Đã hiểu" trong 24h chưa
-    try {
-      const raw = localStorage.getItem(DISMISS_KEY);
-      if (raw) {
-        const { id, at } = JSON.parse(raw);
-        const hoursPassed = (Date.now() - at) / (1000 * 60 * 60);
-        if (hoursPassed < DISMISS_HOURS) {
-          // Còn trong 24h → không hiện (trừ khi là thông báo mới khác id)
-          // Nhưng vẫn cần fetch để check id mới
-        }
-      }
-    } catch {}
-
+    // Đã dismiss thông báo → không hiện lại nữa
     fetch("/api/notifications/latest")
       .then((r) => r.json())
       .then((d) => {
