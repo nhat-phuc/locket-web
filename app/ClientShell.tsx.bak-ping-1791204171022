@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BottomNav from "@/components/BottomNav";
@@ -9,15 +8,6 @@ import FloatingWidgets from "@/components/FloatingWidgets";
 
 export default function ClientShell() {
   const pathname = usePathname();
-
-  // Ping mỗi 60s để cập nhật lastActiveAt
-  useEffect(() => {
-    if (pathname.startsWith("/admin")) return;
-    const ping = () => fetch("/api/ping", { method: "POST", credentials: "include" }).catch(() => {});
-    ping();
-    const iv = setInterval(ping, 60000);
-    return () => clearInterval(iv);
-  }, [pathname]);
 
   // Ẩn hết menu user khi vào /admin
   if (pathname.startsWith("/admin")) return null;

@@ -33,6 +33,7 @@ model User {
   resetTokenExpiry  DateTime?
   telegramId        String?   @unique
   telegramLinkCode  String?
+  lastActiveAt      DateTime?
   telegramLinkedAt  DateTime?
   otpCode           String?
   otpExpiry         DateTime?

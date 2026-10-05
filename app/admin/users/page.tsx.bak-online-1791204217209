@@ -16,8 +16,6 @@ interface User {
   role: string;
   isActive: boolean;
   isBanned: boolean;
-  isOnline?: boolean;
-  lastActiveAt?: string | null;
   createdAt: string;
 }
 
@@ -375,9 +373,6 @@ export default function AdminUsersPage() {
                               gap: 6,
                             }}
                           >
-                            {u.isOnline && (
-                              <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "#10b981", marginRight: 6, boxShadow: "0 0 0 2px rgba(16,185,129,.3)" }} title="Đang online" />
-                            )}
                             @{u.username}
                             {!!u.isBanned && (
                               <span
