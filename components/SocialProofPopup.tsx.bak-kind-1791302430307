@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 
 type Order = {
   id: string;
-  kind?: "recharge" | "order";
   serviceName: string;
   amount: number;
   finalAmount: number;
