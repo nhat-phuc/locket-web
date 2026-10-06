@@ -48,6 +48,7 @@ export async function GET(req: Request) {
     const orders = await prisma.order.findMany({
       where: {
         status: "paid",
+        paidAt: { gte: since24h },
       },
       orderBy: { paidAt: "desc" },
       take: limit,
@@ -70,6 +71,7 @@ export async function GET(req: Request) {
       where: {
         type: "recharge",
         status: "success",
+        createdAt: { gte: since24h },
       },
       orderBy: { createdAt: "desc" },
       take: limit,
