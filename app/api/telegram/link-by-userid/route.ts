@@ -19,6 +19,7 @@ export async function POST(req: Request) {
 
     const tgIdStr = String(telegramId).trim();
 
+    // Tìm user theo id hoặc username
     let user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       user = await prisma.user.findFirst({ where: { username: userId } });
@@ -27,17 +28,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "User không tồn tại" }, { status: 404 });
     }
 
+    // Nếu telegramId đã thuộc user khác → GHI ĐÈ (unlink user cũ)
     const existing = await prisma.user.findUnique({ where: { telegramId: tgIdStr } });
     if (existing && existing.id !== user.id) {
-      return NextResponse.json({
-        success: false,
-        message: `Telegram này đã liên kết với @${existing.username}`,
-      }, { status: 400 });
+      console.log(`[link-by-userid] Ghi đè telegramId từ @${existing.username} → @${user.username}`);
+      await prisma.user.update({
+        where: { id: existing.id },
+        data: { telegramId: null, telegramLinkedAt: null },
+      });
     }
 
+    // Gán telegramId mới
     await prisma.user.update({
       where: { id: user.id },
-      data: { telegramId: tgIdStr, telegramLinkedAt: new Date() },
+      data: {
+        telegramId: tgIdStr,
+        telegramLinkedAt: new Date(),
+      },
     });
 
     await prisma.log.create({
@@ -58,6 +65,7 @@ export async function POST(req: Request) {
         name: user.name,
         balance: user.balance,
         bonusBalance: user.bonusBalance,
+        role: user.role,
       },
     });
   } catch (error) {
