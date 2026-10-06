@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { notifyWithdrawalRequest } from "@/lib/telegram";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
 
@@ -108,11 +107,6 @@ export async function POST(req: Request) {
       `🕒 ${new Date().toLocaleString("vi-VN")}\n\n` +
       `👉 Duyệt tại: ${process.env.NEXT_PUBLIC_APP_URL || "https://locket-web-eight.vercel.app"}/admin/withdrawals`
     );
-      const _u = await prisma.user.findUnique({ where: { id: session.userId }, select: { username: true, email: true } });
-      if (_u) {
-        await notifyWithdrawalRequest({ username: _u.username, email: _u.email, amount: Number(amount), bankName, bankAccount }).catch(() => {});
-      }
-    
 
     return NextResponse.json({
       success: true,

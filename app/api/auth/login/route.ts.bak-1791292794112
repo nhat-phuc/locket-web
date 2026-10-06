@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { notifyUserLogin } from "@/lib/telegram";
 import { prisma } from "@/lib/db";
 import { comparePassword, signToken } from "@/lib/auth";
 import { setSessionCookie } from "@/lib/session";
@@ -37,8 +36,6 @@ export async function POST(req: Request) {
 
     const token = signToken({ userId: user.id, email: user.email, role: user.role });
     await setSessionCookie(token);
-      await notifyUserLogin({ username: user.username, email: user.email, method: "password" }).catch(() => {});
-    
 
     return NextResponse.json({
       success: true,

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { notifyRechargeCreated } from "@/lib/telegram";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -59,8 +58,6 @@ export async function POST(req: Request) {
     };
 
     const qrUrl = `https://img.vietqr.io/image/${BANK_INFO.bankId}-${BANK_INFO.accountNumber}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(orderCode)}&accountName=${encodeURIComponent(BANK_INFO.accountName)}`;
-      await notifyRechargeCreated({ username: user.username, email: user.email, amount, orderCode }).catch(() => {});
-    
 
     return NextResponse.json({
       success: true,

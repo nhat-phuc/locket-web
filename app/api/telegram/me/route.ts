@@ -5,7 +5,6 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  // Nhận cả telegramId và chatId (fallback)
   const chatId = searchParams.get("telegramId") || searchParams.get("chatId");
   if (!chatId) return NextResponse.json({ success: false, message: "Thiếu telegramId" });
 
@@ -29,7 +28,7 @@ export async function GET(req: Request) {
       picture: user.picture,
       balance: user.balance,
       bonusBalance: user.bonusBalance,
-      role: user.role,
+      role: user.role,        // ← QUAN TRỌNG
       totalOrders,
       paidOrders,
     },
