@@ -80,3 +80,44 @@ async def admin_orders(status: str = ""):
 
 async def admin_withdrawals():
     return await _get("/api/admin/withdrawals")
+
+
+async def check_recharge(orderCode: str, telegramId: str):
+    return await _get("/api/telegram/check-recharge", {"orderCode": orderCode, "telegramId": telegramId})
+
+
+async def get_recharge_history(telegramId: str):
+    return await _get("/api/telegram/recharge-history", {"telegramId": telegramId})
+
+
+# ─── ADMIN APIs (via /api/telegram/admin) ───
+INTERNAL_KEY = "locket-internal-secret-2026"
+
+
+def _admin_headers():
+    return {"Content-Type": "application/json", "x-internal-key": INTERNAL_KEY}
+
+
+async def admin_get(action: str, telegramId: str, extra: dict = None):
+    params = {"telegramId": telegramId}
+    if extra:
+        params.update(extra)
+    async with httpx.AsyncClient(timeout=15) as client:
+        r = await client.get(
+            f"{API_URL}/api/telegram/admin/{action}",
+            params=params,
+            headers=_admin_headers(),
+        )
+        return r.status_code, r.json() if r.text else {}
+
+
+async def admin_post(action: str, telegramId: str, body: dict):
+    params = {"telegramId": telegramId}
+    async with httpx.AsyncClient(timeout=15) as client:
+        r = await client.post(
+            f"{API_URL}/api/telegram/admin/{action}",
+            params=params,
+            json=body,
+            headers=_admin_headers(),
+        )
+        return r.status_code, r.json() if r.text else {}

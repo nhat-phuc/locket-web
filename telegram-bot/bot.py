@@ -47,7 +47,13 @@ def main():
     app.add_handler(CallbackQueryHandler(admin.cb_admin_router, pattern="^adm_.*$"))
 
     # Text
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, user.handle_text))
+    # Admin text handler — xử lý trước
+    async def text_router(update, context):
+        handled = await admin.handle_admin_text(update, context)
+        if not handled:
+            await user.handle_text(update, context)
+
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, text_router))
 
     # Error
     app.add_error_handler(error_handler)
