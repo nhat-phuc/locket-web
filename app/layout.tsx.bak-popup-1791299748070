@@ -9,7 +9,6 @@ import FallingCanvas from "@/components/FallingCanvas";
 import FXEffects from "@/components/FXEffects";
 import AdminHideFX from "@/components/AdminHideFX";
 import ClientShell, { ClientFooter } from "./ClientShell";
-import TelegramInvitePopup from "@/components/TelegramInvitePopup";
 
 const inter = Inter({
   subsets: ["latin", "vietnamese"],
@@ -62,7 +61,6 @@ export default function RootLayout({
 
         {/* Header + Floating widgets */}
         <ClientShell />
-        <TelegramInvitePopup />
 
         {/* Nội dung trang */}
         {children}

@@ -2,6 +2,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from config import WEB_URL
 
 
+# ═══ MENU USER ═══
 def main_menu():
     return InlineKeyboardMarkup([
         [
@@ -26,25 +27,41 @@ def main_menu():
     ])
 
 
+# ═══ MENU ADMIN ═══
 def admin_menu():
     return InlineKeyboardMarkup([
         [
             InlineKeyboardButton("📊 Thống kê", callback_data="adm_stats"),
-            InlineKeyboardButton("👥 Users", callback_data="adm_users"),
+            InlineKeyboardButton("📈 Doanh thu 7 ngày", callback_data="adm_revenue"),
         ],
         [
-            InlineKeyboardButton("🎡 Vòng quay", callback_data="adm_wheel"),
+            InlineKeyboardButton("👥 Users", callback_data="adm_users"),
+            InlineKeyboardButton("🔍 Tìm user", callback_data="adm_search"),
+        ],
+        [
             InlineKeyboardButton("📦 Đơn hàng", callback_data="adm_orders"),
+            InlineKeyboardButton("⏳ Đơn chờ", callback_data="adm_pending"),
         ],
         [
             InlineKeyboardButton("💸 Rút tiền", callback_data="adm_withdrawals"),
+            InlineKeyboardButton("🎡 Vòng quay", callback_data="adm_wheel"),
         ],
         [
-            InlineKeyboardButton("⬅️ Menu chính", callback_data="menu"),
+            InlineKeyboardButton("💰 Cộng tiền", callback_data="adm_add_balance"),
+            InlineKeyboardButton("🔄 Reset lượt", callback_data="adm_reset_spins"),
+        ],
+        [
+            InlineKeyboardButton("📢 Thông báo tất cả", callback_data="adm_broadcast"),
+            InlineKeyboardButton("📋 Logs", callback_data="adm_logs"),
+        ],
+        [
+            InlineKeyboardButton("🔧 Bảo trì", callback_data="adm_maintenance"),
+            InlineKeyboardButton("⬅️ Menu user", callback_data="menu"),
         ],
     ])
 
 
+# ═══ NÚT PHỤ ═══
 def back_menu():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("🏠 Menu chính", callback_data="menu")],
@@ -52,7 +69,6 @@ def back_menu():
 
 
 def amount_menu():
-    """Menu chọn số tiền nạp"""
     return InlineKeyboardMarkup([
         [
             InlineKeyboardButton("10.000đ", callback_data="amt_10000"),
@@ -79,7 +95,6 @@ def amount_menu():
 
 
 def qr_menu(qr_url: str, order_code: str):
-    """Menu khi đã có QR"""
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("📱 Mở QR thanh toán", url=qr_url)],
         [
@@ -91,7 +106,6 @@ def qr_menu(qr_url: str, order_code: str):
 
 
 def check_menu(order_code: str):
-    """Menu sau khi check trạng thái"""
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("🔄 Kiểm tra lại", callback_data=f"check_{order_code}")],
         [InlineKeyboardButton("🏠 Menu chính", callback_data="menu")],
