@@ -7,7 +7,7 @@ export async function GET() {
       status: { in: ['paid', 'completed'] },
     },
     orderBy: { paidAt: 'desc' },
-    take: 20,
+    take: 3,
   });
 
   const userIds = [...new Set(orders.map((o) => o.userId))];

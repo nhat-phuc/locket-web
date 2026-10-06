@@ -58,7 +58,7 @@ export default function SocialProofPopup() {
   useEffect(() => {
     fetch('/api/recent-purchases')
       .then((r) => r.json())
-      .then((d) => setOrders(d.orders || []))
+      .then((d) => setOrders((d.orders || []).slice(0, 3)))
       .catch(() => {});
   }, []);
 
