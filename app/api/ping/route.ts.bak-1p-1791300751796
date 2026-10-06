@@ -46,7 +46,7 @@ export async function POST() {
     const diffMinutes = (now.getTime() - lastActive) / 60000;
 
     // Coi là "session mới" nếu > 30 phút không active
-    const isNewSession = diffMinutes > 1; // 1 phút
+    const isNewSession = diffMinutes > 30;
 
     // Cập nhật lastActiveAt
     await prisma.user.update({
