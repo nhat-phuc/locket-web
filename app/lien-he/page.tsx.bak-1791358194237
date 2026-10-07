@@ -45,7 +45,7 @@ export default function LienHePage() {
 
   const channels = [
     { icon: "💬", label: "Zalo", value: "0344 421 026", href: "https://zalo.me/0344421026", gradient: "linear-gradient(135deg,#0068FF,#00A3FF)" },
-    { icon: "📢", label: "Telegram", value: "@hethonggold", href: "https://t.me/hethonggold", gradient: "linear-gradient(135deg,#0088cc,#00b4ff)" },
+    { icon: "📢", label: "Telegram", value: "@hethonglocket", href: "https://t.me/hethonglocket", gradient: "linear-gradient(135deg,#0088cc,#00b4ff)" },
     { icon: "📧", label: "Email", value: "support@locketgold.app", href: "mailto:support@locketgold.app", gradient: "linear-gradient(135deg,#EA4335,#ff6b5b)" },
     { icon: "🌐", label: "Website", value: "locketgold.app", href: "https://locketgold.app", gradient: "linear-gradient(135deg,#a78bfa,#ec4899)" },
   ];

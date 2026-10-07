@@ -69,7 +69,7 @@ export default function FloatingWidgets() {
             Nhóm Zalo Mới
           </a>
           <a
-            href="https://t.me/hethonggold"
+            href="https://t.me/hethonglocket"
             target="_blank"
             rel="noopener noreferrer"
             className="zalo-popup-item"
