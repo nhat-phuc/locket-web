@@ -1,29 +1,50 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
-export async function GET(req: Request) {
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export async function GET() {
   try {
-    const { searchParams } = new URL(req.url);
-    const type = searchParams.get("type");
-    const platform = searchParams.get("platform");
-
-    const where: Record<string, unknown> = { isActive: true };
-    if (type) where.type = type;
-    if (platform) where.platform = platform;
-
     const services = await prisma.service.findMany({
-      where,
+      where: { isActive: true },
       orderBy: [{ isFeatured: "desc" }, { price: "asc" }],
       include: {
-        packages: {
-          orderBy: { order: "asc" },
-        },
+        packages: { orderBy: { order: "asc" } },
       },
     });
 
-    return NextResponse.json({ success: true, services });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ success: false, message: "Lỗi hệ thống" }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: true,
+        services,
+        _debug: {
+          db_host: (process.env.DATABASE_URL || "").split("@")[1]?.split("/")[0] || "N/A",
+          db_name: (process.env.DATABASE_URL || "").split("/").pop()?.split("?")[0] || "N/A",
+          count: services.length,
+          time: new Date().toISOString(),
+        },
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+        },
+      }
+    );
+  } catch (error: any) {
+    console.error("[api/services]", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: error?.message || "Lỗi hệ thống",
+        services: [],
+        _debug: {
+          db_host: (process.env.DATABASE_URL || "").split("@")[1]?.split("/")[0] || "N/A",
+          db_name: (process.env.DATABASE_URL || "").split("/").pop()?.split("?")[0] || "N/A",
+          error: String(error),
+        },
+      },
+      { status: 500 }
+    );
   }
 }
