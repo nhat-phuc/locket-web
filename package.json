@@ -17,6 +17,7 @@
     "grammy": "^1.46.0",
     "jsonwebtoken": "^9.0.3",
     "next": "latest",
+    "next-auth": "^4.24.15",
     "react": "latest",
     "react-dom": "latest",
     "resend": "^6.32.0",
