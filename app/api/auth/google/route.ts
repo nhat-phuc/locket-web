@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { signToken } from "@/lib/auth";
 import { setSessionCookie } from "@/lib/session";
+import { ensureReferralCode } from "@/lib/referral";
 
 interface GooglePayload {
   sub: string;
@@ -88,6 +89,13 @@ export async function POST(req: Request) {
     if (user.isBanned) {
       return NextResponse.json({ success: false, message: "Tài khoản đã bị khóa" }, { status: 403 });
     }
+
+    // Đảm bảo user có mã GT riêng (Google login)
+    await ensureReferralCode({
+      id: user.id,
+      username: user.username,
+      referralCode: user.referralCode,
+    });
 
     const token = signToken({ userId: user.id, email: user.email, role: user.role });
     await setSessionCookie(token);

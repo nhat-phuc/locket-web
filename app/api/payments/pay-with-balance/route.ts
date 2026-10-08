@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { processReferralCommission } from "@/lib/commission";
+import { processReferralCommission } from "@/lib/referral";
 import { deductPayment, getTotalBalance } from "@/lib/balance";
 
 export async function POST(req: Request) {

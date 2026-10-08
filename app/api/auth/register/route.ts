@@ -98,29 +98,56 @@ export async function POST(req: Request) {
     // Hash password
     const hashedPassword = await hashPassword(password);
 
-    // Tạo user với phone
     // Tạo mã referral riêng cho user mới
-    const newRefCode = (username || email.split("@")[0]).toLowerCase().replace(/[^a-z0-9]/g, "") + Math.random().toString(36).slice(2, 6);
+    const newRefCode = (
+      (username || email.split("@")[0])
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "") +
+      Math.random().toString(36).slice(2, 6)
+    )
+      .toUpperCase()
+      .slice(0, 12);
 
     // Tìm user giới thiệu
-    let referrer = null;
+    let referrer: { id: string } | null = null;
     if (referralCode) {
       referrer = await prisma.user.findUnique({
         where: { referralCode: referralCode.trim().toUpperCase() },
-        select: { id: true, referralCode: true },
+        select: { id: true },
       });
     }
 
-    const user = await prisma.user.create({
-      data: {
-        email,
-        username,
-        password: hashedPassword,
-        name: name || username,
-        phone: phone || null,
-        role: "user",
-        balance: 0,
-      },
+    // Tạo user + Referral trong 1 transaction
+    const user = await prisma.$transaction(async (tx) => {
+      const newUser = await tx.user.create({
+        data: {
+          email,
+          username,
+          password: hashedPassword,
+          name: name || username,
+          phone: phone || null,
+          role: "user",
+          balance: 0,
+          referralCode: newRefCode,
+          referredBy: referrer?.id ?? null,
+        },
+      });
+
+      if (referrer) {
+        await tx.referral.create({
+          data: {
+            referrerId: referrer.id,
+            referredUserId: newUser.id,
+            code: referralCode!.trim().toUpperCase(),
+          },
+        });
+        await tx.user.update({
+          where: { id: referrer.id },
+          data: { totalReferrals: { increment: 1 } },
+        });
+      }
+
+      return newUser;
     });
 
     const token = signToken({
@@ -129,22 +156,6 @@ export async function POST(req: Request) {
       role: user.role,
     });
     await setSessionCookie(token);
-
-    // Tạo record referral
-    if (referrer) {
-      await prisma.referral.create({
-        data: {
-          referrerId: referrer.id,
-          referredUserId: user.id,
-          code: referrer.referralCode || "",
-        },
-      });
-      // Tăng số lượng referrals
-      await prisma.user.update({
-        where: { id: referrer.id },
-        data: { totalReferrals: { increment: 1 } },
-      });
-    }
 
     // 🔔 Thông báo admin group
     await notifyNewRegister({

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { comparePassword, signToken } from "@/lib/auth";
 import { setSessionCookie } from "@/lib/session";
 import { rateLimit, getIP } from "@/lib/rate-limit";
+import { ensureReferralCode } from "@/lib/referral";
 
 export async function POST(req: Request) {
   try {
@@ -34,6 +35,13 @@ export async function POST(req: Request) {
     if (!valid) {
       return NextResponse.json({ success: false, message: "Email hoặc mật khẩu không đúng" }, { status: 401 });
     }
+
+    // Đảm bảo user có mã GT riêng
+    await ensureReferralCode({
+      id: user.id,
+      username: user.username,
+      referralCode: user.referralCode,
+    });
 
     const token = signToken({ userId: user.id, email: user.email, role: user.role });
     await setSessionCookie(token);

@@ -14,7 +14,7 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
       include: {
         referred: {
-          select: { name: true, email: true, picture: true },
+          select: { name: true, email: true, picture: true, username: true },
         },
       },
     });

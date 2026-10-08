@@ -49,10 +49,7 @@ export async function POST(req: Request) {
       where: { referralCode: cleaned },
     });
     if (taken) {
-      return NextResponse.json(
-        { success: false, message: "Mã đã có người dùng" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, message: "Mã đã có người dùng" }, { status: 400 });
     }
 
     await prisma.user.update({

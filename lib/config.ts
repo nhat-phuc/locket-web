@@ -1,8 +1,8 @@
-// Mức hoa hồng (% của đơn đầu tiên mà người được giới thiệu mua)
-export const REFERRAL_COMMISSION_PERCENT = 10; // 10%
+// Số tiền hoa hồng cố định cho mỗi referral thành công
+export const REFERRAL_COMMISSION = 30000; // 30.000đ
 
-// Số tiền tối thiểu để được nhận hoa hồng
+// (Không dùng percent nữa, giữ lại cho tương lai nếu cần)
+export const REFERRAL_COMMISSION_PERCENT = 10;
+
 export const MIN_COMMISSION_AMOUNT = 1000;
-
-// Hoa hồng chỉ tính cho đơn đầu tiên
 export const COMMISSION_FIRST_ORDER_ONLY = true;

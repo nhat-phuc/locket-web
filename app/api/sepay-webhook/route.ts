@@ -314,7 +314,15 @@ export async function POST(req: Request) {
       });
     });
 
-    await notifyAdmin(
+        // ✅ TRẢ HOA HỒNG CHO NGƯỜI GIỚI THIỆU
+    if (order.serviceName !== "Nạp tiền vào ví") {
+      const { processReferralCommission } = await import("@/lib/referral");
+      await processReferralCommission(order.id).catch((e: unknown) =>
+        console.error("[sepay-webhook] commission error:", e)
+      );
+    }
+
+await notifyAdmin(
       `✅ <b>THANH TOÁN THÀNH CÔNG</b>\n\n` +
         `👤 Khách: <b>${userInfo.name}</b>\n` +
         `📦 Đơn: <code>${order.orderCode}</code>\n` +

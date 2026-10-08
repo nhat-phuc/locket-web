@@ -147,18 +147,62 @@ export default function TaiKhoanPage() {
       </div>
 
       {/* Card 4: Nâng cấp gói */}
-      <div className="tk-card tk-card-upgrade">
-        <div className="tk-card-header">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e85d04" strokeWidth="2">
-            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-            <polyline points="17 6 23 6 23 12" />
-          </svg>
-          <h2>Nâng cấp lên gói cao hơn</h2>
+      {/* Card: Giới thiệu bạn bè */}
+      <Link href="/gioi-thieu" className="tk-referral-card">
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 16,
+          padding: 20,
+          background: "linear-gradient(135deg, rgba(124,58,237,.12), rgba(167,139,250,.06))",
+          border: "1px solid rgba(167,139,250,.35)",
+          borderRadius: 16,
+          textDecoration: "none",
+          cursor: "pointer",
+          transition: "transform .2s, box-shadow .2s",
+          marginBottom: 20,
+        }}>
+          <div style={{
+            width: 52,
+            height: 52,
+            borderRadius: 14,
+            background: "linear-gradient(135deg, #7c3aed, #a78bfa)",
+            display: "grid",
+            placeItems: "center",
+            fontSize: 26,
+            flexShrink: 0,
+          }}>
+            🎁
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h3 style={{
+              fontSize: 17,
+              fontWeight: 900,
+              color: "var(--text-0)",
+              margin: 0,
+              marginBottom: 4,
+            }}>
+              Giới thiệu bạn bè — Nhận 30.000đ
+            </h3>
+            <p style={{
+              fontSize: 13,
+              color: "var(--text-2)",
+              margin: 0,
+              lineHeight: 1.5,
+            }}>
+              Mỗi người bạn mời mua gói thành công, bạn nhận ngay <b style={{ color: "#10b981" }}>30.000đ</b> vào số dư
+            </p>
+          </div>
+          <div style={{
+            fontSize: 22,
+            color: "#a78bfa",
+            flexShrink: 0,
+            fontWeight: 900,
+          }}>
+            →
+          </div>
         </div>
-        <p className="tk-desc">
-          Đã trả 0k cho MEMBER. Chỉ cần thanh toán chênh lệch để lên gói mới.
-        </p>
-      </div>
+      </Link>
 
       {/* Card 5: Lịch Sử Giao Dịch */}
       <div className="tk-card">
