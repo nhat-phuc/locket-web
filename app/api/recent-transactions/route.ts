@@ -47,9 +47,13 @@ export async function GET(req: Request) {
     // Orders paid trong 24h
     const orders = await prisma.order.findMany({
       where: {
-        status: "paid",
+        status: { in: ["paid", "completed", "processing"] },
+        OR: [
+          { paidAt: { gte: since24h } },
+          { paidAt: null, createdAt: { gte: since24h } },
+        ],
       },
-      orderBy: { paidAt: "desc" },
+      orderBy: [{ paidAt: "desc" }, { createdAt: "desc" }],
       take: limit,
       select: {
         id: true,
@@ -65,11 +69,12 @@ export async function GET(req: Request) {
       },
     });
 
-    // Recharge transactions trong 24h
+    // Recharge transactions trong 24h — cả success và completed
     const txs = await prisma.transaction.findMany({
       where: {
-        type: "recharge",
-        status: "success",
+        type: { in: ["recharge", "deposit", "admin_recharge"] },
+        status: { in: ["success", "completed"] },
+        createdAt: { gte: since24h },
       },
       orderBy: { createdAt: "desc" },
       take: limit,

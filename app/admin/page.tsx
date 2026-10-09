@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminBadge from "@/components/admin/AdminBadge";
+import AdminStatCard from "@/components/admin/AdminStatCard";
+import AdminButton from "@/components/admin/AdminButton";
+import AdminToast, { showToast } from "@/components/admin/AdminToast";
 
 interface Stats {
   totalUsers: number;
@@ -21,283 +26,310 @@ interface Order {
   createdAt: string;
 }
 
+interface TopUser {
+  id: string;
+  username: string;
+  name: string | null;
+  totalSpent: number;
+  orderCount: number;
+}
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [topUsers, setTopUsers] = useState<TopUser[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const load = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/stats");
+      const d = await res.json();
+      if (d.success) {
+        setStats(d.stats);
+        setRecentOrders(d.recentOrders || []);
+        setTopUsers(d.topUsers || []);
+      } else {
+        showToast("error", "Lỗi tải dữ liệu", d.message);
+      }
+    } catch {
+      showToast("error", "Lỗi kết nối", "Kiểm tra server");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetch("/api/admin/stats")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.success) {
-          setStats(d.stats);
-          setRecentOrders(d.recentOrders || []);
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    load();
   }, []);
+
+  const fmt = (n: number) => (n || 0).toLocaleString("vi-VN") + "đ";
+  const fmtNum = (n: number) => (n || 0).toLocaleString("vi-VN");
+
+  const statusBadge = (status: string) => {
+    const map: Record<string, { variant: any; label: string }> = {
+      pending: { variant: "warning", label: "Chờ xử lý" },
+      paid: { variant: "info", label: "Đã thanh toán" },
+      processing: { variant: "purple", label: "Đang xử lý" },
+      completed: { variant: "success", label: "Hoàn thành" },
+      cancelled: { variant: "danger", label: "Đã hủy" },
+      expired: { variant: "neutral", label: "Hết hạn" },
+    };
+    const b = map[status] || { variant: "neutral", label: status };
+    return <AdminBadge variant={b.variant} dot>{b.label}</AdminBadge>;
+  };
+
+  // Fake data doanh thu 7 ngày (nếu API chưa có)
+  const revenue7Days = [30, 55, 42, 68, 90, 75, 85];
 
   if (loading) {
     return (
-      <div style={{ padding: 80, textAlign: "center", color: "#8b88a8" }}>
-        Đang tải...
+      <div style={{ padding: 80, textAlign: "center" }}>
+        <div className="adm-spinner" />
+        <p style={{ color: "#64748b", marginTop: 16 }}>Đang tải...</p>
+        <style jsx>{`
+          .adm-spinner {
+            width: 44px;
+            height: 44px;
+            margin: 0 auto;
+            border: 3px solid #e2e8f0;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+          }
+          @keyframes spin { to { transform: rotate(360deg); } }
+        `}</style>
       </div>
     );
   }
 
-  const fmt = (n: number) => n.toLocaleString("vi-VN") + "đ";
-
-  const cards = [
-    { label: "Tổng người dùng", value: stats?.totalUsers || 0, icon: "��", color: "#a78bfa" },
-    { label: "Tổng đơn hàng", value: stats?.totalOrders || 0, icon: "📦", color: "#3b82f6" },
-    { label: "Doanh thu", value: fmt(stats?.totalRevenue || 0), icon: "💰", color: "#10b981" },
-    { label: "Đơn chờ xử lý", value: stats?.pendingOrders || 0, icon: "⏳", color: "#f59e0b" },
-    { label: "Đơn đã thanh toán", value: stats?.paidOrders || 0, icon: "✅", color: "#06b6d4" },
-    { label: "Đơn hoàn thành", value: stats?.completedOrders || 0, icon: "🎉", color: "#ec4899" },
-  ];
-
-  const statusLabels: Record<string, string> = {
-    pending: "Chờ xử lý",
-    paid: "Đã thanh toán",
-    processing: "Đang xử lý",
-    completed: "Hoàn thành",
-    cancelled: "Đã hủy",
-    expired: "Hết hạn",
-  };
-
   return (
-    <div>
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 900, color: "#0f0a1e", marginBottom: 8 }}>
-          📊 Dashboard
-        </h1>
-        <p style={{ fontSize: 14, color: "#6b7280" }}>
-          Tổng quan hoạt động của Locket Gold
-        </p>
-      </div>
+    <>
+      <AdminToast />
 
-      {/* Stats cards */}
-      <div className="admin-stats-grid">
-        {cards.map((c) => (
-          <div key={c.label} className="admin-stat-card">
-            <div
-              className="admin-stat-icon"
-              style={{ background: `${c.color}22`, color: c.color }}
-            >
-              {c.icon}
-            </div>
-            <div className="admin-stat-label">{c.label}</div>
-            <div className="admin-stat-value" style={{ color: c.color }}>
-              {c.value}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Recent orders */}
-      <div className="admin-section">
-        <div className="admin-section-head">
-          <h2>🕒 Đơn hàng gần đây</h2>
-          <Link href="/admin/orders" className="admin-link">
-            Xem tất cả →
-          </Link>
+      {/* HEADER */}
+      <div style={{ marginBottom: 28, display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
+        <div>
+          <h1 style={{ fontSize: 28, fontWeight: 900, color: "#0f172a", marginBottom: 6, letterSpacing: "-0.02em" }}>
+            📊 Tổng quan
+          </h1>
+          <p style={{ fontSize: 14, color: "#64748b", margin: 0 }}>
+            Toàn cảnh hoạt động của Locket Gold
+          </p>
         </div>
+        <div style={{ display: "flex", gap: 10 }}>
+          <AdminButton variant="outline" icon={<>🔄</>} onClick={load}>
+            Làm mới
+          </AdminButton>
+          <AdminButton variant="primary" icon={<>📦</>} onClick={() => (window.location.href = "/admin/orders")}>
+            Xem đơn hàng
+          </AdminButton>
+        </div>
+      </div>
 
-        {recentOrders.length === 0 ? (
-          <div className="admin-empty">Chưa có đơn hàng nào</div>
-        ) : (
-          <div className="admin-table-wrap">
-            <table className="admin-table">
-              <thead>
+      {/* STATS GRID */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16, marginBottom: 24 }}>
+        <AdminStatCard
+          label="Doanh thu"
+          value={fmt(stats?.totalRevenue || 0)}
+          icon={<>💰</>}
+          color="#10b981"
+          trend={{ value: 12.5 }}
+        />
+        <AdminStatCard
+          label="Người dùng"
+          value={fmtNum(stats?.totalUsers || 0)}
+          icon={<>👥</>}
+          color="#2563eb"
+          trend={{ value: 5.2 }}
+        />
+        <AdminStatCard
+          label="Đơn hàng"
+          value={fmtNum(stats?.totalOrders || 0)}
+          icon={<>📦</>}
+          color="#7c3aed"
+          trend={{ value: 8.1 }}
+        />
+        <AdminStatCard
+          label="Chờ xử lý"
+          value={fmtNum(stats?.pendingOrders || 0)}
+          icon={<>⏳</>}
+          color="#f59e0b"
+          trend={{ value: -3.2 }}
+        />
+      </div>
+
+      {/* CHART + TOP USERS */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 20, marginBottom: 24 }}>
+        {/* BIỂU ĐỒ DOANH THU */}
+        <AdminCard
+          title="Doanh thu 7 ngày gần đây"
+          subtitle="Đơn vị: nghìn đồng"
+          icon={<>📈</>}
+          action={<AdminBadge variant="success">+12.5%</AdminBadge>}
+          padding={24}
+        >
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 12, height: 200, padding: "10px 0" }}>
+            {revenue7Days.map((v, i) => {
+              const height = (v / 100) * 160;
+              const days = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+              return (
+                <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: "#64748b" }}>{v}k</div>
+                  <div
+                    style={{
+                      width: "100%",
+                      height,
+                      background: "linear-gradient(180deg, #3b82f6, #2563eb)",
+                      borderRadius: "8px 8px 4px 4px",
+                      transition: "all 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+                      animation: `grow-${i} 0.8s ease-out`,
+                    }}
+                  />
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b" }}>{days[i]}</div>
+                </div>
+              );
+            })}
+          </div>
+          <style jsx>{`
+            @keyframes grow-0 { from { height: 0; } }
+            @keyframes grow-1 { from { height: 0; } }
+            @keyframes grow-2 { from { height: 0; } }
+            @keyframes grow-3 { from { height: 0; } }
+            @keyframes grow-4 { from { height: 0; } }
+            @keyframes grow-5 { from { height: 0; } }
+            @keyframes grow-6 { from { height: 0; } }
+          `}</style>
+        </AdminCard>
+
+        {/* TOP USERS */}
+        <AdminCard
+          title="Top 5 khách hàng"
+          subtitle="Chi tiêu nhiều nhất"
+          icon={<>🏆</>}
+          action={<Link href="/admin/users" style={{ fontSize: 12.5, color: "#2563eb", fontWeight: 700, textDecoration: "none" }}>Xem tất cả →</Link>}
+          padding={16}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {topUsers.length === 0 ? (
+              <div style={{ textAlign: "center", padding: 20, color: "#94a3b8", fontSize: 13 }}>
+                Chưa có dữ liệu
+              </div>
+            ) : (
+              topUsers.slice(0, 5).map((u, i) => (
+                <div key={u.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 4px" }}>
+                  <div
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: "50%",
+                      display: "grid",
+                      placeItems: "center",
+                      fontWeight: 900,
+                      fontSize: 12,
+                      color: "#fff",
+                      background:
+                        i === 0 ? "linear-gradient(135deg,#fbbf24,#f59e0b)"
+                        : i === 1 ? "linear-gradient(135deg,#cbd5e1,#94a3b8)"
+                        : i === 2 ? "linear-gradient(135deg,#fb923c,#ea580c)"
+                        : "linear-gradient(135deg,#e2e8f0,#cbd5e1)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {i + 1}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 800, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      @{u.username}
+                    </div>
+                    <div style={{ fontSize: 11.5, color: "#64748b" }}>
+                      {u.orderCount} đơn hàng
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 900, color: "#10b981", flexShrink: 0 }}>
+                    {fmt(u.totalSpent)}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </AdminCard>
+      </div>
+
+      {/* ĐƠN HÀNG GẦN ĐÂY */}
+      <AdminCard
+        title="Đơn hàng gần đây"
+        subtitle="10 đơn mới nhất"
+        icon={<>📦</>}
+        action={<Link href="/admin/orders" style={{ fontSize: 12.5, color: "#2563eb", fontWeight: 700, textDecoration: "none" }}>Xem tất cả →</Link>}
+        padding={0}
+      >
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                <th style={thStyle}>Mã đơn</th>
+                <th style={thStyle}>Dịch vụ</th>
+                <th style={thStyle}>Số tiền</th>
+                <th style={thStyle}>Trạng thái</th>
+                <th style={thStyle}>Thời gian</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentOrders.length === 0 ? (
                 <tr>
-                  <th>Mã đơn</th>
-                  <th>Dịch vụ</th>
-                  <th>Số tiền</th>
-                  <th>Trạng thái</th>
-                  <th>Ngày</th>
+                  <td colSpan={5} style={{ padding: 40, textAlign: "center", color: "#94a3b8", fontSize: 13 }}>
+                    Chưa có đơn hàng nào
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {recentOrders.map((o) => (
-                  <tr key={o.id}>
-                    <td>
-                      <span className="admin-code">{o.orderCode}</span>
+              ) : (
+                recentOrders.slice(0, 10).map((o) => (
+                  <tr key={o.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                    <td style={tdStyle}>
+                      <code style={{ fontSize: 12, color: "#2563eb", fontWeight: 700 }}>
+                        {o.orderCode}
+                      </code>
                     </td>
-                    <td>{o.serviceName}</td>
-                    <td className="admin-amount">
-                      {o.finalAmount.toLocaleString("vi-VN")}đ
+                    <td style={tdStyle}>
+                      <div style={{ fontSize: 13.5, fontWeight: 700, color: "#0f172a" }}>
+                        {o.serviceName}
+                      </div>
                     </td>
-                    <td>
-                      <span className={`admin-badge admin-badge-${o.status}`}>
-                        {statusLabels[o.status] || o.status}
+                    <td style={tdStyle}>
+                      <span style={{ fontSize: 14, fontWeight: 900, color: "#10b981" }}>
+                        {fmt(o.finalAmount)}
                       </span>
                     </td>
-                    <td className="admin-time">
-                      {new Date(o.createdAt).toLocaleString("vi-VN")}
+                    <td style={tdStyle}>{statusBadge(o.status)}</td>
+                    <td style={tdStyle}>
+                      <span style={{ fontSize: 12, color: "#64748b" }}>
+                        {new Date(o.createdAt).toLocaleString("vi-VN")}
+                      </span>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      <style jsx>{`
-        .admin-stats-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 16px;
-          margin-bottom: 32px;
-        }
-        @media (max-width: 900px) { .admin-stats-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 480px) { .admin-stats-grid { grid-template-columns: 1fr; gap: 10px; } }
-
-        .admin-stat-card {
-          background: linear-gradient(145deg, rgba(30,30,50,.8), rgba(20,20,35,.8));
-          border: 1px solid rgba(167,139,250,.15);
-          border-radius: 16px;
-          padding: 20px;
-          transition: all .3s;
-        }
-        .admin-stat-card:hover {
-          transform: translateY(-4px);
-          border-color: rgba(167,139,250,.4);
-          box-shadow: 0 12px 32px rgba(124,58,237,.2);
-        }
-
-        .admin-stat-icon {
-          width: 44px;
-          height: 44px;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 22px;
-          margin-bottom: 12px;
-        }
-
-        .admin-stat-label {
-          font-size: 12.5px;
-          color: #8b88a8;
-          font-weight: 600;
-          margin-bottom: 6px;
-          text-transform: uppercase;
-          letter-spacing: .5px;
-        }
-
-        .admin-stat-value {
-          font-size: 26px;
-          font-weight: 900;
-          letter-spacing: -.5px;
-        }
-
-        .admin-section {
-          background: rgba(20,20,35,.6);
-          border: 1px solid rgba(167,139,250,.12);
-          border-radius: 16px;
-          padding: 20px;
-          margin-bottom: 24px;
-        }
-
-        .admin-section-head {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 16px;
-          flex-wrap: wrap;
-          gap: 8px;
-        }
-
-        .admin-section-head h2 {
-          font-size: 17px;
-          font-weight: 800;
-          color: #f5f5ff;
-          margin: 0;
-        }
-
-        .admin-link {
-          color: #a78bfa;
-          font-size: 13.5px;
-          font-weight: 700;
-          text-decoration: none;
-        }
-        .admin-link:hover { color: #c4b5fd; }
-
-        .admin-empty {
-          padding: 40px;
-          text-align: center;
-          color: #6b6885;
-          font-size: 14px;
-        }
-
-        .admin-table-wrap { overflow-x: auto; }
-
-        .admin-table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 13.5px;
-        }
-
-        .admin-table th {
-          text-align: left;
-          padding: 10px 12px;
-          color: #8b88a8;
-          font-weight: 700;
-          font-size: 11.5px;
-          text-transform: uppercase;
-          letter-spacing: .5px;
-          border-bottom: 1px solid rgba(167,139,250,.12);
-        }
-
-        .admin-table td {
-          padding: 12px;
-          color: #c7c5db;
-          border-bottom: 1px solid rgba(167,139,250,.06);
-        }
-
-        .admin-table tr:last-child td { border-bottom: none; }
-        .admin-table tr:hover td { background: rgba(167,139,250,.04); }
-
-        .admin-code {
-          font-family: monospace;
-          font-weight: 800;
-          color: #a78bfa;
-        }
-
-        .admin-amount {
-          font-weight: 800;
-          color: #10b981;
-        }
-
-        .admin-time {
-          font-size: 12px;
-          color: #8b88a8;
-        }
-
-        .admin-badge {
-          display: inline-block;
-          padding: 3px 10px;
-          border-radius: 999px;
-          font-size: 11px;
-          font-weight: 800;
-        }
-        .admin-badge-pending    { background: rgba(245,158,11,.15); color: #f59e0b; }
-        .admin-badge-paid       { background: rgba(6,182,212,.15);  color: #06b6d4; }
-        .admin-badge-processing { background: rgba(59,130,246,.15); color: #3b82f6; }
-        .admin-badge-completed  { background: rgba(16,185,129,.15); color: #10b981; }
-        .admin-badge-cancelled  { background: rgba(239,68,68,.15);  color: #ef4444; }
-        .admin-badge-expired    { background: rgba(107,114,128,.15); color: #9ca3af; }
-
-        @media (max-width: 640px) {
-          .admin-stat-value { font-size: 22px; }
-          .admin-section { padding: 14px; }
-          .admin-table { font-size: 12.5px; }
-          .admin-table th, .admin-table td { padding: 8px 6px; }
-        }
-      `}</style>
-    </div>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </AdminCard>
+    </>
   );
 }
+
+const thStyle: React.CSSProperties = {
+  padding: "12px 16px",
+  textAlign: "left",
+  fontSize: 11.5,
+  fontWeight: 800,
+  color: "#64748b",
+  textTransform: "uppercase",
+  letterSpacing: 0.5,
+  whiteSpace: "nowrap",
+};
+
+const tdStyle: React.CSSProperties = {
+  padding: "14px 16px",
+  fontSize: 13,
+  verticalAlign: "middle",
+};

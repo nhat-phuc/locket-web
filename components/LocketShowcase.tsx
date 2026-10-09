@@ -62,10 +62,6 @@ export default function LocketShowcase() {
 
   if (loading || lockets.length === 0) return null;
 
-  const half = Math.ceil(lockets.length / 2);
-  const row1 = lockets.slice(0, half);
-  const row2 = lockets.slice(half);
-
   return (
     <section className="ls-section">
       <div className="ls-header">
@@ -81,10 +77,7 @@ export default function LocketShowcase() {
         </p>
       </div>
 
-      <Marquee items={row1} speed={0.5} isAdmin={isAdmin} onDelete={handleDelete} />
-      {row2.length > 0 && (
-        <Marquee items={row2} speed={0.5} isAdmin={isAdmin} onDelete={handleDelete} />
-      )}
+      <Marquee items={lockets} speed={0.5} isAdmin={isAdmin} onDelete={handleDelete} />
     </section>
   );
 }
@@ -105,36 +98,46 @@ function Marquee({
   const rafRef = useRef<number>(0);
   const lastTimeRef = useRef(0);
 
+  // Nếu ít items (<= 3) → không marquee, hiện grid tĩnh
+  const isStatic = items.length <= 3;
+
   useEffect(() => {
+    if (isStatic) return;
     const track = trackRef.current;
     if (!track) return;
     const startAnim = () => {
       const animate = (time: number) => {
         const delta = lastTimeRef.current ? time - lastTimeRef.current : 0;
         lastTimeRef.current = time;
-        const halfWidth = track.scrollWidth / 2;
-        if (halfWidth > 0) {
-          offsetRef.current -= speed * delta * 0.06;
-          if (offsetRef.current <= -halfWidth) offsetRef.current += halfWidth;
+        const totalWidth = track.scrollWidth;
+        if (totalWidth > 0) {
+          offsetRef.current += speed * delta * 0.06;
+          // Khi chạy hết danh sách → quay về đầu
+          if (offsetRef.current <= -totalWidth) {
+            offsetRef.current = track.parentElement?.clientWidth || 0;
+          }
           track.style.transform = `translate3d(${offsetRef.current}px, 0, 0)`;
         }
         rafRef.current = requestAnimationFrame(animate);
       };
       rafRef.current = requestAnimationFrame(animate);
     };
-    offsetRef.current = 0;
+    offsetRef.current = -track.scrollWidth / 2;
     lastTimeRef.current = 0;
     const t = setTimeout(startAnim, 100);
     return () => {
       clearTimeout(t);
       cancelAnimationFrame(rafRef.current);
     };
-  }, [speed, items.length]);
+  }, [speed, items.length, isStatic]);
 
   return (
-    <div className="ls-marquee">
-      <div className="ls-track" ref={trackRef}>
-        {[...items, ...items].map((l, i) => (
+    <div className={`ls-marquee ${isStatic ? "ls-marquee-static" : ""}`}>
+      <div
+        className={`ls-track ${isStatic ? "ls-track-static" : ""}`}
+        ref={trackRef}
+      >
+        {(isStatic ? items : [...items, ...items]).map((l, i) => (
           <Card key={`m-${i}`} l={l} isAdmin={isAdmin} onDelete={onDelete} />
         ))}
       </div>

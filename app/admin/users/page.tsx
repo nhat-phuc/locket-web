@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminBadge from "@/components/admin/AdminBadge";
+import AdminButton from "@/components/admin/AdminButton";
+import AdminToast, { showToast } from "@/components/admin/AdminToast";
 
 interface User {
   id: string;
@@ -8,30 +12,59 @@ interface User {
   username: string;
   name: string | null;
   picture: string | null;
+  phone: string | null;
   balance: number;
   bonusBalance: number;
-  spinsUsed?: number;
-  spinsLeft?: number;
-  maxSpins?: number;
   role: string;
   isActive: boolean;
   isBanned: boolean;
-  isOnline?: boolean;
-  lastActiveAt?: string | null;
   createdAt: string;
 }
+
+interface Order {
+  id: string;
+  orderCode: string;
+  serviceName: string;
+  amount: number;
+  status: string;
+  createdAt: string;
+  paidAt: string | null;
+}
+
+interface Tx {
+  id: string;
+  type: string;
+  amount: number;
+  status: string;
+  description: string;
+  createdAt: string;
+}
+
+type Tab = "info" | "actions" | "orders" | "transactions" | "danger";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [filterRole, setFilterRole] = useState<"all" | "admin" | "user">("all");
+  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "banned">("all");
+
   const [selected, setSelected] = useState<User | null>(null);
+  const [tab, setTab] = useState<Tab>("info");
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [txs, setTxs] = useState<Tx[]>([]);
+  const [loadingTab, setLoadingTab] = useState(false);
+
+  // Action states
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [notiTitle, setNotiTitle] = useState("");
+  const [notiContent, setNotiContent] = useState("");
+  const [voucherCode, setVoucherCode] = useState("");
+  const [voucherValue, setVoucherValue] = useState("");
+  const [voucherType, setVoucherType] = useState<"percent" | "fixed">("percent");
   const [submitting, setSubmitting] = useState(false);
-  const [toast, setToast] = useState<{ type: string; msg: string } | null>(null);
-  const [openMenu, setOpenMenu] = useState<string | null>(null);
-  const [openMenuPos, setOpenMenuPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
   const load = () => {
     setLoading(true);
@@ -40,937 +73,581 @@ export default function AdminUsersPage() {
       .then((d) => {
         if (d.success) setUsers(d.users || d.items || []);
       })
+      .catch(() => showToast("error", "Lỗi tải danh sách"))
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
-  // Đóng menu khi click ra ngoài
+  // Load data theo tab
   useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      const t = e.target as HTMLElement;
-      if (t.closest("[data-menu-panel]")) return;
-      if (t.closest("[data-menu-trigger]")) return;
-      setOpenMenu(null);
-    };
-    document.addEventListener("click", handleClick);
-    return () => document.removeEventListener("click", handleClick);
-  }, []);
+    if (!selected) return;
+    setLoadingTab(true);
+    if (tab === "orders") {
+      fetch(`/api/admin/users/${selected.id}/orders`)
+        .then((r) => r.json())
+        .then((d) => { if (d.success) setOrders(d.orders); })
+        .finally(() => setLoadingTab(false));
+    } else if (tab === "transactions") {
+      fetch(`/api/admin/users/${selected.id}/transactions`)
+        .then((r) => r.json())
+        .then((d) => { if (d.success) setTxs(d.transactions); })
+        .finally(() => setLoadingTab(false));
+    } else {
+      setLoadingTab(false);
+    }
+  }, [tab, selected]);
 
-  const handleResetSpins = async (userId: string, username: string) => {
-    if (!confirm(`Reset lượt quay cho @${username}?`)) return;
+  const openUser = (u: User) => {
+    setSelected(u);
+    setTab("info");
+    setAmount("");
+    setNote("");
+    setNewPassword("");
+    setNotiTitle("");
+    setNotiContent("");
+    setVoucherCode("");
+    setVoucherValue("");
+  };
+
+  const filtered = useMemo(() => {
+    return users.filter((u) => {
+      if (filterRole !== "all" && u.role !== filterRole) return false;
+      if (filterStatus === "active" && u.isBanned) return false;
+      if (filterStatus === "banned" && !u.isBanned) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        return (
+          u.username.toLowerCase().includes(q) ||
+          u.email.toLowerCase().includes(q) ||
+          (u.name || "").toLowerCase().includes(q)
+        );
+      }
+      return true;
+    });
+  }, [users, search, filterRole, filterStatus]);
+
+  const stats = useMemo(() => ({
+    total: users.length,
+    active: users.filter((u) => !u.isBanned).length,
+    banned: users.filter((u) => u.isBanned).length,
+    admins: users.filter((u) => u.role === "admin").length,
+    totalBalance: users.reduce((s, u) => s + u.balance + u.bonusBalance, 0),
+  }), [users]);
+
+  // ═══ ACTIONS ═══
+  const handleToggleBan = async (u: User) => {
+    const action = u.isBanned ? "mở khóa" : "khóa";
+    if (!confirm(`Bạn có chắc muốn ${action} user "${u.username}"?`)) return;
+
     try {
-      const res = await fetch(`/api/admin/users/${userId}/reset-spins`, {
+      const res = await fetch("/api/admin/users/toggle-ban", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "reset" }),
+        body: JSON.stringify({ userId: u.id, isBanned: !u.isBanned }),
       });
       const d = await res.json();
       if (d.success) {
-        showToast("success", d.message);
+        showToast("success", `Đã ${action}`, u.username);
         load();
-      } else {
-        showToast("error", d.message || "Lỗi");
-      }
-    } catch {
-      showToast("error", "Lỗi kết nối");
-    }
+        if (selected?.id === u.id) setSelected({ ...u, isBanned: !u.isBanned });
+      } else showToast("error", "Lỗi", d.message);
+    } catch { showToast("error", "Lỗi kết nối"); }
   };
 
-  const showToast = (type: string, msg: string) => {
-    setToast({ type, msg });
-    setTimeout(() => setToast(null), 3000);
+  const handleChangeRole = async (u: User, newRole: "admin" | "user") => {
+    if (!confirm(`Đổi role của "${u.username}" thành "${newRole === "admin" ? "Quản trị" : "Người dùng"}"?`)) return;
+    try {
+      const res = await fetch("/api/admin/users/update-role", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: u.id, role: newRole }),
+      });
+      const d = await res.json();
+      if (d.success) {
+        showToast("success", "Đã đổi role", u.username);
+        load();
+        if (selected?.id === u.id) setSelected({ ...u, role: newRole });
+      } else showToast("error", "Lỗi", d.message);
+    } catch { showToast("error", "Lỗi kết nối"); }
   };
 
-  const filtered = users.filter(
-    (u) =>
-      u.email.toLowerCase().includes(search.toLowerCase()) ||
-      u.username.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const stats = {
-    total: users.length,
-    admins: users.filter((u) => u.role === "admin").length,
-    banned: users.filter((u) => !!u.isBanned).length,
-    totalBalance: users.reduce((s, u) => s + (u.balance || 0), 0),
-  };
-
-  const fmt = (n: number) => n.toLocaleString("vi-VN") + "đ";
-
-  const handleRecharge = async () => {
+  const handleRecharge = async (type: "add" | "subtract") => {
     if (!selected) return;
-    const amt = Number(amount.replace(/\D/g, ""));
-    if (!amt) {
-      showToast("error", "Nhập số tiền");
-      return;
-    }
+    const num = Number(amount);
+    if (!num || num <= 0) return showToast("warning", "Số tiền không hợp lệ");
+    if (type === "subtract" && num > selected.balance) return showToast("warning", "Số dư không đủ");
+
     setSubmitting(true);
     try {
       const res = await fetch(`/api/admin/users/${selected.id}/recharge`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: amt, note }),
+        body: JSON.stringify({ amount: num, note: note || (type === "add" ? "Admin cộng tiền" : "Admin trừ tiền"), type }),
       });
-      const data = await res.json();
-      if (data.success) {
-        showToast("success", data.message);
+      const d = await res.json();
+      if (d.success) {
+        showToast("success", type === "add" ? `Đã cộng ${num.toLocaleString("vi-VN")}đ` : `Đã trừ ${num.toLocaleString("vi-VN")}đ`);
+        setSelected({ ...selected, balance: type === "add" ? selected.balance + num : selected.balance - num });
+        setAmount(""); setNote("");
+        load();
+      } else showToast("error", "Lỗi", d.message);
+    } catch { showToast("error", "Lỗi kết nối"); }
+    finally { setSubmitting(false); }
+  };
+
+  const handleResetPassword = async () => {
+    if (!selected || !newPassword) return showToast("warning", "Nhập mật khẩu mới");
+    if (newPassword.length < 6) return showToast("warning", "Mật khẩu ≥ 6 ký tự");
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/admin/users/${selected.id}/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newPassword }),
+      });
+      const d = await res.json();
+      if (d.success) {
+        showToast("success", "Đã reset mật khẩu", `Mật khẩu mới: ${newPassword}`);
+        setNewPassword("");
+      } else showToast("error", "Lỗi", d.message);
+    } catch { showToast("error", "Lỗi kết nối"); }
+    finally { setSubmitting(false); }
+  };
+
+  const handleNotify = async () => {
+    if (!selected || !notiTitle || !notiContent) return showToast("warning", "Nhập đủ tiêu đề + nội dung");
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/admin/users/${selected.id}/notify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: notiTitle, content: notiContent, type: "info" }),
+      });
+      const d = await res.json();
+      if (d.success) {
+        showToast("success", "Đã gửi thông báo");
+        setNotiTitle(""); setNotiContent("");
+      } else showToast("error", "Lỗi", d.message);
+    } catch { showToast("error", "Lỗi kết nối"); }
+    finally { setSubmitting(false); }
+  };
+
+  const handleGrantVoucher = async () => {
+    if (!selected || !voucherCode || !voucherValue) return showToast("warning", "Nhập mã + giá trị");
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/admin/users/${selected.id}/grant-voucher`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: voucherCode.toUpperCase(),
+          discountType: voucherType,
+          discountValue: Number(voucherValue),
+        }),
+      });
+      const d = await res.json();
+      if (d.success) {
+        showToast("success", `Đã tặng voucher ${voucherCode}`);
+        setVoucherCode(""); setVoucherValue("");
+      } else showToast("error", "Lỗi", d.message);
+    } catch { showToast("error", "Lỗi kết nối"); }
+    finally { setSubmitting(false); }
+  };
+
+  const handleDelete = async () => {
+    if (!selected) return;
+    if (!confirm(`XÓA VĨNH VIỄN user "${selected.username}"?\n\nHành động không thể hoàn tác!`)) return;
+    const confirmText = prompt(`Gõ "XOA" để xác nhận:`);
+    if (confirmText !== "XOA") return showToast("warning", "Đã hủy");
+
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/admin/users/${selected.id}/delete`, { method: "DELETE" });
+      const d = await res.json();
+      if (d.success) {
+        showToast("success", "Đã xóa user");
         setSelected(null);
-        setAmount("");
-        setNote("");
         load();
-      } else {
-        showToast("error", data.message);
-      }
-    } catch {
-      showToast("error", "Lỗi kết nối");
-    } finally {
-      setSubmitting(false);
-    }
+      } else showToast("error", "Lỗi", d.message);
+    } catch { showToast("error", "Lỗi kết nối"); }
+    finally { setSubmitting(false); }
   };
 
-  const handleUpdateRole = async (userId: string, newRole: "admin" | "user") => {
-    if (!confirm(newRole === "admin" ? "Cấp quyền ADMIN cho user này?" : "Hạ quyền xuống USER?")) return;
-    try {
-      const res = await fetch("/api/admin/users/update-role", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, role: newRole }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        showToast("success", data.message);
-        load();
-      } else {
-        showToast("error", data.message || "Lỗi");
-      }
-    } catch {
-      showToast("error", "Lỗi kết nối");
-    }
-  };
-
-  const handleToggleBan = async (userId: string, currentBanned: boolean) => {
-    if (!confirm(currentBanned ? "Bỏ ban user này?" : "Ban user này? Họ sẽ không đăng nhập được!")) return;
-    try {
-      const res = await fetch("/api/admin/users/toggle-ban", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, isBanned: !currentBanned }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        showToast("success", data.message);
-        load();
-      } else {
-        showToast("error", data.message || "Lỗi");
-      }
-    } catch {
-      showToast("error", "Lỗi kết nối");
-    }
-  };
-
-  const fmtDate = (s: string) =>
-    new Date(s).toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+  const fmt = (n: number) => n.toLocaleString("vi-VN") + "đ";
 
   return (
-    <div className="admin-page">
+    <>
+      <AdminToast />
+
       {/* HEADER */}
-      <div style={{ marginBottom: 24 }}>
-        <h1
-          style={{
-            fontSize: 26,
-            fontWeight: 900,
-            margin: 0,
-            color: "#0f172a",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          👥 Quản lý người dùng
-        </h1>
-        <p style={{ color: "#64748b", marginTop: 6, fontSize: 14 }}>
-          Nạp tiền, phân quyền, quản lý tài khoản người dùng
-        </p>
-      </div>
-
-      {/* STATS MINI */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-          gap: 12,
-          marginBottom: 20,
-        }}
-      >
-        <MiniStat label="Tổng user" value={stats.total} icon="👥" color="#3b82f6" />
-        <MiniStat label="Admins" value={stats.admins} icon="👑" color="#f59e0b" />
-        <MiniStat label="Bị ban" value={stats.banned} icon="🚫" color="#ef4444" />
-        <MiniStat label="Tổng số dư" value={fmt(stats.totalBalance)} icon="💰" color="#10b981" />
-      </div>
-
-      {/* TOAST */}
-      {toast && (
-        <div
-          style={{
-            padding: "12px 16px",
-            borderRadius: 12,
-            marginBottom: 16,
-            background: toast.type === "success" ? "#ecfdf5" : "#fef2f2",
-            border: `1px solid ${toast.type === "success" ? "#86efac" : "#fecaca"}`,
-            color: toast.type === "success" ? "#059669" : "#dc2626",
-            fontWeight: 600,
-            fontSize: 14,
-          }}
-        >
-          {toast.msg}
+      <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
+        <div>
+          <h1 style={{ fontSize: 26, fontWeight: 900, color: "#0f172a", marginBottom: 6, letterSpacing: "-0.02em" }}>
+            👥 Quản lý người dùng
+          </h1>
+          <p style={{ fontSize: 14, color: "#64748b", margin: 0 }}>
+            Ban/unban, đổi quyền, cộng/trừ số dư, reset mật khẩu, tặng voucher
+          </p>
         </div>
-      )}
+        <div style={{ display: "flex", gap: 8 }}>
+          <a href="/api/admin/users/export" download>
+            <AdminButton variant="outline" icon={<>📥</>}>Export CSV</AdminButton>
+          </a>
+          <AdminButton variant="outline" icon={<>🔄</>} onClick={load}>Làm mới</AdminButton>
+        </div>
+      </div>
 
-      {/* SEARCH + COUNT */}
-      <div
-        style={{
-          display: "flex",
-          gap: 12,
-          alignItems: "center",
-          marginBottom: 16,
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ position: "relative", flex: 1, minWidth: 240, maxWidth: 400 }}>
-          <span
-            style={{
-              position: "absolute",
-              left: 14,
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "#94a3b8",
-              fontSize: 15,
-            }}
-          >
-            🔍
-          </span>
+      {/* MINI STATS */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, marginBottom: 20 }}>
+        <MiniStat label="Tổng users" value={stats.total} color="#2563eb" icon="👥" />
+        <MiniStat label="Hoạt động" value={stats.active} color="#10b981" icon="✅" />
+        <MiniStat label="Bị khóa" value={stats.banned} color="#dc2626" icon="🚫" />
+        <MiniStat label="Quản trị" value={stats.admins} color="#7c3aed" icon="👑" />
+        <MiniStat label="Tổng số dư" value={fmt(stats.totalBalance)} color="#f59e0b" icon="💰" />
+      </div>
+
+      {/* FILTERS */}
+      <AdminCard padding={16} style={{ marginBottom: 16 }}>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
           <input
             type="text"
-            placeholder="Tìm theo email hoặc username..."
+            placeholder="🔍 Tìm theo username, email, tên..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={{
-              width: "100%",
-              padding: "11px 14px 11px 40px",
-              border: "1.5px solid #e2e8f0",
-              borderRadius: 10,
-              fontSize: 14,
-              fontFamily: "inherit",
-              color: "#0f172a",
-              background: "#fff",
-              outline: "none",
-              boxSizing: "border-box",
+              flex: 1, minWidth: 220, padding: "10px 14px",
+              background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10,
+              fontSize: 13.5, fontFamily: "inherit", color: "#0f172a", outline: "none",
             }}
           />
+          <div style={{ display: "flex", gap: 6 }}>
+            {(["all", "admin", "user"] as const).map((r) => (
+              <button key={r} onClick={() => setFilterRole(r)} style={pill(filterRole === r)}>
+                {r === "all" ? "Mọi vai trò" : r === "admin" ? "👑 Admin" : "👤 User"}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 6 }}>
+            {(["all", "active", "banned"] as const).map((s) => (
+              <button key={s} onClick={() => setFilterStatus(s)} style={pill(filterStatus === s, s === "banned" ? "#dc2626" : "#2563eb")}>
+                {s === "all" ? "Mọi trạng thái" : s === "active" ? "✅ Active" : "🚫 Banned"}
+              </button>
+            ))}
+          </div>
         </div>
-        <div style={{ fontSize: 13, color: "#64748b", fontWeight: 600 }}>
-          {filtered.length} / {users.length} người dùng
-        </div>
-      </div>
+      </AdminCard>
 
       {/* TABLE */}
-      {loading ? (
-        <div
-          style={{
-            padding: 60,
-            textAlign: "center",
-            color: "#94a3b8",
-            background: "#fff",
-            borderRadius: 16,
-            border: "1px solid #e2e8f0",
-          }}
-        >
-          Đang tải...
-        </div>
-      ) : (
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: 16,
-            border: "1px solid #e2e8f0",
-            overflow: "hidden",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-          }}
-        >
+      <AdminCard padding={0}>
+        {loading ? (
+          <div style={{ padding: 60, textAlign: "center", color: "#64748b" }}>Đang tải...</div>
+        ) : filtered.length === 0 ? (
+          <div style={{ padding: 60, textAlign: "center" }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>👥</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "#64748b" }}>Không có user nào</div>
+          </div>
+        ) : (
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ background: "#f8fafc" }}>
-                  <th style={thStyle}>#</th>
-                  <th style={thStyle}>Người dùng</th>
-                  <th style={thStyle}>Vai trò</th>
-                  <th style={{ ...thStyle, textAlign: "right" }}>Số dư</th>
-                  <th style={{ ...thStyle, textAlign: "right" }}>Bonus</th>
-                  <th style={{ ...thStyle, textAlign: "center" }}>Lượt quay</th>
-                  <th style={thStyle}>Hoạt động</th>
-                  <th style={thStyle}>Ngày tạo</th>
-                  <th style={{ ...thStyle, width: 60, textAlign: "center" }}></th>
+                <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                  <th style={th}>User</th>
+                  <th style={th}>Số dư</th>
+                  <th style={th}>Vai trò</th>
+                  <th style={th}>Trạng thái</th>
+                  <th style={th}>Ngày tạo</th>
+                  <th style={{ ...th, textAlign: "right" }}>Hành động</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((u, i) => (
-                  <tr
-                    key={u.id}
-                    style={{
-                      borderTop: "1px solid #f1f5f9",
-                      transition: "background 0.15s",
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "#f8fafc")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                  >
-                    <td style={{ ...tdStyle, color: "#94a3b8", fontWeight: 700 }}>
-                      {i + 1}
-                    </td>
-                    <td style={tdStyle}>
+                {filtered.map((u) => (
+                  <tr key={u.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                    <td style={td}>
                       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <div
-                          style={{
-                            width: 38,
-                            height: 38,
-                            borderRadius: "50%",
-                            background: !!u.isBanned
-                              ? "#fef2f2"
-                              : "linear-gradient(135deg, #3b82f6, #60a5fa)",
-                            color: !!u.isBanned ? "#dc2626" : "#fff",
-                            display: "grid",
-                            placeItems: "center",
-                            fontWeight: 900,
-                            fontSize: 15,
-                            flexShrink: 0,
-                            overflow: "hidden",
-                          }}
-                        >
-                          {u.picture ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              referrerPolicy="no-referrer"
-                              crossOrigin="anonymous"
-                              onError={(e) => {
-                                e.currentTarget.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(u.username || "U") + "&background=7c3aed&color=fff&size=100&bold=true";
-                              }}
-                              src={u.picture}
-                              alt={u.username}
-                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                            />
-                          ) : (
-                            (u.username || u.email).charAt(0).toUpperCase()
-                          )}
-                        </div>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={u.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.username)}&background=2563eb&color=fff&size=80&bold=true`}
+                          alt={u.username}
+                          referrerPolicy="no-referrer"
+                          style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: `2px solid ${u.role === "admin" ? "#fbbf24" : "#bfdbfe"}`, flexShrink: 0 }}
+                        />
                         <div style={{ minWidth: 0 }}>
-                          <div
-                            style={{
-                              fontSize: 14,
-                              fontWeight: 800,
-                              color: "#0f172a",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 6,
-                            }}
-                          >
-                            {u.isOnline && (
-                              <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "#10b981", marginRight: 6, boxShadow: "0 0 0 2px rgba(16,185,129,.3)" }} title="Đang online" />
-                            )}
-                            @{u.username}
-                            {!!u.isBanned && (
-                              <span
-                                style={{
-                                  fontSize: 9.5,
-                                  fontWeight: 800,
-                                  padding: "2px 6px",
-                                  borderRadius: 4,
-                                  background: "#fee2e2",
-                                  color: "#dc2626",
-                                }}
-                              >
-                                BANNED
-                              </span>
-                            )}
-                          </div>
-                          <div style={{ fontSize: 12, color: "#64748b" }}>{u.email}</div>
+                          <div style={{ fontSize: 13.5, fontWeight: 800, color: "#0f172a" }}>@{u.username}</div>
+                          <div style={{ fontSize: 11.5, color: "#64748b" }}>{u.email}</div>
                         </div>
                       </div>
                     </td>
-                    <td style={tdStyle}>
-                      <span
-                        style={{
-                          padding: "4px 10px",
-                          background: u.role === "admin" ? "#fef3c7" : "#eff6ff",
-                          color: u.role === "admin" ? "#b45309" : "#2563eb",
-                          fontSize: 11,
-                          fontWeight: 800,
-                          borderRadius: 6,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.3px",
-                        }}
-                      >
-                        {u.role === "admin" ? "👑 Admin" : "User"}
-                      </span>
+                    <td style={td}>
+                      <div style={{ fontSize: 14, fontWeight: 900, color: "#10b981" }}>{fmt(u.balance)}</div>
+                      {u.bonusBalance > 0 && <div style={{ fontSize: 11, color: "#f59e0b" }}>+{fmt(u.bonusBalance)}</div>}
                     </td>
-                    <td style={{ ...tdStyle, textAlign: "right", fontWeight: 900, color: "#10b981", fontSize: 14 }}>
-                      {fmt(u.balance || 0)}
+                    <td style={td}>
+                      {u.role === "admin" ? <AdminBadge variant="warning">👑 Admin</AdminBadge> : <AdminBadge variant="info">👤 User</AdminBadge>}
                     </td>
-                    <td style={{ ...tdStyle, textAlign: "right", fontWeight: 800, color: "#8b5cf6", fontSize: 13.5 }}>
-                      {fmt(u.bonusBalance || 0)}
+                    <td style={td}>
+                      {u.isBanned ? <AdminBadge variant="danger" dot>Đã khóa</AdminBadge> : <AdminBadge variant="success" dot>Hoạt động</AdminBadge>}
                     </td>
-                    <td style={{ ...tdStyle, textAlign: "center" }}>
-                      <span style={{
-                        display: "inline-block",
-                        padding: "3px 10px",
-                        borderRadius: 999,
-                        fontSize: 11.5,
-                        fontWeight: 800,
-                        background: (u.spinsLeft || 0) > 0 ? "rgba(52,211,153,.15)" : "rgba(148,163,184,.15)",
-                        color: (u.spinsLeft || 0) > 0 ? "#10b981" : "#94a3b8",
-                      }}>
-                        {(u.spinsLeft || 0)}/{u.maxSpins || 3}
-                      </span>
+                    <td style={td}>
+                      <span style={{ fontSize: 12, color: "#64748b" }}>{new Date(u.createdAt).toLocaleDateString("vi-VN")}</span>
                     </td>
-                    <td style={{ ...tdStyle, fontSize: 12.5 }}>
-                      {u.isOnline ? (
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "#10b981", fontWeight: 700 }}>
-                          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#10b981", boxShadow: "0 0 0 3px rgba(16,185,129,.2)", animation: "pulse 1.5s infinite" }} />
-                          Đang online
-                        </span>
-                      ) : u.lastActiveAt ? (
-                        <span style={{ color: "#64748b" }}>
-                          {(() => {
-                            const diff = Date.now() - new Date(u.lastActiveAt).getTime();
-                            const m = Math.floor(diff / 60000);
-                            if (m < 1) return "Vừa xong";
-                            if (m < 60) return `${m} phút trước`;
-                            const h = Math.floor(m / 60);
-                            if (h < 24) return `${h} giờ trước`;
-                            const d = Math.floor(h / 24);
-                            if (d < 7) return `${d} ngày trước`;
-                            return new Date(u.lastActiveAt).toLocaleDateString("vi-VN");
-                          })()}
-                        </span>
-                      ) : (
-                        <span style={{ color: "#94a3b8" }}>Chưa hoạt động</span>
-                      )}
-                    </td>
-                    <td style={{ ...tdStyle, fontSize: 12.5, color: "#64748b" }}>
-                      {fmtDate(u.createdAt)}
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: "center", position: "relative" }}>
-                      <button
-                        data-menu-trigger onClick={(e) => {
-                          e.stopPropagation();
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          const menuH = 220;
-                          const spaceBelow = window.innerHeight - rect.bottom;
-                          const top = spaceBelow < menuH ? rect.top - menuH - 4 : rect.bottom + 4;
-                          const left = Math.min(rect.right - 170, window.innerWidth - 180);
-                          setOpenMenuPos({ top, left });
-                          setOpenMenu(openMenu === u.id ? null : u.id);
-                        }}
-                        style={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: 8,
-                          background: openMenu === u.id ? "#eff6ff" : "#f8fafc",
-                          border: "1px solid #e2e8f0",
-                          color: "#64748b",
-                          fontSize: 16,
-                          cursor: "pointer",
-                          fontWeight: 900,
-                          display: "grid",
-                          placeItems: "center",
-                          fontFamily: "inherit",
-                        }}
-                      >
-                        ⋮
-                      </button>
-
-                      {openMenu === u.id && (
-                        <div
-                          data-menu-panel
-                          onClick={(e) => e.stopPropagation()}
-                          style={{
-                            position: "fixed",
-                            top: openMenuPos.top || 200,
-                            left: openMenuPos.left || 200,
-                            background: "#ffffff",
-                            border: "1px solid #e2e8f0",
-                            borderRadius: 10,
-                            boxShadow: "0 12px 32px rgba(0,0,0,0.18)",
-                            padding: 6,
-                            zIndex: 99999,
-                            minWidth: 170,
-                            display: "block",
-                          }}
-                        >
-                          <button
-                            onClick={() => {
-                              setSelected(u);
-                              setAmount("");
-                              setNote("");
-                              setOpenMenu(null);
-                            }}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 10,
-                              width: "100%",
-                              padding: "10px 14px",
-                              background: "transparent",
-                              border: "none",
-                              borderRadius: 8,
-                              fontSize: 13.5,
-                              fontWeight: 700,
-                              color: "#475569",
-                              cursor: "pointer",
-                              textAlign: "left",
-                              fontFamily: "inherit",
-                            }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = "#f8fafc")}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                          >
-                            💰 Nạp tiền
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              handleResetSpins(u.id, u.username);
-                              setOpenMenu(null);
-                            }}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 10,
-                              width: "100%",
-                              padding: "10px 14px",
-                              background: "transparent",
-                              border: "none",
-                              borderRadius: 8,
-                              fontSize: 13.5,
-                              fontWeight: 700,
-                              color: "#f59e0b",
-                              cursor: "pointer",
-                              textAlign: "left",
-                              fontFamily: "inherit",
-                            }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = "#f8fafc")}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                          >
-                            🎯 Reset lượt quay
-                          </button>
-
-                          {u.role === "user" ? (
-                            <button
-                              onClick={() => {
-                                handleUpdateRole(u.id, "admin");
-                                setOpenMenu(null);
-                              }}
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 10,
-                                width: "100%",
-                                padding: "10px 14px",
-                                background: "transparent",
-                                border: "none",
-                                borderRadius: 8,
-                                fontSize: 13.5,
-                                fontWeight: 700,
-                                color: "#f59e0b",
-                                cursor: "pointer",
-                                textAlign: "left",
-                                fontFamily: "inherit",
-                              }}
-                              onMouseEnter={(e) => (e.currentTarget.style.background = "#f8fafc")}
-                              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                            >
-                              👑 Nâng Admin
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => {
-                                handleUpdateRole(u.id, "user");
-                                setOpenMenu(null);
-                              }}
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 10,
-                                width: "100%",
-                                padding: "10px 14px",
-                                background: "transparent",
-                                border: "none",
-                                borderRadius: 8,
-                                fontSize: 13.5,
-                                fontWeight: 700,
-                                color: "#475569",
-                                cursor: "pointer",
-                                textAlign: "left",
-                                fontFamily: "inherit",
-                              }}
-                              onMouseEnter={(e) => (e.currentTarget.style.background = "#f8fafc")}
-                              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                            >
-                              ⬇️ Hạ User
-                            </button>
-                          )}
-
-                          {u.isBanned ? (
-                            <button
-                              onClick={() => {
-                                handleToggleBan(u.id, true);
-                                setOpenMenu(null);
-                              }}
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 10,
-                                width: "100%",
-                                padding: "10px 14px",
-                                background: "transparent",
-                                border: "none",
-                                borderRadius: 8,
-                                fontSize: 13.5,
-                                fontWeight: 700,
-                                color: "#10b981",
-                                cursor: "pointer",
-                                textAlign: "left",
-                                fontFamily: "inherit",
-                              }}
-                              onMouseEnter={(e) => (e.currentTarget.style.background = "#f8fafc")}
-                              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                            >
-                              ✅ Bỏ ban
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => {
-                                handleToggleBan(u.id, false);
-                                setOpenMenu(null);
-                              }}
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 10,
-                                width: "100%",
-                                padding: "10px 14px",
-                                background: "transparent",
-                                border: "none",
-                                borderRadius: 8,
-                                fontSize: 13.5,
-                                fontWeight: 700,
-                                color: "#ef4444",
-                                cursor: "pointer",
-                                textAlign: "left",
-                                fontFamily: "inherit",
-                              }}
-                              onMouseEnter={(e) => (e.currentTarget.style.background = "#f8fafc")}
-                              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                            >
-                              🚫 Ban user
-                            </button>
-                          )}
-                        </div>
-                      )}
+                    <td style={{ ...td, textAlign: "right" }}>
+                      <AdminButton variant="primary" size="sm" onClick={() => openUser(u)}>Chi tiết</AdminButton>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+        )}
+      </AdminCard>
 
-          {filtered.length === 0 && (
-            <div
-              style={{
-                padding: 60,
-                textAlign: "center",
-                color: "#94a3b8",
-              }}
-            >
-              <div style={{ fontSize: 48, marginBottom: 12 }}>🔍</div>
-              <div style={{ fontWeight: 700, fontSize: 15 }}>Không tìm thấy user nào</div>
-              <div style={{ fontSize: 13, marginTop: 4 }}>Thử từ khoá khác</div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* MODAL NẠP TIỀN */}
+      {/* MODAL 5 TAB */}
       {selected && (
         <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(15, 23, 42, 0.5)",
-            backdropFilter: "blur(4px)",
-            display: "grid",
-            placeItems: "center",
-            zIndex: 100,
-            padding: 20,
-          }}
-          onClick={() => !submitting && setSelected(null)}
+          onClick={() => setSelected(null)}
+          style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,.7)", backdropFilter: "blur(6px)", display: "grid", placeItems: "center", zIndex: 9999, padding: 20 }}
         >
           <div
-            style={{
-              background: "#fff",
-              borderRadius: 18,
-              padding: 28,
-              width: "100%",
-              maxWidth: 440,
-              boxShadow: "0 24px 64px rgba(0,0,0,0.2)",
-            }}
             onClick={(e) => e.stopPropagation()}
+            style={{ background: "#fff", borderRadius: 20, maxWidth: 720, width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 30px 80px rgba(0,0,0,.4)" }}
           >
-            <h3 style={{ fontSize: 20, fontWeight: 900, marginBottom: 6, color: "#0f172a" }}>
-              💰 Nạp tiền cho user
-            </h3>
-            <p style={{ fontSize: 13, color: "#64748b", marginBottom: 20 }}>
-              @{selected.username} — Số dư: <b style={{ color: "#10b981" }}>{fmt(selected.balance)}</b>
-            </p>
-
-            <div style={{ marginBottom: 16 }}>
-              <label style={labelStyle}>Số tiền (đ) *</label>
-              <input
-                type="text"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))}
-                placeholder="VD: 100000"
-                style={{
-                  width: "100%",
-                  padding: "12px 14px",
-                  border: "1.5px solid #e2e8f0",
-                  borderRadius: 10,
-                  fontSize: 15,
-                  fontWeight: 700,
-                  fontFamily: "inherit",
-                  color: "#0f172a",
-                  boxSizing: "border-box",
-                  outline: "none",
-                }}
+            {/* HEADER */}
+            <div style={{ padding: 20, background: "linear-gradient(135deg, #eff6ff, #dbeafe)", display: "flex", alignItems: "center", gap: 14, borderBottom: "1px solid #e2e8f0" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={selected.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(selected.username)}&background=2563eb&color=fff&size=100&bold=true`}
+                alt={selected.username}
+                referrerPolicy="no-referrer"
+                style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "3px solid #3b82f6" }}
               />
-              {amount && (
-                <div style={{ marginTop: 6, fontSize: 12, color: "#64748b", fontWeight: 600 }}>
-                  = {Number(amount).toLocaleString("vi-VN")}đ
-                </div>
-              )}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 16, fontWeight: 900, color: "#0f172a" }}>@{selected.username}</div>
+                <div style={{ fontSize: 12.5, color: "#64748b", marginTop: 2 }}>{selected.email}</div>
+              </div>
+              <button onClick={() => setSelected(null)} style={{ background: "transparent", border: "none", fontSize: 22, cursor: "pointer", color: "#64748b", padding: 4 }}>×</button>
             </div>
 
-            <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
-              {[10000, 50000, 100000, 500000, 1000000].map((v) => (
+            {/* TABS */}
+            <div style={{ display: "flex", borderBottom: "1px solid #e2e8f0", padding: "0 20px", gap: 4, overflowX: "auto" }}>
+              {([
+                { key: "info", label: "📋 Thông tin" },
+                { key: "actions", label: "⚡ Hành động" },
+                { key: "orders", label: "📦 Đơn hàng" },
+                { key: "transactions", label: "💰 Giao dịch" },
+                { key: "danger", label: "⚠️ Nguy hiểm" },
+              ] as const).map((t) => (
                 <button
-                  key={v}
-                  onClick={() => setAmount(String(v))}
+                  key={t.key}
+                  onClick={() => setTab(t.key)}
                   style={{
-                    padding: "6px 12px",
-                    border: `1.5px solid ${amount === String(v) ? "#3b82f6" : "#e2e8f0"}`,
-                    background: amount === String(v) ? "#eff6ff" : "#fff",
-                    color: amount === String(v) ? "#2563eb" : "#475569",
-                    borderRadius: 8,
-                    fontSize: 12,
+                    padding: "12px 14px",
+                    background: "transparent",
+                    border: "none",
+                    borderBottom: tab === t.key ? "2px solid #2563eb" : "2px solid transparent",
+                    color: tab === t.key ? "#2563eb" : "#64748b",
+                    fontSize: 13,
                     fontWeight: 700,
                     cursor: "pointer",
                     fontFamily: "inherit",
+                    whiteSpace: "nowrap",
                   }}
                 >
-                  {v.toLocaleString("vi-VN")}đ
+                  {t.label}
                 </button>
               ))}
             </div>
 
-            <div style={{ marginBottom: 20 }}>
-              <label style={labelStyle}>Lý do (tùy chọn)</label>
-              <input
-                type="text"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="VD: Nạp tiền mặt, bù lỗi..."
-                style={{
-                  width: "100%",
-                  padding: "12px 14px",
-                  border: "1.5px solid #e2e8f0",
-                  borderRadius: 10,
-                  fontSize: 14,
-                  fontFamily: "inherit",
-                  color: "#0f172a",
-                  boxSizing: "border-box",
-                  outline: "none",
-                }}
-              />
-            </div>
+            {/* CONTENT */}
+            <div style={{ padding: 20 }}>
+              {/* TAB 1: INFO */}
+              {tab === "info" && (
+                <div>
+                  <div style={{ background: "linear-gradient(135deg, #ecfdf5, #d1fae5)", borderRadius: 14, padding: 16, marginBottom: 20, border: "1px solid #a7f3d0" }}>
+                    <div style={{ fontSize: 11.5, color: "#047857", fontWeight: 700, textTransform: "uppercase", marginBottom: 6 }}>Số dư</div>
+                    <div style={{ fontSize: 28, fontWeight: 900, color: "#059669" }}>{fmt(selected.balance)}</div>
+                    {selected.bonusBalance > 0 && <div style={{ fontSize: 12.5, color: "#f59e0b", marginTop: 4, fontWeight: 700 }}>+ {fmt(selected.bonusBalance)} thưởng</div>}
+                  </div>
 
-            <div style={{ display: "flex", gap: 10 }}>
-              <button
-                onClick={() => setSelected(null)}
-                disabled={submitting}
-                style={{
-                  flex: 1,
-                  padding: 13,
-                  background: "#f1f5f9",
-                  border: "none",
-                  borderRadius: 10,
-                  fontSize: 14,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  color: "#475569",
-                }}
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleRecharge}
-                disabled={submitting || !amount}
-                style={{
-                  flex: 2,
-                  padding: 13,
-                  background: submitting || !amount ? "#94a3b8" : "linear-gradient(135deg, #2563eb, #3b82f6)",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 10,
-                  fontSize: 14,
-                  fontWeight: 800,
-                  cursor: submitting ? "not-allowed" : "pointer",
-                  fontFamily: "inherit",
-                  boxShadow: "0 8px 20px rgba(37, 99, 235, 0.25)",
-                }}
-              >
-                {submitting ? "Đang xử lý..." : "Xác nhận nạp"}
-              </button>
+                  <div style={{ display: "grid", gap: 8, fontSize: 13.5 }}>
+                    <Row label="ID" value={<code style={{ fontSize: 11 }}>{selected.id}</code>} />
+                    <Row label="Tên" value={selected.name || "—"} />
+                    <Row label="SĐT" value={selected.phone || "—"} />
+                    <Row label="Vai trò" value={selected.role === "admin" ? "👑 Admin" : "👤 User"} />
+                    <Row label="Trạng thái" value={selected.isBanned ? "🚫 Đã khóa" : "✅ Hoạt động"} />
+                    <Row label="Ngày tạo" value={new Date(selected.createdAt).toLocaleString("vi-VN")} />
+                  </div>
+
+                  {/* Cộng/trừ tiền */}
+                  <div style={{ marginTop: 20, padding: 16, background: "#f8fafc", borderRadius: 12 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 10 }}>💰 Cộng / Trừ số dư</div>
+                    <input type="number" placeholder="Số tiền" value={amount} onChange={(e) => setAmount(e.target.value)} style={input} />
+                    <input type="text" placeholder="Lý do" value={note} onChange={(e) => setNote(e.target.value)} style={input} />
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                      <AdminButton variant="success" loading={submitting} onClick={() => handleRecharge("add")}>+ Cộng</AdminButton>
+                      <AdminButton variant="danger" loading={submitting} onClick={() => handleRecharge("subtract")}>− Trừ</AdminButton>
+                    </div>
+                  </div>
+
+                  {/* Đổi role */}
+                  <div style={{ marginTop: 16, padding: 16, background: "#f8fafc", borderRadius: 12 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 10 }}>👑 Đổi vai trò</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                      <AdminButton variant={selected.role === "user" ? "primary" : "outline"} onClick={() => selected.role !== "user" && handleChangeRole(selected, "user")}>👤 User</AdminButton>
+                      <AdminButton variant={selected.role === "admin" ? "primary" : "outline"} onClick={() => selected.role !== "admin" && handleChangeRole(selected, "admin")}>👑 Admin</AdminButton>
+                    </div>
+                  </div>
+
+                  {/* Ban toggle */}
+                  <div style={{ marginTop: 16 }}>
+                    <AdminButton
+                      variant={selected.isBanned ? "success" : "danger"}
+                      style={{ width: "100%" }}
+                      onClick={() => handleToggleBan(selected)}
+                    >
+                      {selected.isBanned ? "🔓 Mở khóa tài khoản" : "🚫 Khóa tài khoản"}
+                    </AdminButton>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: ACTIONS */}
+              {tab === "actions" && (
+                <div style={{ display: "grid", gap: 20 }}>
+                  {/* Reset mật khẩu */}
+                  <div style={{ padding: 16, background: "#fffbeb", borderRadius: 12, border: "1px solid #fde68a" }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 800, marginBottom: 10, color: "#92400e" }}>🔑 Reset mật khẩu</div>
+                    <input type="text" placeholder="Mật khẩu mới (≥ 6 ký tự)" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} style={input} />
+                    <AdminButton variant="primary" style={{ width: "100%" }} loading={submitting} onClick={handleResetPassword}>Reset mật khẩu</AdminButton>
+                  </div>
+
+                  {/* Gửi thông báo */}
+                  <div style={{ padding: 16, background: "#eff6ff", borderRadius: 12, border: "1px solid #bfdbfe" }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 800, marginBottom: 10, color: "#1e40af" }}>🔔 Gửi thông báo</div>
+                    <input type="text" placeholder="Tiêu đề" value={notiTitle} onChange={(e) => setNotiTitle(e.target.value)} style={input} />
+                    <textarea placeholder="Nội dung" value={notiContent} onChange={(e) => setNotiContent(e.target.value)} style={{ ...input, minHeight: 80, resize: "vertical" }} />
+                    <AdminButton variant="primary" style={{ width: "100%" }} loading={submitting} onClick={handleNotify}>Gửi thông báo</AdminButton>
+                  </div>
+
+                  {/* Tặng voucher */}
+                  <div style={{ padding: 16, background: "#f5f3ff", borderRadius: 12, border: "1px solid #ddd6fe" }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 800, marginBottom: 10, color: "#6d28d9" }}>🎁 Tặng voucher</div>
+                    <input type="text" placeholder="Mã voucher (VD: VIP50)" value={voucherCode} onChange={(e) => setVoucherCode(e.target.value.toUpperCase())} style={input} />
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
+                      <select value={voucherType} onChange={(e) => setVoucherType(e.target.value as "percent" | "fixed")} style={input}>
+                        <option value="percent">Giảm %</option>
+                        <option value="fixed">Giảm tiền</option>
+                      </select>
+                      <input type="number" placeholder={voucherType === "percent" ? "VD: 10 (%)" : "VD: 50000 (đ)"} value={voucherValue} onChange={(e) => setVoucherValue(e.target.value)} style={{ ...input, marginBottom: 0 }} />
+                    </div>
+                    <AdminButton variant="primary" style={{ width: "100%" }} loading={submitting} onClick={handleGrantVoucher}>Tặng voucher</AdminButton>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: ORDERS */}
+              {tab === "orders" && (
+                loadingTab ? <div style={{ textAlign: "center", padding: 40, color: "#64748b" }}>Đang tải...</div> :
+                orders.length === 0 ? <div style={{ textAlign: "center", padding: 40, color: "#94a3b8" }}>Chưa có đơn hàng</div> :
+                <div style={{ display: "grid", gap: 8 }}>
+                  {orders.map((o) => (
+                    <div key={o.id} style={{ padding: 12, background: "#f8fafc", borderRadius: 10, display: "flex", justifyContent: "space-between", gap: 10 }}>
+                      <div>
+                        <div style={{ fontSize: 13.5, fontWeight: 700 }}>{o.serviceName}</div>
+                        <div style={{ fontSize: 11.5, color: "#64748b" }}><code>{o.orderCode}</code> • {new Date(o.createdAt).toLocaleString("vi-VN")}</div>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <div style={{ fontSize: 14, fontWeight: 900, color: "#10b981" }}>{fmt(o.amount)}</div>
+                        <div style={{ fontSize: 11 }}>
+                          {o.status === "paid" ? <AdminBadge variant="success">Đã TT</AdminBadge> :
+                           o.status === "completed" ? <AdminBadge variant="success">Hoàn thành</AdminBadge> :
+                           o.status === "cancelled" ? <AdminBadge variant="danger">Đã hủy</AdminBadge> :
+                           <AdminBadge variant="warning">{o.status}</AdminBadge>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* TAB 4: TRANSACTIONS */}
+              {tab === "transactions" && (
+                loadingTab ? <div style={{ textAlign: "center", padding: 40, color: "#64748b" }}>Đang tải...</div> :
+                txs.length === 0 ? <div style={{ textAlign: "center", padding: 40, color: "#94a3b8" }}>Chưa có giao dịch</div> :
+                <div style={{ display: "grid", gap: 8 }}>
+                  {txs.map((t) => (
+                    <div key={t.id} style={{ padding: 12, background: "#f8fafc", borderRadius: 10, display: "flex", justifyContent: "space-between", gap: 10 }}>
+                      <div>
+                        <div style={{ fontSize: 13.5, fontWeight: 700 }}>{t.description}</div>
+                        <div style={{ fontSize: 11.5, color: "#64748b" }}>{t.type} • {new Date(t.createdAt).toLocaleString("vi-VN")}</div>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <div style={{ fontSize: 14, fontWeight: 900, color: t.amount >= 0 ? "#10b981" : "#dc2626" }}>
+                          {t.amount >= 0 ? "+" : ""}{fmt(t.amount)}
+                        </div>
+                        <AdminBadge variant={t.status === "completed" ? "success" : "warning"}>{t.status}</AdminBadge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* TAB 5: DANGER */}
+              {tab === "danger" && (
+                <div style={{ padding: 20, background: "#fef2f2", borderRadius: 12, border: "1px solid #fecaca" }}>
+                  <div style={{ fontSize: 15, fontWeight: 900, color: "#991b1b", marginBottom: 8 }}>⚠️ Vùng nguy hiểm</div>
+                  <p style={{ fontSize: 13, color: "#7f1d1d", lineHeight: 1.6, marginBottom: 16 }}>
+                    Xóa user sẽ <b>ẩn vĩnh viễn</b> tài khoản này. User sẽ không thể đăng nhập. Hành động này <b>KHÔNG THỂ HOÀN TÁC</b>.
+                  </p>
+                  <AdminButton variant="danger" style={{ width: "100%" }} loading={submitting} onClick={handleDelete}>
+                    🗑️ Xóa vĩnh viễn user này
+                  </AdminButton>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
-function MiniStat({
-  label,
-  value,
-  icon,
-  color,
-}: {
-  label: string;
-  value: number | string;
-  icon: string;
-  color: string;
-}) {
+const th: React.CSSProperties = { padding: "12px 16px", textAlign: "left", fontSize: 11.5, fontWeight: 800, color: "#64748b", textTransform: "uppercase", letterSpacing: .5, whiteSpace: "nowrap" };
+const td: React.CSSProperties = { padding: "14px 16px", verticalAlign: "middle" };
+const input: React.CSSProperties = {
+  width: "100%", padding: "10px 14px", background: "#fff",
+  border: "1px solid #e2e8f0", borderRadius: 10, fontSize: 13.5,
+  fontFamily: "inherit", color: "#0f172a", outline: "none", marginBottom: 10, boxSizing: "border-box",
+};
+
+function pill(active: boolean, color = "#2563eb"): React.CSSProperties {
+  return {
+    padding: "8px 14px", fontSize: 12.5, fontWeight: 700,
+    fontFamily: "inherit", borderRadius: 8, border: "1px solid",
+    borderColor: active ? color : "#e2e8f0",
+    background: active ? `${color}15` : "#fff",
+    color: active ? color : "#475569",
+    cursor: "pointer",
+  };
+}
+
+function MiniStat({ label, value, color, icon }: { label: string; value: string | number; color: string; icon: string }) {
   return (
-    <div
-      style={{
-        padding: "14px 16px",
-        background: "#fff",
-        border: "1px solid #e2e8f0",
-        borderRadius: 12,
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-      }}
-    >
-      <div
-        style={{
-          width: 38,
-          height: 38,
-          borderRadius: 10,
-          background: `${color}15`,
-          color,
-          display: "grid",
-          placeItems: "center",
-          fontSize: 18,
-          flexShrink: 0,
-        }}
-      >
-        {icon}
-      </div>
+    <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, padding: 16, display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{ width: 42, height: 42, borderRadius: 12, background: `${color}15`, color, display: "grid", placeItems: "center", fontSize: 20, flexShrink: 0 }}>{icon}</div>
       <div style={{ minWidth: 0 }}>
-        <div
-          style={{
-            fontSize: 11,
-            color: "#64748b",
-            fontWeight: 700,
-            textTransform: "uppercase",
-            letterSpacing: "0.3px",
-            marginBottom: 2,
-          }}
-        >
-          {label}
-        </div>
-        <div style={{ fontSize: 16, fontWeight: 900, color: "#0f172a" }}>
-          {value}
-        </div>
+        <div style={{ fontSize: 11, color: "#64748b", fontWeight: 700, textTransform: "uppercase", letterSpacing: .4 }}>{label}</div>
+        <div style={{ fontSize: 18, fontWeight: 900, color: "#0f172a", marginTop: 2 }}>{value}</div>
       </div>
     </div>
   );
 }
 
-function MenuItem({
-  icon,
-  label,
-  onClick,
-  color = "#475569",
-}: {
-  icon: string;
-  label: string;
-  onClick: () => void;
-  color?: string;
-}) {
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <button
-      onClick={onClick}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        width: "100%",
-        padding: "8px 10px",
-        background: "transparent",
-        border: "none",
-        borderRadius: 8,
-        fontSize: 13,
-        fontWeight: 700,
-        color,
-        cursor: "pointer",
-        fontFamily: "inherit",
-        textAlign: "left",
-        transition: "background 0.15s",
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = "#f8fafc")}
-      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-    >
-      <span style={{ fontSize: 15, width: 18, textAlign: "center" }}>{icon}</span>
-      <span>{label}</span>
-    </button>
+    <div style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "6px 0", borderBottom: "1px solid #f1f5f9" }}>
+      <span style={{ color: "#64748b" }}>{label}</span>
+      <span style={{ fontWeight: 700, color: "#0f172a", textAlign: "right" }}>{value}</span>
+    </div>
   );
 }
-
-const thStyle: React.CSSProperties = {
-  padding: "12px 16px",
-  fontSize: 11,
-  fontWeight: 800,
-  color: "#64748b",
-  textTransform: "uppercase",
-  letterSpacing: "0.5px",
-  textAlign: "left",
-  borderBottom: "1px solid #e2e8f0",
-};
-
-const tdStyle: React.CSSProperties = {
-  padding: "14px 16px",
-  fontSize: 13.5,
-  color: "#1e293b",
-  verticalAlign: "middle",
-};
-
-const labelStyle: React.CSSProperties = {
-  display: "block",
-  fontSize: 13,
-  fontWeight: 700,
-  marginBottom: 8,
-  color: "#374151",
-};

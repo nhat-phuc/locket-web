@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { verifyToken, type JWTPayload } from "./auth";
 
 const COOKIE_NAME = "locket_token";
@@ -15,8 +15,21 @@ export async function setSessionCookie(token: string) {
 }
 
 export async function getSession(): Promise<JWTPayload | null> {
+  // 1. Đọc từ cookie
   const cookieStore = await cookies();
-  const token = cookieStore.get(COOKIE_NAME)?.value;
+  let token = cookieStore.get(COOKIE_NAME)?.value;
+
+  // 2. Fallback: đọc từ Authorization Bearer
+  if (!token) {
+    try {
+      const headerStore = await headers();
+      const authHeader = headerStore.get("authorization");
+      if (authHeader?.startsWith("Bearer ")) {
+        token = authHeader.slice(7);
+      }
+    } catch {}
+  }
+
   if (!token) return null;
   return verifyToken(token);
 }

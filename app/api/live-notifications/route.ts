@@ -14,7 +14,7 @@ export async function GET() {
   try {
     const session = await getSession();
 
-    // Lấy 20 giao dịch nạp gần nhất
+    // 20 giao dịch nạp gần nhất
     const txs = await prisma.transaction.findMany({
       where: {
         type: { in: ["recharge", "deposit", "admin_recharge"] },
@@ -42,7 +42,7 @@ export async function GET() {
       };
     });
 
-    // Nếu user có giao dịch nạp trong 5 phút gần đây
+    // Nạp tiền gần đây (<5 phút)
     let myRecentRecharge: any = null;
     if (session) {
       const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000);
@@ -64,9 +64,42 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json({ success: true, items, myRecentRecharge });
+    // Mua gói gần đây (<5 phút) — đơn đã thanh toán
+    let myRecentOrder: any = null;
+    if (session) {
+      const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000);
+      const order = await prisma.order.findFirst({
+        where: {
+          userId: session.userId,
+          status: { in: ["paid", "completed", "processing"] },
+          paidAt: { gte: fiveMinAgo },
+        },
+        orderBy: { paidAt: "desc" },
+      });
+      if (order) {
+        myRecentOrder = {
+          id: order.id,
+          orderCode: order.orderCode,
+          serviceName: order.serviceName,
+          amount: order.finalAmount,
+          createdAt: order.paidAt,
+        };
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      items,
+      myRecentRecharge,
+      myRecentOrder,
+    });
   } catch (error) {
     console.error("[live-notifications]", error);
-    return NextResponse.json({ success: true, items: [], myRecentRecharge: null });
+    return NextResponse.json({
+      success: true,
+      items: [],
+      myRecentRecharge: null,
+      myRecentOrder: null,
+    });
   }
 }

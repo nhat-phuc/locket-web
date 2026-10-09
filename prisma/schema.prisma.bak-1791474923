@@ -91,7 +91,6 @@ model ServicePackage {
   price         Int
   originalPrice Int?
   discount      Int?
-  features      String    @default("[]")
   isPopular     Boolean   @default(false)
   order         Int       @default(0)
 
